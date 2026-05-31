@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { translate, detectLang, type Lang } from './i18n';
 
 export interface UserProfile {
   name: string;
@@ -13,6 +14,9 @@ interface Store {
   toggleFavorite: (id: number) => void;
   user: UserProfile;
   updateUser: (patch: Partial<UserProfile>) => void;
+  lang: Lang;
+  setLang: (l: Lang) => void;
+  t: (key: string) => string;
 }
 
 const StoreContext = createContext<Store | null>(null);
@@ -31,16 +35,20 @@ function load<T>(key: string, fallback: T): T {
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<number[]>(() => load('wetigo:favorites', [1, 2, 3]));
   const [user, setUser] = useState<UserProfile>(() => load('wetigo:user', DEFAULT_USER));
+  const [lang, setLangState] = useState<Lang>(() => load<Lang | null>('wetigo:lang', null) ?? detectLang());
 
   useEffect(() => { localStorage.setItem('wetigo:favorites', JSON.stringify(favorites)); }, [favorites]);
   useEffect(() => { localStorage.setItem('wetigo:user', JSON.stringify(user)); }, [user]);
+  useEffect(() => { localStorage.setItem('wetigo:lang', JSON.stringify(lang)); document.documentElement.lang = lang; }, [lang]);
 
   const isFavorite = (id: number) => favorites.includes(id);
   const toggleFavorite = (id: number) => setFavorites((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id]));
   const updateUser = (patch: Partial<UserProfile>) => setUser((u) => ({ ...u, ...patch }));
+  const setLang = (l: Lang) => setLangState(l);
+  const t = (key: string) => translate(lang, key);
 
   return (
-    <StoreContext.Provider value={{ favorites, isFavorite, toggleFavorite, user, updateUser }}>
+    <StoreContext.Provider value={{ favorites, isFavorite, toggleFavorite, user, updateUser, lang, setLang, t }}>
       {children}
     </StoreContext.Provider>
   );

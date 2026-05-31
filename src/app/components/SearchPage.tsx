@@ -20,7 +20,7 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
   const [openNow, setOpenNow] = useState(false);
   const [topRated, setTopRated] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
-  const { favorites, isFavorite, toggleFavorite } = useStore();
+  const { favorites, isFavorite, toggleFavorite, t } = useStore();
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
 
@@ -146,10 +146,10 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="relative flex-1 bg-white rounded-2xl shadow-sm border border-slate-200">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-          <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search businesses, locations..." className="w-full pl-12 pr-4 py-3.5 bg-transparent text-[#2b2521] placeholder:text-slate-400 focus:outline-none rounded-2xl" />
+          <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={t('explore.searchPh')} className="w-full pl-12 pr-4 py-3.5 bg-transparent text-[#2b2521] placeholder:text-slate-400 focus:outline-none rounded-2xl" />
         </div>
         <button onClick={useMyLocation} className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-sm font-semibold text-[#2b2521] hover:border-[#6200FF] hover:text-[#6200FF] transition-colors shrink-0">
-          <Crosshair size={17} className={locating ? 'animate-spin' : ''} /> {userLoc ? 'Located' : 'Use my location'}
+          <Crosshair size={17} className={locating ? 'animate-spin' : ''} /> {userLoc ? t('explore.located') : t('explore.useLocation')}
         </button>
         <div className="flex items-center gap-1 bg-white rounded-2xl border border-slate-200 p-1 shadow-sm shrink-0">
           {([['map', MapIcon, 'Map'], ['list', LayoutGrid, 'List']] as const).map(([id, Icon, label]) => (
@@ -162,15 +162,15 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
 
       {/* quick chips */}
       <div className="flex items-center gap-2 mb-5 overflow-x-auto pb-1">
-        <button onClick={() => setOpenNow(!openNow)} className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium border transition-colors shrink-0" style={openNow ? { background: '#2b2521', color: '#fff', borderColor: '#2b2521' } : { background: '#fff', color: '#5c524a', borderColor: '#e5e7eb' }}><Clock size={15} /> Open now</button>
-        <button onClick={() => setTopRated(!topRated)} className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium border transition-colors shrink-0" style={topRated ? { background: '#2b2521', color: '#fff', borderColor: '#2b2521' } : { background: '#fff', color: '#5c524a', borderColor: '#e5e7eb' }}><Star size={15} /> Top rated</button>
+        <button onClick={() => setOpenNow(!openNow)} className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium border transition-colors shrink-0" style={openNow ? { background: '#2b2521', color: '#fff', borderColor: '#2b2521' } : { background: '#fff', color: '#5c524a', borderColor: '#e5e7eb' }}><Clock size={15} /> {t('common.open')}</button>
+        <button onClick={() => setTopRated(!topRated)} className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium border transition-colors shrink-0" style={topRated ? { background: '#2b2521', color: '#fff', borderColor: '#2b2521' } : { background: '#fff', color: '#5c524a', borderColor: '#e5e7eb' }}><Star size={15} /> {t('explore.topRated')}</button>
         {categories.slice(1).map((cat) => (
           <button key={cat.id} onClick={() => setSelectedCategory(selectedCategory === cat.id ? 'all' : cat.id)} className="px-3.5 py-2 rounded-full text-sm font-medium border transition-colors shrink-0" style={selectedCategory === cat.id ? { background: '#6200FF', color: '#fff', borderColor: '#6200FF' } : { background: '#fff', color: '#5c524a', borderColor: '#e5e7eb' }}>{cat.name}</button>
         ))}
-        {hasFilters && <button onClick={clearFilters} className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-slate-400 hover:text-slate-700 shrink-0"><X size={15} /> Clear</button>}
+        {hasFilters && <button onClick={clearFilters} className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-slate-400 hover:text-slate-700 shrink-0"><X size={15} /> {t('explore.clear')}</button>}
       </div>
 
-      <p className="text-sm text-[#8a7d72] mb-4 font-medium">{results.length} {results.length === 1 ? 'place' : 'places'} found{userLoc ? ' · sorted by relevance' : ''}{favorites.length ? ` · ${favorites.length} saved` : ''}</p>
+      <p className="text-sm text-[#8a7d72] mb-4 font-medium">{results.length} {t('common.places')} {t('explore.found')}{userLoc ? ' · sorted by relevance' : ''}{favorites.length ? ` · ${favorites.length} saved` : ''}</p>
 
       {view === 'map' ? (
         <div className="grid lg:grid-cols-2 gap-6">

@@ -2,12 +2,14 @@ import { useRef, useState } from 'react';
 import { Eye, EyeOff, Star, MapPin, ArrowRight, Check, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import wetigoLogo from './figma/logo.png';
+import { useStore } from '../store';
 
 interface AuthPageProps {
   onAuth: () => void;
 }
 
 export function AuthPage({ onAuth }: AuthPageProps) {
+  const { t } = useStore();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [step, setStep] = useState<'form' | 'verify'>('form');
   const [showPassword, setShowPassword] = useState(false);
@@ -53,12 +55,12 @@ export function AuthPage({ onAuth }: AuthPageProps) {
               <motion.div key="form" initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
                 className="flex-1 flex flex-col justify-center max-w-md w-full">
                 <h1 className="font-display text-4xl sm:text-5xl font-semibold text-[#2b2521] mb-3">
-                  {isSignup ? 'Create account' : 'Welcome back'}
+                  {isSignup ? t('auth.create') : t('auth.welcome')}
                 </h1>
                 <p className="text-slate-500 mb-8">
-                  {isSignup ? 'Already a member?' : "Don't have an account?"}{' '}
+                  {isSignup ? t('auth.haveAccount') : t('auth.noAccount')}{' '}
                   <button onClick={() => setMode(isSignup ? 'signin' : 'signup')} className="font-semibold text-[#6200FF] underline underline-offset-4 hover:opacity-80">
-                    {isSignup ? 'Sign in' : 'Create now'}
+                    {isSignup ? t('auth.signin') : t('auth.createNow')}
                   </button>
                 </p>
 
@@ -66,19 +68,19 @@ export function AuthPage({ onAuth }: AuthPageProps) {
                   <AnimatePresence mode="popLayout">
                     {isSignup && (
                       <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
-                        <label className="block text-sm font-medium text-[#5c524a] mb-1.5">Full name</label>
+                        <label className="block text-sm font-medium text-[#5c524a] mb-1.5">{t('auth.fullname')}</label>
                         <input type="text" placeholder="Jane Doe" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
                           className="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-slate-200 text-[#2b2521] placeholder:text-slate-400 focus:outline-none focus:border-[#6200FF] focus:ring-2 focus:ring-[#6200FF]/15 transition" />
                       </motion.div>
                     )}
                   </AnimatePresence>
                   <div>
-                    <label className="block text-sm font-medium text-[#5c524a] mb-1.5">E-mail</label>
+                    <label className="block text-sm font-medium text-[#5c524a] mb-1.5">{t('auth.email')}</label>
                     <input type="email" placeholder="example@gmail.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
                       className="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-slate-200 text-[#2b2521] placeholder:text-slate-400 focus:outline-none focus:border-[#6200FF] focus:ring-2 focus:ring-[#6200FF]/15 transition" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#5c524a] mb-1.5">Password</label>
+                    <label className="block text-sm font-medium text-[#5c524a] mb-1.5">{t('auth.password')}</label>
                     <div className="relative">
                       <input type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}
                         className="w-full px-4 py-3.5 pr-12 rounded-xl bg-slate-50 border border-slate-200 text-[#2b2521] placeholder:text-slate-400 focus:outline-none focus:border-[#6200FF] focus:ring-2 focus:ring-[#6200FF]/15 transition" />
@@ -92,13 +94,13 @@ export function AuthPage({ onAuth }: AuthPageProps) {
                       <span className={`w-5 h-5 rounded-md border flex items-center justify-center transition ${remember ? 'bg-[#6200FF] border-[#6200FF]' : 'border-slate-300 bg-white'}`}>
                         {remember && <Check size={13} className="text-white" strokeWidth={3} />}
                       </span>
-                      Remember me
+                      {t('auth.remember')}
                     </button>
-                    <button type="button" className="text-sm font-semibold text-[#2b2521] underline underline-offset-4 hover:text-[#6200FF]">Forgot password?</button>
+                    <button type="button" className="text-sm font-semibold text-[#2b2521] underline underline-offset-4 hover:text-[#6200FF]">{t('auth.forgot')}</button>
                   </div>
                   <button type="submit" disabled={!canSubmit}
                     className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#6200FF] text-white font-semibold shadow-lg shadow-[#6200FF]/25 hover:bg-[#5400dd] disabled:bg-slate-200 disabled:shadow-none disabled:cursor-not-allowed transition">
-                    {isSignup ? 'Create account' : 'Sign in'} <ArrowRight size={18} />
+                    {isSignup ? t('auth.create') : t('auth.signin')} <ArrowRight size={18} />
                   </button>
                 </form>
 
@@ -110,11 +112,11 @@ export function AuthPage({ onAuth }: AuthPageProps) {
                 <div className="space-y-3">
                   <button onClick={onAuth} className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-slate-200 bg-white text-[#2b2521] font-medium hover:bg-slate-50 transition">
                     <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1Z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23Z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84Z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38Z"/></svg>
-                    Continue with Google
+                    {t('auth.continueGoogle')}
                   </button>
                   <button onClick={onAuth} className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-slate-200 bg-white text-[#2b2521] font-medium hover:bg-slate-50 transition">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.69.24 2.69.24v2.97h-1.52c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07Z"/></svg>
-                    Continue with Facebook
+                    {t('auth.continueFacebook')}
                   </button>
                 </div>
               </motion.div>
@@ -122,13 +124,13 @@ export function AuthPage({ onAuth }: AuthPageProps) {
               <motion.div key="verify" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }}
                 className="flex-1 flex flex-col justify-center max-w-md w-full">
                 <button onClick={() => setStep('form')} className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-[#6200FF] mb-6 w-fit">
-                  <ArrowLeft size={16} /> Back
+                  <ArrowLeft size={16} /> {t('auth.back')}
                 </button>
                 <div className="w-14 h-14 rounded-2xl bg-[#f1ebff] flex items-center justify-center mb-5">
                   <ShieldCheck size={26} className="text-[#6200FF]" />
                 </div>
-                <h1 className="font-display text-3xl sm:text-4xl font-semibold text-[#2b2521] mb-2">Verify your email</h1>
-                <p className="text-slate-500 mb-8">We sent a 6-digit code to <span className="font-semibold text-[#2b2521]">{form.email || 'your email'}</span>. Enter it below to continue.</p>
+                <h1 className="font-display text-3xl sm:text-4xl font-semibold text-[#2b2521] mb-2">{t('auth.verifyTitle')}</h1>
+                <p className="text-slate-500 mb-8">{t('auth.verifyDesc')} <span className="font-semibold text-[#2b2521]">{form.email || 'your email'}</span>. Enter it below to continue.</p>
 
                 <div className="flex gap-2 sm:gap-3 mb-6">
                   {code.map((c, i) => (
@@ -147,12 +149,12 @@ export function AuthPage({ onAuth }: AuthPageProps) {
 
                 <button onClick={verify} disabled={!codeComplete}
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#6200FF] text-white font-semibold shadow-lg shadow-[#6200FF]/25 hover:bg-[#5400dd] disabled:bg-slate-200 disabled:shadow-none disabled:cursor-not-allowed transition mb-4">
-                  Verify & continue <ArrowRight size={18} />
+                  {t('auth.verifyContinue')} <ArrowRight size={18} />
                 </button>
                 <p className="text-sm text-slate-500 text-center">
-                  Didn't get it?{' '}
+                  {t('auth.didnt')}{' '}
                   <button onClick={() => { setResent(true); setTimeout(() => setResent(false), 2500); }} className="font-semibold text-[#6200FF] hover:opacity-80">
-                    {resent ? 'Code resent ✓' : 'Resend code'}
+                    {resent ? t('auth.resent') : t('auth.resend')}
                   </button>
                 </p>
               </motion.div>
@@ -187,8 +189,8 @@ export function AuthPage({ onAuth }: AuthPageProps) {
           </div>
 
           <div className="relative">
-            <h2 className="font-display text-3xl font-semibold text-white leading-tight mb-3">Discover places<br />worth your time.</h2>
-            <p className="text-white/80 leading-relaxed max-w-sm">Join 50,000+ explorers finding and reviewing the best local businesses — rated by a community you can trust.</p>
+            <h2 className="font-display text-3xl font-semibold text-white leading-tight mb-3">{t('auth.discover')}</h2>
+            <p className="text-white/80 leading-relaxed max-w-sm">{t('auth.discoverDesc')}</p>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { Crown, MapPin, Star, Heart, Bell, LogOut, Plus, Globe, Languages, Penci
 import { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
+import { LANGUAGES, type Lang } from '../i18n';
 
 interface ProfilePageProps {
   onShowSubscription: () => void;
@@ -11,11 +12,25 @@ interface ProfilePageProps {
 }
 
 export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan = 'free' }: ProfilePageProps) {
-  const { user, updateUser, favorites } = useStore();
-  const [notifications, setNotifications] = useState(true);
+  const { user, updateUser, favorites, lang, setLang, t } = useStore();
+  const [notifications, setNotifications] = useState(false);
   const [emailUpdates, setEmailUpdates] = useState(false);
-  const [language, setLanguage] = useState('en');
   const [country, setCountry] = useState('us');
+  const [toast, setToast] = useState<string | null>(null);
+  const flash = (m: string) => { setToast(m); window.clearTimeout((flash as any)._t); (flash as any)._t = window.setTimeout(() => setToast(null), 2200); };
+
+  const changeCountry = (c: string) => { setCountry(c); flash(t('toast.country')); };
+  const changeLang = (l: Lang) => { setLang(l); flash(t('toast.langChanged')); };
+
+  const togglePush = async () => {
+    if (notifications) { setNotifications(false); flash(t('toast.pushOff')); return; }
+    if (typeof Notification === 'undefined') { setNotifications(true); flash(t('toast.pushOn')); return; }
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm === 'granted') { setNotifications(true); flash(t('toast.pushOn')); new Notification('Wetigo', { body: 'Notifications are on 🎉' }); }
+      else { flash(t('toast.pushBlocked')); }
+    } catch { setNotifications(true); flash(t('toast.pushOn')); }
+  };
 
   // edit-profile modal
   const [editing, setEditing] = useState(false);
@@ -100,8 +115,8 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan
             <Plus size={24} className="text-white" />
           </div>
           <div className="text-left">
-            <p className="font-semibold text-slate-900 text-sm mb-1">Add Business</p>
-            <p className="text-xs text-slate-600">List your location</p>
+            <p className="font-semibold text-slate-900 text-sm mb-1">{t('settings.addBusiness')}</p>
+            <p className="text-xs text-slate-600">{t('settings.listLocation')}</p>
           </div>
         </motion.button>
 
@@ -122,7 +137,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan
 
       {/* Recent Activity */}
       <div className="mb-8">
-        <h2 className="font-semibold text-slate-900 mb-4">Recent Activity</h2>
+        <h2 className="font-semibold text-slate-900 mb-4">{t('settings.recent')}</h2>
         <div className="space-y-3">
           {recentActivity.map((activity, idx) => {
             const Icon = activity.icon;
@@ -153,89 +168,78 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan
 
       {/* Settings */}
       <div className="pb-6">
-        <h2 className="font-semibold text-slate-900 mb-4">Settings</h2>
+        <h2 className="font-semibold text-slate-900 mb-4">{t('settings.title')}</h2>
         <div className="bg-white rounded-3xl shadow-md overflow-hidden border border-slate-200 divide-y divide-slate-100">
-          {/* Notifications toggle */}
+          {/* Push notifications */}
           <div className="flex items-center justify-between p-5">
             <div className="flex items-center gap-3">
               <Bell size={20} className="text-slate-700" />
               <div>
-                <span className="text-slate-900 font-medium block">Push notifications</span>
-                <span className="text-xs text-slate-500">New reviews & replies near you</span>
+                <span className="text-slate-900 font-medium block">{t('settings.push')}</span>
+                <span className="text-xs text-slate-500">{t('settings.pushDesc')}</span>
               </div>
             </div>
-            <label className="relative inline-block w-12 h-6 cursor-pointer shrink-0">
-              <input type="checkbox" checked={notifications} onChange={(e) => setNotifications(e.target.checked)} className="sr-only peer" />
-              <div className="w-12 h-6 bg-slate-200 peer-checked:bg-[#6200FF] rounded-full transition-all duration-300"></div>
-              <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-6 shadow-md"></div>
-            </label>
+            <button onClick={togglePush} className="relative inline-block w-12 h-6 shrink-0" aria-label="toggle notifications">
+              <div className="w-12 h-6 rounded-full transition-all duration-300" style={{ background: notifications ? '#6200FF' : '#e2e8f0' }}></div>
+              <div className="absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-md" style={{ left: notifications ? 28 : 4 }}></div>
+            </button>
           </div>
 
-          {/* Email updates toggle */}
+          {/* Email updates */}
           <div className="flex items-center justify-between p-5">
             <div className="flex items-center gap-3">
               <Bell size={20} className="text-slate-700" />
               <div>
-                <span className="text-slate-900 font-medium block">Email updates</span>
-                <span className="text-xs text-slate-500">Weekly digest of trending places</span>
+                <span className="text-slate-900 font-medium block">{t('settings.email')}</span>
+                <span className="text-xs text-slate-500">{t('settings.emailDesc')}</span>
               </div>
             </div>
-            <label className="relative inline-block w-12 h-6 cursor-pointer shrink-0">
-              <input type="checkbox" checked={emailUpdates} onChange={(e) => setEmailUpdates(e.target.checked)} className="sr-only peer" />
-              <div className="w-12 h-6 bg-slate-200 peer-checked:bg-[#6200FF] rounded-full transition-all duration-300"></div>
-              <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-6 shadow-md"></div>
-            </label>
+            <button onClick={() => setEmailUpdates(!emailUpdates)} className="relative inline-block w-12 h-6 shrink-0" aria-label="toggle email">
+              <div className="w-12 h-6 rounded-full transition-all duration-300" style={{ background: emailUpdates ? '#6200FF' : '#e2e8f0' }}></div>
+              <div className="absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-md" style={{ left: emailUpdates ? 28 : 4 }}></div>
+            </button>
           </div>
 
           {/* Country */}
           <div className="flex items-center justify-between gap-4 p-5">
-            <div className="flex items-center gap-3">
-              <Globe size={20} className="text-slate-700" />
-              <span className="text-slate-900 font-medium">Country</span>
-            </div>
-            <select
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#6200FF]"
-            >
+            <div className="flex items-center gap-3"><Globe size={20} className="text-slate-700" /><span className="text-slate-900 font-medium">{t('settings.country')}</span></div>
+            <select value={country} onChange={(e) => changeCountry(e.target.value)}
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#6200FF]">
               <option value="us">🇺🇸 United States</option>
+              <option value="az">🇦🇿 Azerbaijan</option>
               <option value="uk">🇬🇧 United Kingdom</option>
-              <option value="ca">🇨🇦 Canada</option>
-              <option value="au">🇦🇺 Australia</option>
+              <option value="tr">🇹🇷 Türkiye</option>
               <option value="de">🇩🇪 Germany</option>
               <option value="fr">🇫🇷 France</option>
-              <option value="id">🇮🇩 Indonesia</option>
+              <option value="es">🇪🇸 Spain</option>
             </select>
           </div>
 
           {/* Language */}
           <div className="flex items-center justify-between gap-4 p-5">
-            <div className="flex items-center gap-3">
-              <Languages size={20} className="text-slate-700" />
-              <span className="text-slate-900 font-medium">Language</span>
-            </div>
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#6200FF]"
-            >
-              <option value="en">English</option>
-              <option value="es">Español</option>
-              <option value="fr">Français</option>
-              <option value="de">Deutsch</option>
-              <option value="id">Bahasa Indonesia</option>
+            <div className="flex items-center gap-3"><Languages size={20} className="text-slate-700" /><span className="text-slate-900 font-medium">{t('settings.language')}</span></div>
+            <select value={lang} onChange={(e) => changeLang(e.target.value as Lang)}
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#6200FF]">
+              {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}
             </select>
           </div>
 
           {/* Sign out */}
           <button onClick={onSignOut} className="w-full flex items-center justify-between p-5 hover:bg-red-50 transition-colors">
-            <div className="flex items-center gap-3">
-              <LogOut size={20} className="text-red-600" />
-              <span className="text-red-600 font-medium">Sign Out</span>
-            </div>
+            <div className="flex items-center gap-3"><LogOut size={20} className="text-red-600" /><span className="text-red-600 font-medium">{t('settings.signout')}</span></div>
           </button>
         </div>
       </div>
+
+      {/* toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
+            className="fixed top-24 left-1/2 -translate-x-1/2 z-[1100] bg-[#2b2521] text-white text-sm font-medium px-5 py-3 rounded-full shadow-2xl">
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Edit profile modal */}
       <AnimatePresence>

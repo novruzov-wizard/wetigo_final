@@ -24,6 +24,7 @@ export default function App() {
   const [searchCategory, setSearchCategory] = useState('all');
   const [plan, setPlan] = useState('free');
   const [checkoutPlan, setCheckoutPlan] = useState<SelectedPlan | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const handleSelectLocation = (id: number) => {
     setSelectedLocation(id);
@@ -153,6 +154,8 @@ export default function App() {
         onNavigate={navigate}
         onAddLocation={() => setShowAddLocation(true)}
         onGoPremium={() => { setSelectedLocation(null); setShowAddLocation(false); setCheckoutPlan(null); setShowSubscription(true); }}
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
       />
       <div className="flex-1 min-w-0 flex flex-col">
         <Topbar
@@ -161,7 +164,7 @@ export default function App() {
           query={searchQuery}
           onQuery={setSearchQuery}
           onSubmit={() => handleSearch(searchQuery)}
-          onMenu={() => navigate('search')}
+          onMenu={() => setDrawerOpen(true)}
         />
         <main className="flex-1">{renderContent()}</main>
       </div>
