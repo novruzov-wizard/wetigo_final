@@ -117,6 +117,7 @@ export default function App() {
             onShowSubscription={() => setShowSubscription(true)}
             onAddLocation={() => setShowAddLocation(true)}
             onSignOut={() => { setAuthed(false); setCurrentPage('home'); }}
+            plan={plan}
           />
         );
       default:

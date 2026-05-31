@@ -2,6 +2,7 @@ import { Search, MapPin, Star, X, LayoutGrid, Map as MapIcon, Clock, Navigation,
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PLACES, distanceKm, type Place } from '../data/places';
+import { useStore } from '../store';
 
 declare const L: any;
 
@@ -19,7 +20,7 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
   const [openNow, setOpenNow] = useState(false);
   const [topRated, setTopRated] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
-  const [tracked, setTracked] = useState<number[]>([]);
+  const { favorites, isFavorite, toggleFavorite } = useStore();
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
 
@@ -49,7 +50,6 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
   const distOf = (p: Place) => (userLoc ? distanceKm(userLoc.lat, userLoc.lng, p.lat, p.lng) : null);
   const fmtDist = (d: number | null) => (d == null ? null : d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`);
 
-  const toggleTrack = (id: number) => setTracked((t) => (t.includes(id) ? t.filter((x) => x !== id) : [...t, id]));
 
   const useMyLocation = () => {
     if (!navigator.geolocation) return;
@@ -170,7 +170,7 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
         {hasFilters && <button onClick={clearFilters} className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-slate-400 hover:text-slate-700 shrink-0"><X size={15} /> Clear</button>}
       </div>
 
-      <p className="text-sm text-[#8a7d72] mb-4 font-medium">{results.length} {results.length === 1 ? 'place' : 'places'} found{userLoc ? ' · sorted by relevance' : ''}{tracked.length ? ` · ${tracked.length} tracked` : ''}</p>
+      <p className="text-sm text-[#8a7d72] mb-4 font-medium">{results.length} {results.length === 1 ? 'place' : 'places'} found{userLoc ? ' · sorted by relevance' : ''}{favorites.length ? ` · ${favorites.length} saved` : ''}</p>
 
       {view === 'map' ? (
         <div className="grid lg:grid-cols-2 gap-6">
@@ -188,8 +188,8 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
                 <div className="relative h-32">
                   <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
                   {p.premium && <span className="absolute top-2.5 left-2.5 text-[10px] font-bold text-white bg-[#6200FF] px-2 py-0.5 rounded-full shadow">★ Promoted</span>}
-                  <button onClick={(e) => { e.stopPropagation(); toggleTrack(p.id); }} className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow">
-                    <Bookmark size={14} className={tracked.includes(p.id) ? 'fill-[#6200FF] text-[#6200FF]' : 'text-[#6b6258]'} />
+                  <button onClick={(e) => { e.stopPropagation(); toggleFavorite(p.id); }} className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow">
+                    <Bookmark size={14} className={isFavorite(p.id) ? 'fill-[#6200FF] text-[#6200FF]' : 'text-[#6b6258]'} />
                   </button>
                   <span className="absolute bottom-2.5 left-2.5 text-[10px] font-semibold px-2 py-0.5 rounded-full" style={p.open ? { background: '#dff0e6', color: '#2f9461' } : { background: '#fdecec', color: '#c2603f' }}>{p.open ? 'Open now' : 'Closed'}</span>
                 </div>
@@ -230,7 +230,7 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
               <div className="p-5">
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <h3 className="font-display text-xl font-semibold text-[#2b2521] line-clamp-1 flex items-center gap-1">{p.name} {p.verified && <BadgeCheck size={16} className="text-[#6200FF]" />}</h3>
-                  <button onClick={() => toggleTrack(p.id)} className="p-1.5 rounded-lg hover:bg-[#f1ebff] shrink-0"><Bookmark size={17} className={tracked.includes(p.id) ? 'fill-[#6200FF] text-[#6200FF]' : 'text-[#a89a8b]'} /></button>
+                  <button onClick={() => toggleFavorite(p.id)} className="p-1.5 rounded-lg hover:bg-[#f1ebff] shrink-0"><Bookmark size={17} className={isFavorite(p.id) ? 'fill-[#6200FF] text-[#6200FF]' : 'text-[#a89a8b]'} /></button>
                 </div>
                 <p className="text-sm text-[#8a7d72] mb-3">{p.category} · {p.price} · {p.reviews} reviews</p>
                 <div className="flex items-center gap-1.5 text-sm text-[#a89a8b]"><MapPin size={15} className="text-[#6200FF]" /><span className="line-clamp-1">{p.city}</span>{distOf(p) != null && <span className="text-[#6200FF] font-semibold">· {fmtDist(distOf(p))}</span>}</div>

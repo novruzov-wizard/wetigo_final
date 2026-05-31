@@ -1,59 +1,40 @@
-import { Crown, MapPin, Star, Heart, Bell, LogOut, Plus, Globe, Languages } from 'lucide-react';
-import { useState } from 'react';
-import { motion } from 'motion/react';
+import { Crown, MapPin, Star, Heart, Bell, LogOut, Plus, Globe, Languages, Pencil, Camera, X, Check } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { useStore } from '../store';
 
 interface ProfilePageProps {
   onShowSubscription: () => void;
   onAddLocation: () => void;
   onSignOut: () => void;
+  plan?: string;
 }
 
-export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut }: ProfilePageProps) {
+export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan = 'free' }: ProfilePageProps) {
+  const { user, updateUser, favorites } = useStore();
   const [notifications, setNotifications] = useState(true);
   const [emailUpdates, setEmailUpdates] = useState(false);
   const [language, setLanguage] = useState('en');
   const [country, setCountry] = useState('us');
 
-  const user = {
-    name: 'Alex Thompson',
-    email: 'alex.thompson@example.com',
-    avatar: '👤',
-    joinDate: 'January 2026',
-    stats: {
-      reviews: 24,
-      favorites: 18,
-      plans: 12,
-    },
+  // edit-profile modal
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(user);
+  const avatarRef = useRef<HTMLInputElement | null>(null);
+  const openEdit = () => { setDraft(user); setEditing(true); };
+  const saveEdit = () => { updateUser(draft); setEditing(false); };
+  const onAvatar = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) setDraft((d) => ({ ...d, avatar: URL.createObjectURL(f) }));
   };
 
+  const isPremium = plan !== 'free';
+  const stats = { reviews: 24, favorites: favorites.length, plans: 12 };
+
   const recentActivity = [
-    {
-      id: 1,
-      type: 'review',
-      place: 'The Grand Ballroom',
-      action: 'Left a 5-star review',
-      time: '2 days ago',
-      icon: Star,
-      color: 'from-amber-500 to-yellow-600',
-    },
-    {
-      id: 2,
-      type: 'favorite',
-      place: 'Fitness Plus Gym',
-      action: 'Saved to favorites',
-      time: '5 days ago',
-      icon: Heart,
-      color: 'from-rose-500 to-pink-600',
-    },
-    {
-      id: 3,
-      type: 'plan',
-      place: 'La Cucina Italiana',
-      action: 'Created a visit plan',
-      time: '1 week ago',
-      icon: MapPin,
-      color: 'from-[#6200FF] to-[#8b00ff]',
-    },
+    { id: 1, type: 'review', place: 'The Grand Ballroom', action: 'Left a 5-star review', time: '2 days ago', icon: Star, color: 'from-amber-500 to-yellow-600' },
+    { id: 2, type: 'favorite', place: 'Fitness Plus Gym', action: 'Saved to favorites', time: '5 days ago', icon: Heart, color: 'from-rose-500 to-pink-600' },
+    { id: 3, type: 'plan', place: 'La Cucina Italiana', action: 'Created a visit plan', time: '1 week ago', icon: MapPin, color: 'from-[#6200FF] to-[#8b00ff]' },
   ];
 
   return (
@@ -66,24 +47,28 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut }: Pr
         >
           <div className="flex items-center gap-4 mb-6">
             <div className="relative">
-              <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-xl flex items-center justify-center text-4xl border-4 border-white/30 shadow-2xl">
-                {user.avatar}
-              </div>
+              <img src={user.avatar} alt={user.name} className="w-20 h-20 rounded-3xl object-cover border-4 border-white/30 shadow-2xl" />
               <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-xl bg-green-500 border-4 border-[#6200FF] shadow-lg"></div>
             </div>
-            <div className="flex-1">
-              <h1 className="text-2xl text-white mb-1">{user.name}</h1>
-              <p className="text-purple-100 text-sm">{user.email}</p>
-              <p className="text-purple-200 text-xs mt-1">Member since {user.joinDate}</p>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h1 className="font-display text-2xl font-bold text-white truncate">{user.name}</h1>
+                {isPremium && <span className="flex items-center gap-1 bg-amber-400 text-amber-900 text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0"><Crown size={11} /> {plan === 'business' ? 'Business' : 'Pro'}</span>}
+              </div>
+              <p className="text-purple-100 text-sm truncate">{user.email}</p>
+              <p className="text-purple-200 text-xs mt-1 line-clamp-1">{user.bio}</p>
             </div>
+            <button onClick={openEdit} className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-xl text-white text-sm font-semibold px-4 py-2 rounded-xl border border-white/30 transition-colors shrink-0">
+              <Pencil size={15} /> <span className="hidden sm:inline">Edit</span>
+            </button>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: 'Reviews', value: user.stats.reviews, icon: Star },
-              { label: 'Saved', value: user.stats.favorites, icon: Heart },
-              { label: 'Plans', value: user.stats.plans, icon: MapPin },
+              { label: 'Reviews', value: stats.reviews, icon: Star },
+              { label: 'Saved', value: stats.favorites, icon: Heart },
+              { label: 'Plans', value: stats.plans, icon: MapPin },
             ].map((stat, idx) => {
               const Icon = stat.icon;
               return (
@@ -251,6 +236,50 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut }: Pr
           </button>
         </div>
       </div>
+
+      {/* Edit profile modal */}
+      <AnimatePresence>
+        {editing && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setEditing(false)}
+            className="fixed inset-0 z-[1000] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }} onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
+              <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+                <h3 className="font-display text-xl font-bold text-[#2b2521]">Edit profile</h3>
+                <button onClick={() => setEditing(false)} className="text-slate-400 hover:text-slate-700"><X size={20} /></button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <img src={draft.avatar} alt="" className="w-20 h-20 rounded-2xl object-cover" />
+                    <button onClick={() => avatarRef.current?.click()} className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#6200FF] text-white flex items-center justify-center shadow-lg border-2 border-white">
+                      <Camera size={15} />
+                    </button>
+                    <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={onAvatar} />
+                  </div>
+                  <p className="text-sm text-slate-500">Tap the camera to upload a new photo.</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">Full name</label>
+                  <input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-[#2b2521] focus:outline-none focus:ring-2 focus:ring-[#6200FF]" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">Email</label>
+                  <input type="email" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-[#2b2521] focus:outline-none focus:ring-2 focus:ring-[#6200FF]" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">Bio</label>
+                  <textarea rows={2} value={draft.bio} onChange={(e) => setDraft({ ...draft, bio: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-[#2b2521] focus:outline-none focus:ring-2 focus:ring-[#6200FF] resize-none" />
+                </div>
+                <div className="flex gap-3 pt-1">
+                  <button onClick={() => setEditing(false)} className="flex-1 py-3 rounded-xl border border-slate-200 font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+                  <button onClick={saveEdit} disabled={!draft.name.trim() || !draft.email.trim()} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#6200FF] text-white font-semibold hover:bg-[#5400dd] disabled:bg-slate-200 disabled:cursor-not-allowed transition-colors"><Check size={17} /> Save</button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

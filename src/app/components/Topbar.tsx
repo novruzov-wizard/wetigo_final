@@ -1,4 +1,5 @@
 import { Search, Bell, Mail, Menu } from 'lucide-react';
+import { useStore } from '../store';
 
 interface TopbarProps {
   title: string;
@@ -10,6 +11,7 @@ interface TopbarProps {
 }
 
 export function Topbar({ title, emoji, query, onQuery, onSubmit, onMenu }: TopbarProps) {
+  const { user } = useStore();
   return (
     <header className="sticky top-0 z-30 bg-[#f5f6f4]/85 backdrop-blur-xl px-4 sm:px-6 lg:px-8 py-4">
       <div className="flex items-center gap-4">
@@ -43,9 +45,9 @@ export function Topbar({ title, emoji, query, onQuery, onSubmit, onMenu }: Topba
             <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#6200FF] text-white text-[9px] font-bold flex items-center justify-center">2</span>
           </button>
           <div className="flex items-center gap-2.5 pl-1.5 pr-3 py-1.5 rounded-full bg-white border border-slate-200">
-            <img src="https://i.pravatar.cc/64?img=12" alt="User" className="w-8 h-8 rounded-full object-cover" />
+            <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full object-cover" />
             <div className="hidden sm:block leading-tight">
-              <p className="text-sm font-semibold text-[#2b2521]">Jhon Smith</p>
+              <p className="text-sm font-semibold text-[#2b2521]">{user.name}</p>
               <p className="text-xs text-slate-400">User</p>
             </div>
           </div>

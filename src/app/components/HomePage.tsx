@@ -1,6 +1,7 @@
 import { ShoppingCart, Heart, Plus, Star, MapPin, ArrowUpRight, Phone, Clock, UtensilsCrossed, Pizza, Coffee, Sandwich, Salad, IceCream, Soup, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'motion/react';
+import { useStore } from '../store';
 
 interface HomePageProps {
   onSelectLocation: (id: number) => void;
@@ -11,6 +12,7 @@ interface HomePageProps {
 
 export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: HomePageProps) {
   const [activeCat, setActiveCat] = useState('all');
+  const { isFavorite, toggleFavorite } = useStore();
 
   const categories = [
     { id: 'all', name: 'All', icon: UtensilsCrossed },
@@ -102,8 +104,8 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
                 >
                   <div className="flex items-start justify-between mb-2">
                     <span className="text-xs font-semibold text-[#6200FF] bg-white/70 px-2.5 py-1 rounded-full">{p.off}</span>
-                    <button className="w-8 h-8 rounded-full bg-white/70 flex items-center justify-center text-rose-400 hover:text-rose-500">
-                      <Heart size={15} />
+                    <button onClick={() => toggleFavorite(p.id)} className="w-8 h-8 rounded-full bg-white/70 flex items-center justify-center text-rose-400 hover:text-rose-500" title="Save place">
+                      <Heart size={15} className={isFavorite(p.id) ? 'fill-rose-500 text-rose-500' : ''} />
                     </button>
                   </div>
                   <button onClick={() => onSelectLocation(p.id)} className="block w-full">
