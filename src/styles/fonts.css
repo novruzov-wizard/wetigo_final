@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Inter', sans-serif;
+
+  /* Warm editorial palette */
+  --cream: #faf4ec;
+  --cream-deep: #f1e4d6;
+  --espresso: #2b2521;
+  --tan: #d9a989;
+  --terracotta: #c98a66;
+  --brand: #6200ff;
+}
+
+html, body {
+  font-family: var(--font-sans);
+  background: #f5f6f4;
+  color: var(--espresso);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}

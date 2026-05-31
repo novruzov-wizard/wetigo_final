@@ -1,179 +1,244 @@
-import { Search, MapPin, Star, TrendingUp, Plus, Building2 } from 'lucide-react';
+import { ShoppingCart, Heart, Plus, Star, MapPin, ArrowUpRight, Phone, Clock, Pizza, Coffee, ChevronRight, Compass, Building2, Dumbbell, ShoppingBag, Footprints, Sparkles, MessageCircle } from 'lucide-react';
 import { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
+import { useStore } from '../store';
 
 interface HomePageProps {
   onSelectLocation: (id: number) => void;
   onCategorySelect: (category: string) => void;
+  onSearch: (query: string) => void;
   onAddLocation: () => void;
 }
 
 export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: HomePageProps) {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCat, setActiveCat] = useState('all');
+  const [toast, setToast] = useState<string | null>(null);
+  const { isFavorite, toggleFavorite } = useStore();
 
   const categories = [
-    { id: 'wedding', name: 'Wedding Venues', icon: Building2, color: 'from-rose-500 to-pink-600' },
-    { id: 'restaurant', name: 'Restaurants', icon: Building2, color: 'from-orange-500 to-amber-600' },
-    { id: 'fashion', name: 'Fashion', icon: Building2, color: 'from-violet-500 to-purple-600' },
-    { id: 'footwear', name: 'Footwear', icon: Building2, color: 'from-sky-500 to-blue-600' },
-    { id: 'fitness', name: 'Fitness', icon: Building2, color: 'from-emerald-500 to-green-600' },
-    { id: 'cafe', name: 'Cafes', icon: Building2, color: 'from-amber-500 to-yellow-600' },
-    { id: 'beauty', name: 'Beauty & Spa', icon: Building2, color: 'from-pink-500 to-rose-600' },
-    { id: 'entertainment', name: 'Entertainment', icon: Building2, color: 'from-indigo-500 to-blue-600' },
+    { id: 'all', name: 'All', icon: Compass, tint: '#f1ebff', fg: '#6200FF', count: '3.2k' },
+    { id: 'restaurant', name: 'Dining', icon: Pizza, tint: '#fef0e3', fg: '#c2853f', count: '1.2k' },
+    { id: 'wedding', name: 'Wedding', icon: Building2, tint: '#fdeaf0', fg: '#c23f78', count: '320' },
+    { id: 'fitness', name: 'Fitness', icon: Dumbbell, tint: '#e4f5ec', fg: '#2f9461', count: '430' },
+    { id: 'cafe', name: 'Cafes', icon: Coffee, tint: '#f6efd9', fg: '#b0902f', count: '880' },
+    { id: 'beauty', name: 'Beauty', icon: Sparkles, tint: '#fbe7f0', fg: '#c23f96', count: '360' },
+    { id: 'fashion', name: 'Fashion', icon: ShoppingBag, tint: '#ece4f7', fg: '#7a3fc2', count: '540' },
+    { id: 'footwear', name: 'Footwear', icon: Footprints, tint: '#e2ecf7', fg: '#3f6fc2', count: '210' },
   ];
 
-  const trending = [
-    {
-      id: 1,
-      name: 'The Grand Ballroom',
-      category: 'Wedding Venue',
-      rating: 4.8,
-      reviews: 234,
-      image: 'https://images.unsplash.com/photo-1519167758481-83f29da8c68b?w=400&h=300&fit=crop',
-      location: 'Downtown, New York',
-      verified: true,
-    },
-    {
-      id: 2,
-      name: 'Fitness Plus Gym',
-      category: 'Fitness Center',
-      rating: 4.6,
-      reviews: 456,
-      image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=300&fit=crop',
-      location: 'North Plaza, LA',
-      verified: true,
-    },
-    {
-      id: 3,
-      name: 'La Cucina Italiana',
-      category: 'Italian Restaurant',
-      rating: 4.9,
-      reviews: 789,
-      image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop',
-      location: 'City Center, Chicago',
-      verified: true,
-    },
+  const places = [
+    { id: 1, name: 'The Grand Ballroom', cuisine: 'Elegant venue, fine dining & events', price: '$29', off: '15% Off', tint: '#fdeef2', image: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&h=400&fit=crop', rating: 4.8 },
+    { id: 3, name: 'La Cucina Italiana', cuisine: 'Authentic pasta, wood-fired pizza', price: '$20', off: '12% Off', tint: '#fef4ea', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop', rating: 4.9 },
+    { id: 2, name: 'Fitness Plus Cafe', cuisine: 'Healthy bowls, smoothies & juices', price: '$35', off: '18% Off', tint: '#e9f7ef', image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=400&fit=crop', rating: 4.6 },
   ];
+
+  const recentReviews = [
+    { id: 1, name: 'The Grand Ballroom', rating: 4.8, when: '2d ago', img: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=80&h=80&fit=crop' },
+    { id: 3, name: 'La Cucina Italiana', rating: 4.9, when: '3d ago', img: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=80&h=80&fit=crop' },
+    { id: 2, name: 'Fitness Plus Gym', rating: 4.6, when: '5d ago', img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=80&h=80&fit=crop' },
+  ];
+
+  const flash = (m: string) => { setToast(m); window.clearTimeout((flash as any)._t); (flash as any)._t = window.setTimeout(() => setToast(null), 2200); };
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-br from-slate-50 to-gray-100 pb-24">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-blue-600 to-cyan-600 px-5 pt-16 pb-8 rounded-b-[40px] shadow-xl shadow-blue-600/20">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl text-white mb-1">WeToGo</h1>
-              <p className="text-blue-100 text-sm">Discover trusted local businesses</p>
+    <div className="px-4 sm:px-6 lg:px-8 pb-10">
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6">
+        {/* ===== MAIN COLUMN ===== */}
+        <div className="space-y-6 min-w-0">
+          {/* Hero banner */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#efe6ff] to-[#e3d4ff] p-7 sm:p-9 flex items-center justify-between gap-6">
+            <div className="relative z-10 max-w-sm">
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#2b2521] leading-tight mb-2">All best places in one place</h2>
+              <p className="text-sm text-[#6b6258] mb-5">Discover, review and share your favorite local spots.</p>
+              <button
+                onClick={() => onSearch('')}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#6200FF] text-white text-sm font-semibold shadow-lg shadow-[#6200FF]/25 hover:bg-[#5400dd] transition-colors"
+              >
+                Explore now <ShoppingCart size={16} />
+              </button>
             </div>
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={onAddLocation}
-              className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/30 shadow-lg hover:bg-white/30 transition-colors"
-            >
-              <Plus size={24} className="text-white" />
-            </motion.button>
-          </div>
-
-          {/* Search Bar */}
-          <div className="relative bg-white rounded-2xl shadow-lg overflow-hidden">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search businesses, locations..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 bg-transparent text-slate-900 placeholder:text-slate-400 focus:outline-none"
+            <img
+              src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=300&fit=crop"
+              alt="Featured"
+              className="hidden sm:block w-44 h-32 object-cover rounded-2xl shadow-xl rotate-3"
             />
           </div>
-        </motion.div>
-      </div>
 
-      {/* Categories */}
-      <div className="px-5 py-6">
-        <h2 className="text-lg text-slate-900 mb-4">Browse by Category</h2>
-        <div className="grid grid-cols-4 gap-3">
-          {categories.map((category, idx) => {
-            const Icon = category.icon;
-            return (
-              <motion.button
-                key={category.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => onCategorySelect(category.id)}
-                className="group"
-              >
-                <div className={`bg-gradient-to-br ${category.color} rounded-3xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 mb-2 aspect-square flex items-center justify-center`}>
-                  <Icon size={28} className="text-white" strokeWidth={2} />
-                </div>
-                <p className="text-xs text-slate-700 text-center leading-tight">{category.name}</p>
-              </motion.button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Trending */}
-      <div className="px-5 pb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <TrendingUp size={20} className="text-blue-600" />
-            <h2 className="text-lg text-slate-900">Trending Near You</h2>
+          {/* Categories */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display text-lg font-bold text-[#2b2521]">Browse by category</h3>
+              <button onClick={() => onCategorySelect('all')} className="text-sm font-semibold text-[#6200FF] flex items-center gap-1">See all <ChevronRight size={15} /></button>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2">
+              {categories.map((cat) => {
+                const Icon = cat.icon;
+                const isActive = activeCat === cat.id;
+                return (
+                  <motion.button
+                    key={cat.id}
+                    whileHover={{ y: -3 }}
+                    onClick={() => { setActiveCat(cat.id); onCategorySelect(cat.id); }}
+                    className="shrink-0 w-[112px] rounded-2xl border p-3.5 flex flex-col items-start gap-2.5 transition-all"
+                    style={isActive
+                      ? { backgroundColor: '#fff', borderColor: '#6200FF', boxShadow: '0 10px 24px -10px rgba(98,0,255,0.4)' }
+                      : { backgroundColor: '#fff', borderColor: '#eceae6' }}
+                  >
+                    <span className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: cat.tint }}>
+                      <Icon size={20} style={{ color: cat.fg }} />
+                    </span>
+                    <div className="text-left">
+                      <p className="text-sm font-semibold" style={{ color: isActive ? '#6200FF' : '#2b2521' }}>{cat.name}</p>
+                      <p className="text-xs text-[#a89a8b]">{cat.count} places</p>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
           </div>
-          <button className="text-sm text-blue-600 font-medium hover:text-blue-700">View All</button>
+
+          {/* Place cards */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display text-lg font-bold text-[#2b2521]">Popular places</h3>
+              <button onClick={() => onSearch('')} className="text-sm font-semibold text-[#6200FF] flex items-center gap-1">View all <ChevronRight size={15} /></button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {places.map((p, idx) => (
+                <motion.div
+                  key={p.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.06 }}
+                  className="rounded-3xl p-4 border border-[#eee9e1]"
+                  style={{ backgroundColor: p.tint }}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="text-xs font-semibold text-[#6200FF] bg-white/70 px-2.5 py-1 rounded-full">{p.off}</span>
+                    <button onClick={() => toggleFavorite(p.id)} className="w-8 h-8 rounded-full bg-white/70 flex items-center justify-center text-rose-400 hover:text-rose-500" title="Save place">
+                      <Heart size={15} className={isFavorite(p.id) ? 'fill-rose-500 text-rose-500' : ''} />
+                    </button>
+                  </div>
+                  <button onClick={() => onSelectLocation(p.id)} className="block w-full">
+                    <img src={p.image} alt={p.name} className="w-full h-36 object-cover rounded-2xl mb-3" />
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className="font-display font-semibold text-[#2b2521] line-clamp-1 text-left">{p.name}</h4>
+                      <span className="flex items-center gap-0.5 text-xs font-bold text-amber-600 shrink-0"><Star size={12} className="fill-amber-500 text-amber-500" />{p.rating}</span>
+                    </div>
+                    <p className="text-xs text-[#8a8175] line-clamp-2 text-left mb-3 leading-relaxed">{p.cuisine}</p>
+                  </button>
+                  <div className="flex items-center justify-between">
+                    <span className="font-display text-xl font-bold text-[#2b2521]">{p.price}</span>
+                    <button onClick={() => onSelectLocation(p.id)} className="w-9 h-9 rounded-full bg-[#6200FF] text-white flex items-center justify-center shadow-lg shadow-[#6200FF]/25 hover:bg-[#5400dd] transition-colors">
+                      <Plus size={18} />
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <div className="space-y-3">
-          {trending.map((place, idx) => (
-            <motion.button
-              key={place.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onSelectLocation(place.id)}
-              className="w-full bg-white rounded-3xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
-            >
-              <div className="flex gap-3 p-3">
-                <div className="relative w-28 h-28 rounded-2xl overflow-hidden shrink-0">
-                  <img
-                    src={place.image}
-                    alt={place.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  {place.verified && (
-                    <div className="absolute top-2 right-2 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                        <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 text-left py-1">
-                  <h3 className="text-slate-900 font-semibold mb-1 line-clamp-1">{place.name}</h3>
-                  <p className="text-xs text-slate-600 mb-2">{place.category}</p>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-lg">
-                      <Star size={12} className="text-amber-500 fill-amber-500" />
-                      <span className="text-xs text-amber-700 font-semibold">{place.rating}</span>
-                    </div>
-                    <span className="text-xs text-slate-500">({place.reviews})</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-slate-500">
-                    <MapPin size={12} />
-                    <span className="line-clamp-1">{place.location}</span>
-                  </div>
-                </div>
+        {/* ===== RIGHT RAIL ===== */}
+        <div className="space-y-5">
+          {/* Membership card */}
+          <div className="relative overflow-hidden rounded-3xl p-5 text-white shadow-xl" style={{ background: 'linear-gradient(135deg, #6200FF 0%, #8b3bff 100%)' }}>
+            <div className="pointer-events-none absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10" />
+            <div className="flex items-center justify-between mb-6">
+              <span className="font-semibold">Wetigo Card</span>
+              <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-xs">◎</span>
+            </div>
+            <p className="font-display text-xl tracking-widest mb-6">8763 2736 9873 0329</p>
+            <div className="flex items-end justify-between text-xs">
+              <div>
+                <p className="text-white/60 mb-0.5">Card Holder</p>
+                <p className="font-semibold tracking-wide">JHON SMITH</p>
               </div>
-            </motion.button>
-          ))}
+              <div>
+                <p className="text-white/60 mb-0.5">Expires</p>
+                <p className="font-semibold">10/28</p>
+              </div>
+              <div className="flex -space-x-2">
+                <span className="w-6 h-6 rounded-full bg-rose-400" />
+                <span className="w-6 h-6 rounded-full bg-amber-300/90" />
+              </div>
+            </div>
+          </div>
+
+          {/* Recent reviews */}
+          <div className="bg-white rounded-3xl border border-slate-100 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-display font-bold text-[#2b2521]">Recent Reviews</h4>
+              <button onClick={() => onSearch('')} className="text-xs font-semibold text-[#6200FF] flex items-center gap-1">View All <ArrowUpRight size={13} /></button>
+            </div>
+            <div className="space-y-1">
+              {recentReviews.map((o) => (
+                <button key={o.id} onClick={() => onSelectLocation(o.id)} className="w-full flex items-center gap-3 p-2 -mx-2 rounded-xl hover:bg-slate-50 transition-colors text-left">
+                  <img src={o.img} alt={o.name} className="w-10 h-10 rounded-xl object-cover" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-[#2b2521] line-clamp-1">{o.name}</p>
+                    <p className="text-xs text-[#a89a8b]">{o.when}</p>
+                  </div>
+                  <span className="flex items-center gap-0.5 text-sm font-semibold text-amber-600"><Star size={12} className="fill-amber-500 text-amber-500" />{o.rating}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Nearby map → opens Explore */}
+          <button onClick={() => onSearch('')} className="w-full bg-white rounded-3xl border border-slate-100 p-5 text-left hover:shadow-lg transition-shadow group">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-display font-bold text-[#2b2521]">Nearby</h4>
+              <span className="flex items-center gap-1 text-xs font-semibold text-[#6200FF]">Open map <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" /></span>
+            </div>
+            <div className="relative h-32 rounded-2xl overflow-hidden bg-[#eef1ee]">
+              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 130" preserveAspectRatio="none">
+                <path d="M-10 40 Q 120 10 200 70 T 340 80" fill="none" stroke="#fff" strokeWidth="8" />
+                <path d="M60 -10 Q 90 70 50 140" fill="none" stroke="#fff" strokeWidth="6" />
+                <rect x="200" y="70" width="90" height="50" rx="8" fill="#dbe7da" />
+              </svg>
+              <span className="absolute left-[30%] top-[40%] w-3 h-3 rounded-full bg-[#6200FF] border-2 border-white shadow" />
+              <span className="absolute left-[62%] top-[55%] w-3 h-3 rounded-full bg-rose-400 border-2 border-white shadow" />
+              <span className="absolute left-[45%] top-[68%] w-3 h-3 rounded-full bg-amber-400 border-2 border-white shadow" />
+              <span className="absolute inset-0 bg-[#6200FF]/0 group-hover:bg-[#6200FF]/5 transition-colors" />
+            </div>
+          </button>
+
+          {/* Local guide */}
+          <div className="bg-white rounded-3xl border border-slate-100 p-4">
+            <div className="flex items-center gap-3 mb-4">
+              <img src="https://i.pravatar.cc/64?img=33" alt="Guide" className="w-11 h-11 rounded-full object-cover" />
+              <div className="flex-1">
+                <p className="font-semibold text-[#2b2521] text-sm">Robert Fox</p>
+                <p className="text-xs text-[#a89a8b]">Local Guide</p>
+              </div>
+              <button onClick={() => flash('Calling Robert Fox…')} title="Call guide" className="w-9 h-9 rounded-full bg-[#f1ebff] flex items-center justify-center text-[#6200FF] hover:bg-[#e3d6ff] transition-colors">
+                <Phone size={16} />
+              </button>
+              <button onClick={() => flash('Message sent to Robert Fox')} title="Message guide" className="w-9 h-9 rounded-full bg-[#f1ebff] flex items-center justify-center text-[#6200FF] hover:bg-[#e3d6ff] transition-colors">
+                <MessageCircle size={16} />
+              </button>
+            </div>
+            <div className="space-y-2.5 text-sm">
+              <div className="flex items-center gap-2 text-[#6b6258]"><Clock size={15} className="text-[#6200FF]" /> <span className="font-medium text-[#2b2521]">30 Minutes</span> away</div>
+              <div className="flex items-center gap-2 text-[#6b6258]"><MapPin size={15} className="text-[#6200FF]" /> 123 Main Street, Downtown</div>
+            </div>
+            <button onClick={onAddLocation} className="w-full mt-4 py-2.5 rounded-xl bg-[#6200FF] text-white text-sm font-semibold hover:bg-[#5400dd] transition-colors">
+              Add a Place
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
+            className="fixed top-24 left-1/2 -translate-x-1/2 z-[1000] bg-[#2b2521] text-white text-sm font-medium px-5 py-3 rounded-full shadow-2xl">
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

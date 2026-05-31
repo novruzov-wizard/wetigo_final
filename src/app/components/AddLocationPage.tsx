@@ -1,5 +1,5 @@
 import { ArrowLeft, MapPin, Upload, Plus, X, Building2, Phone, Clock, Globe, Image as ImageIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface AddLocationPageProps {
@@ -43,10 +43,12 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
     onBack();
   };
 
-  const addImage = () => {
-    if (images.length < 10) {
-      setImages([...images, `https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop`]);
-    }
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const onFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    const urls = files.slice(0, 10 - images.length).map((f) => URL.createObjectURL(f));
+    setImages([...images, ...urls]);
+    e.target.value = '';
   };
 
   const removeImage = (index: number) => {
@@ -54,9 +56,9 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
   };
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-br from-slate-50 to-gray-100 pb-6">
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="sticky top-0 z-20 backdrop-blur-xl bg-white/90 border-b border-slate-200 px-5 py-4 pt-16">
+      <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
           <motion.button
             whileTap={{ scale: 0.95 }}
@@ -70,14 +72,14 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
               <div
                 key={step}
                 className={`h-2 rounded-full transition-all duration-300 ${
-                  step === currentStep ? 'w-8 bg-blue-600' : step < currentStep ? 'w-2 bg-blue-600' : 'w-2 bg-slate-300'
+                  step === currentStep ? 'w-8 bg-[#6200FF]' : step < currentStep ? 'w-2 bg-[#6200FF]' : 'w-2 bg-slate-300'
                 }`}
               />
             ))}
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#4a00cc] to-[#6200FF] flex items-center justify-center shadow-lg shadow-purple-600/20">
             <Building2 size={24} className="text-white" />
           </div>
           <div>
@@ -94,7 +96,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="px-5 py-6 space-y-4"
+            className="py-6 space-y-4"
           >
             <div>
               <h3 className="text-lg text-slate-900 mb-4">Business Information</h3>
@@ -107,7 +109,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                     placeholder="Enter your business name"
                     value={formData.businessName}
                     onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                    className="w-full px-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
+                    className="w-full px-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm"
                   />
                 </div>
 
@@ -120,13 +122,13 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                         onClick={() => setFormData({ ...formData, category: cat.id })}
                         className={`px-4 py-3 rounded-2xl border-2 transition-all duration-200 ${
                           formData.category === cat.id
-                            ? 'bg-blue-50 border-blue-600 shadow-sm shadow-blue-600/20'
+                            ? 'bg-purple-50 border-[#6200FF] shadow-sm shadow-purple-600/20'
                             : 'bg-white border-slate-200 hover:border-slate-300'
                         }`}
                       >
                         <div className="flex items-center gap-2">
                           <span className="text-xl">{cat.icon}</span>
-                          <span className={`text-xs ${formData.category === cat.id ? 'text-blue-900 font-semibold' : 'text-slate-700'}`}>
+                          <span className={`text-xs ${formData.category === cat.id ? 'text-purple-900 font-semibold' : 'text-slate-700'}`}>
                             {cat.name}
                           </span>
                         </div>
@@ -141,7 +143,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                     placeholder="Describe your business, services, and what makes you unique..."
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm resize-none"
+                    className="w-full px-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm resize-none"
                     rows={4}
                   />
                 </div>
@@ -152,7 +154,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
               whileTap={{ scale: 0.98 }}
               onClick={() => setCurrentStep(2)}
               disabled={!formData.businessName || !formData.category || !formData.description}
-              className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-4 rounded-2xl font-semibold hover:shadow-lg hover:shadow-blue-600/30 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed transition-all duration-300 shadow-md"
+              className="w-full bg-gradient-to-r from-[#4a00cc] to-[#6200FF] text-white py-4 rounded-2xl font-semibold hover:shadow-lg hover:shadow-purple-600/30 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed transition-all duration-300 shadow-md"
             >
               Continue to Location
             </motion.button>
@@ -165,7 +167,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="px-5 py-6 space-y-4"
+            className="py-6 space-y-4"
           >
             <div>
               <h3 className="text-lg text-slate-900 mb-4">Location & Contact</h3>
@@ -180,7 +182,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                       placeholder="123 Main Street"
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
+                      className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm"
                     />
                   </div>
                 </div>
@@ -193,7 +195,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                       placeholder="New York"
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      className="w-full px-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
+                      className="w-full px-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm"
                     />
                   </div>
                   <div>
@@ -203,7 +205,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                       placeholder="USA"
                       value={formData.country}
                       onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                      className="w-full px-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
+                      className="w-full px-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm"
                     />
                   </div>
                 </div>
@@ -217,7 +219,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                       placeholder="+1 (555) 123-4567"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
+                      className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm"
                     />
                   </div>
                 </div>
@@ -231,7 +233,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                       placeholder="https://yourbusiness.com"
                       value={formData.website}
                       onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
+                      className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm"
                     />
                   </div>
                 </div>
@@ -245,7 +247,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                       placeholder="Mon-Fri: 9:00 AM - 6:00 PM"
                       value={formData.hours}
                       onChange={(e) => setFormData({ ...formData, hours: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
+                      className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm"
                     />
                   </div>
                 </div>
@@ -264,7 +266,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setCurrentStep(3)}
                 disabled={!formData.address || !formData.city || !formData.country || !formData.phone || !formData.hours}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-4 rounded-2xl font-semibold hover:shadow-lg hover:shadow-blue-600/30 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed transition-all duration-300 shadow-md"
+                className="flex-1 bg-gradient-to-r from-[#4a00cc] to-[#6200FF] text-white py-4 rounded-2xl font-semibold hover:shadow-lg hover:shadow-purple-600/30 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed transition-all duration-300 shadow-md"
               >
                 Continue to Photos
               </motion.button>
@@ -278,7 +280,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="px-5 py-6 space-y-4"
+            className="py-6 space-y-4"
           >
             <div>
               <h3 className="text-lg text-slate-900 mb-2">Business Photos</h3>
@@ -304,21 +306,23 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
 
                 {images.length < 10 && (
                   <button
-                    onClick={addImage}
-                    className="aspect-square rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 transition-colors flex flex-col items-center justify-center gap-2"
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="aspect-square rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:border-[#6200FF] hover:bg-[#f1ebff] transition-colors flex flex-col items-center justify-center gap-2"
                   >
                     <Plus size={24} className="text-slate-400" />
-                    <span className="text-xs text-slate-500">Add Photo</span>
+                    <span className="text-xs text-slate-500">Upload</span>
                   </button>
                 )}
+                <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={onFiles} />
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+              <div className="bg-purple-50 border border-blue-200 rounded-2xl p-4">
                 <div className="flex gap-3">
-                  <ImageIcon size={20} className="text-blue-600 shrink-0 mt-0.5" />
+                  <ImageIcon size={20} className="text-[#6200FF] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm text-blue-900 mb-1 font-medium">Photo Tips</p>
-                    <ul className="text-xs text-blue-700 space-y-1">
+                    <p className="text-sm text-purple-900 mb-1 font-medium">Photo Tips</p>
+                    <ul className="text-xs text-purple-700 space-y-1">
                       <li>• Use high-resolution images (min 1200x800px)</li>
                       <li>• Show your business exterior, interior, and products</li>
                       <li>• Ensure good lighting and clear focus</li>
@@ -340,7 +344,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleSubmit}
                 disabled={images.length < 3}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-4 rounded-2xl font-semibold hover:shadow-lg hover:shadow-blue-600/30 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed transition-all duration-300 shadow-md"
+                className="flex-1 bg-gradient-to-r from-[#4a00cc] to-[#6200FF] text-white py-4 rounded-2xl font-semibold hover:shadow-lg hover:shadow-purple-600/30 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed transition-all duration-300 shadow-md"
               >
                 Submit for Review
               </motion.button>
