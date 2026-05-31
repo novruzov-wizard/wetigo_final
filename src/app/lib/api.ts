@@ -1,0 +1,154 @@
+/**
+ * Wetigo API client — backend-ready.
+ *
+ * Point this at your backend by setting VITE_API_URL (e.g. https://api.wetigo.com).
+ * Defaults to "/api" so you can proxy in dev. Every function returns parsed JSON
+ * and automatically attaches the bearer token saved by `auth.setToken`.
+ *
+ * The full list of endpoints the backend should implement is in API_ENDPOINTS
+ * below — share it with whoever builds the server.
+ */
+
+const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api';
+
+let TOKEN: string | null = (() => {
+  try { return localStorage.getItem('wetigo:token'); } catch { return null; }
+})();
+
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {}),
+      ...(options.headers ?? {}),
+    },
+  });
+  if (!res.ok) {
+    const msg = await res.json().catch(() => ({}));
+    throw new Error((msg as any).message || `Request failed: ${res.status}`);
+  }
+  return res.status === 204 ? (undefined as T) : res.json();
+}
+
+const get = <T>(p: string) => request<T>(p);
+const post = <T>(p: string, body?: unknown) => request<T>(p, { method: 'POST', body: JSON.stringify(body ?? {}) });
+const patch = <T>(p: string, body?: unknown) => request<T>(p, { method: 'PATCH', body: JSON.stringify(body ?? {}) });
+const del = <T>(p: string) => request<T>(p, { method: 'DELETE' });
+
+// ---------------- Auth ----------------
+export const auth = {
+  setToken(t: string | null) { TOKEN = t; try { t ? localStorage.setItem('wetigo:token', t) : localStorage.removeItem('wetigo:token'); } catch { /* ignore */ } },
+  getToken() { return TOKEN; },
+  register: (data: { name: string; email: string; password: string }) => post<{ pendingVerification: boolean }>('/auth/register', data),
+  login: (data: { email: string; password: string }) => post<{ token: string; user: unknown }>('/auth/login', data),
+  verifyOtp: (data: { email: string; code: string }) => post<{ token: string; user: unknown }>('/auth/verify-otp', data),
+  resendOtp: (data: { email: string }) => post<void>('/auth/resend-otp', data),
+  oauth: (provider: 'google' | 'facebook') => post<{ url: string }>(`/auth/oauth/${provider}`),
+  forgotPassword: (data: { email: string }) => post<void>('/auth/forgot-password', data),
+  me: () => get<unknown>('/auth/me'),
+  logout: () => post<void>('/auth/logout'),
+};
+
+// ---------------- Places ----------------
+export const places = {
+  list: (params?: { q?: string; category?: string; country?: string; minRating?: number; openNow?: boolean; lat?: number; lng?: number }) =>
+    get<unknown[]>(`/places${params ? `?${new URLSearchParams(Object.entries(params).filter(([, v]) => v != null).map(([k, v]) => [k, String(v)]))}` : ''}`),
+  get: (id: number) => get<unknown>(`/places/${id}`),
+  create: (data: unknown) => post<unknown>('/places', data),
+  nearby: (lat: number, lng: number) => get<unknown[]>(`/places/nearby?lat=${lat}&lng=${lng}`),
+};
+
+// ---------------- Reviews & threads ----------------
+export const reviews = {
+  list: (placeId: number, sort?: string) => get<unknown[]>(`/places/${placeId}/reviews${sort ? `?sort=${sort}` : ''}`),
+  create: (placeId: number, data: { rating: number; comment: string; photos?: string[] }) => post<unknown>(`/places/${placeId}/reviews`, data),
+  like: (reviewId: number) => post<{ likes: number; liked: boolean }>(`/reviews/${reviewId}/like`),
+  reply: (reviewId: number, text: string) => post<unknown>(`/reviews/${reviewId}/replies`, { text }),
+  report: (reviewId: number, reason?: string) => post<void>(`/reviews/${reviewId}/report`, { reason }),
+  uploadPhoto: (file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return request<{ url: string }>('/uploads', { method: 'POST', body: fd, headers: TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {} });
+  },
+};
+
+// ---------------- Favorites ----------------
+export const favorites = {
+  list: () => get<number[]>('/favorites'),
+  add: (placeId: number) => post<void>(`/favorites/${placeId}`),
+  remove: (placeId: number) => del<void>(`/favorites/${placeId}`),
+};
+
+// ---------------- Events ----------------
+export const events = {
+  list: (chatId: string) => get<unknown[]>(`/chats/${chatId}/events`),
+  create: (chatId: string, data: { title: string; place: string; date: string; time: string }) => post<unknown>(`/chats/${chatId}/events`, data),
+  rsvp: (eventId: number, status: 'going' | 'maybe' | 'none') => post<void>(`/events/${eventId}/rsvp`, { status }),
+};
+
+// ---------------- Chat ----------------
+export const chat = {
+  threads: () => get<unknown[]>('/chats'),
+  messages: (chatId: string) => get<unknown[]>(`/chats/${chatId}/messages`),
+  send: (chatId: string, text: string) => post<unknown>(`/chats/${chatId}/messages`, { text }),
+};
+
+// ---------------- Subscription / billing ----------------
+export const billing = {
+  createCheckoutSession: (data: { priceId: string; planId: string; cycle: 'month' | 'year' }) => post<{ id: string }>('/billing/create-checkout-session', data),
+  portal: () => post<{ url: string }>('/billing/portal'),
+  status: () => get<{ plan: string; renewsAt?: string }>('/billing/status'),
+};
+
+// ---------------- Notifications ----------------
+export const notifications = {
+  list: () => get<unknown[]>('/notifications'),
+  markRead: (id: number) => post<void>(`/notifications/${id}/read`),
+  markAllRead: () => post<void>('/notifications/read-all'),
+};
+
+// ---------------- Profile ----------------
+export const profile = {
+  update: (data: { name?: string; email?: string; bio?: string; avatar?: string }) => patch<unknown>('/profile', data),
+  updateSettings: (data: { notifications?: boolean; emailUpdates?: boolean; country?: string; language?: string }) => patch<void>('/profile/settings', data),
+};
+
+/** Reference list of endpoints the backend must expose. */
+export const API_ENDPOINTS = [
+  'POST   /auth/register',
+  'POST   /auth/login',
+  'POST   /auth/verify-otp',
+  'POST   /auth/resend-otp',
+  'POST   /auth/oauth/:provider',
+  'POST   /auth/forgot-password',
+  'GET    /auth/me',
+  'POST   /auth/logout',
+  'GET    /places',
+  'GET    /places/:id',
+  'POST   /places',
+  'GET    /places/nearby',
+  'GET    /places/:id/reviews',
+  'POST   /places/:id/reviews',
+  'POST   /reviews/:id/like',
+  'POST   /reviews/:id/replies',
+  'POST   /reviews/:id/report',
+  'POST   /uploads',
+  'GET    /favorites',
+  'POST   /favorites/:placeId',
+  'DELETE /favorites/:placeId',
+  'GET    /chats',
+  'GET    /chats/:id/messages',
+  'POST   /chats/:id/messages',
+  'GET    /chats/:id/events',
+  'POST   /chats/:id/events',
+  'POST   /events/:id/rsvp',
+  'POST   /billing/create-checkout-session',
+  'POST   /billing/portal',
+  'GET    /billing/status',
+  'GET    /notifications',
+  'POST   /notifications/:id/read',
+  'POST   /notifications/read-all',
+  'PATCH  /profile',
+  'PATCH  /profile/settings',
+] as const;

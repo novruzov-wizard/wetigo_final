@@ -1,4 +1,5 @@
 import { loadStripe, type Stripe } from '@stripe/stripe-js';
+import { billing } from './api';
 
 /**
  * Stripe integration layer.
@@ -42,12 +43,7 @@ export async function startCheckout(planId: string, cycle: 'month' | 'year'): Pr
   if (!stripe || !priceId) return false;
 
   // Your backend creates the session and returns { id }.
-  const res = await fetch('/api/create-checkout-session', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ priceId, planId, cycle }),
-  });
-  const { id } = await res.json();
+  const { id } = await billing.createCheckoutSession({ priceId, planId, cycle });
   const { error } = await stripe.redirectToCheckout({ sessionId: id });
   if (error) throw error;
   return true;

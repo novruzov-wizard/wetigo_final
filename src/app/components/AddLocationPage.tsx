@@ -1,5 +1,5 @@
 import { ArrowLeft, MapPin, Upload, Plus, X, Building2, Phone, Clock, Globe, Image as ImageIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface AddLocationPageProps {
@@ -43,10 +43,12 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
     onBack();
   };
 
-  const addImage = () => {
-    if (images.length < 10) {
-      setImages([...images, `https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop`]);
-    }
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const onFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    const urls = files.slice(0, 10 - images.length).map((f) => URL.createObjectURL(f));
+    setImages([...images, ...urls]);
+    e.target.value = '';
   };
 
   const removeImage = (index: number) => {
@@ -304,13 +306,15 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
 
                 {images.length < 10 && (
                   <button
-                    onClick={addImage}
-                    className="aspect-square rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 transition-colors flex flex-col items-center justify-center gap-2"
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="aspect-square rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:border-[#6200FF] hover:bg-[#f1ebff] transition-colors flex flex-col items-center justify-center gap-2"
                   >
                     <Plus size={24} className="text-slate-400" />
-                    <span className="text-xs text-slate-500">Add Photo</span>
+                    <span className="text-xs text-slate-500">Upload</span>
                   </button>
                 )}
+                <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={onFiles} />
               </div>
 
               <div className="bg-purple-50 border border-blue-200 rounded-2xl p-4">

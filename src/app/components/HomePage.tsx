@@ -1,6 +1,6 @@
-import { ShoppingCart, Heart, Plus, Star, MapPin, ArrowUpRight, Phone, Clock, UtensilsCrossed, Pizza, Coffee, Sandwich, Salad, IceCream, Soup, ChevronRight } from 'lucide-react';
+import { ShoppingCart, Heart, Plus, Star, MapPin, ArrowUpRight, Phone, Clock, Pizza, Coffee, ChevronRight, Compass, Building2, Dumbbell, ShoppingBag, Footprints, Sparkles, MessageCircle } from 'lucide-react';
 import { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 
 interface HomePageProps {
@@ -12,16 +12,18 @@ interface HomePageProps {
 
 export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: HomePageProps) {
   const [activeCat, setActiveCat] = useState('all');
+  const [toast, setToast] = useState<string | null>(null);
   const { isFavorite, toggleFavorite } = useStore();
 
   const categories = [
-    { id: 'all', name: 'All', icon: UtensilsCrossed },
-    { id: 'fries', name: 'Fries', icon: Soup },
-    { id: 'dining', name: 'Dining', icon: Pizza },
-    { id: 'cafe', name: 'Cafes', icon: Coffee },
-    { id: 'sushi', name: 'Sushi', icon: Salad },
-    { id: 'dessert', name: 'Dessert', icon: IceCream },
-    { id: 'sandwich', name: 'Brunch', icon: Sandwich },
+    { id: 'all', name: 'All', icon: Compass, tint: '#f1ebff', fg: '#6200FF', count: '3.2k' },
+    { id: 'restaurant', name: 'Dining', icon: Pizza, tint: '#fef0e3', fg: '#c2853f', count: '1.2k' },
+    { id: 'wedding', name: 'Wedding', icon: Building2, tint: '#fdeaf0', fg: '#c23f78', count: '320' },
+    { id: 'fitness', name: 'Fitness', icon: Dumbbell, tint: '#e4f5ec', fg: '#2f9461', count: '430' },
+    { id: 'cafe', name: 'Cafes', icon: Coffee, tint: '#f6efd9', fg: '#b0902f', count: '880' },
+    { id: 'beauty', name: 'Beauty', icon: Sparkles, tint: '#fbe7f0', fg: '#c23f96', count: '360' },
+    { id: 'fashion', name: 'Fashion', icon: ShoppingBag, tint: '#ece4f7', fg: '#7a3fc2', count: '540' },
+    { id: 'footwear', name: 'Footwear', icon: Footprints, tint: '#e2ecf7', fg: '#3f6fc2', count: '210' },
   ];
 
   const places = [
@@ -30,11 +32,13 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
     { id: 2, name: 'Fitness Plus Cafe', cuisine: 'Healthy bowls, smoothies & juices', price: '$35', off: '18% Off', tint: '#e9f7ef', image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=400&fit=crop', rating: 4.6 },
   ];
 
-  const orderMenu = [
-    { name: 'The Grand Ballroom', price: '$3.49', qty: 'x3', img: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=80&h=80&fit=crop' },
-    { name: 'La Cucina Italiana', price: '$7.49', qty: 'x2', img: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=80&h=80&fit=crop' },
-    { name: 'Fitness Plus Cafe', price: '$5.49', qty: 'x1', img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=80&h=80&fit=crop' },
+  const recentReviews = [
+    { id: 1, name: 'The Grand Ballroom', rating: 4.8, when: '2d ago', img: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=80&h=80&fit=crop' },
+    { id: 3, name: 'La Cucina Italiana', rating: 4.9, when: '3d ago', img: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=80&h=80&fit=crop' },
+    { id: 2, name: 'Fitness Plus Gym', rating: 4.6, when: '5d ago', img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=80&h=80&fit=crop' },
   ];
+
+  const flash = (m: string) => { setToast(m); window.clearTimeout((flash as any)._t); (flash as any)._t = window.setTimeout(() => setToast(null), 2200); };
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 pb-10">
@@ -62,25 +66,32 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
 
           {/* Categories */}
           <div>
-            <h3 className="font-display text-lg font-bold text-[#2b2521] mb-4">Categories</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display text-lg font-bold text-[#2b2521]">Browse by category</h3>
+              <button onClick={() => onCategorySelect('all')} className="text-sm font-semibold text-[#6200FF] flex items-center gap-1">See all <ChevronRight size={15} /></button>
+            </div>
             <div className="flex gap-3 overflow-x-auto pb-2">
               {categories.map((cat) => {
                 const Icon = cat.icon;
                 const isActive = activeCat === cat.id;
                 return (
-                  <button
+                  <motion.button
                     key={cat.id}
+                    whileHover={{ y: -3 }}
                     onClick={() => { setActiveCat(cat.id); onCategorySelect(cat.id); }}
-                    className="shrink-0 w-[88px] rounded-2xl border p-3 flex flex-col items-center gap-2 transition-all"
+                    className="shrink-0 w-[112px] rounded-2xl border p-3.5 flex flex-col items-start gap-2.5 transition-all"
                     style={isActive
-                      ? { backgroundColor: '#fff', borderColor: '#6200FF', boxShadow: '0 8px 20px -8px rgba(98,0,255,0.35)' }
-                      : { backgroundColor: '#fff', borderColor: '#ede9e2' }}
+                      ? { backgroundColor: '#fff', borderColor: '#6200FF', boxShadow: '0 10px 24px -10px rgba(98,0,255,0.4)' }
+                      : { backgroundColor: '#fff', borderColor: '#eceae6' }}
                   >
-                    <span className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: isActive ? '#f1ebff' : '#f6f4ef' }}>
-                      <Icon size={20} style={{ color: isActive ? '#6200FF' : '#9b9287' }} />
+                    <span className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: cat.tint }}>
+                      <Icon size={20} style={{ color: cat.fg }} />
                     </span>
-                    <span className="text-xs font-medium" style={{ color: isActive ? '#6200FF' : '#6b6258' }}>{cat.name}</span>
-                  </button>
+                    <div className="text-left">
+                      <p className="text-sm font-semibold" style={{ color: isActive ? '#6200FF' : '#2b2521' }}>{cat.name}</p>
+                      <p className="text-xs text-[#a89a8b]">{cat.count} places</p>
+                    </div>
+                  </motion.button>
                 );
               })}
             </div>
@@ -154,31 +165,31 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
             </div>
           </div>
 
-          {/* Order menu */}
+          {/* Recent reviews */}
           <div className="bg-white rounded-3xl border border-slate-100 p-5">
             <div className="flex items-center justify-between mb-4">
               <h4 className="font-display font-bold text-[#2b2521]">Recent Reviews</h4>
-              <button className="text-xs font-semibold text-[#6200FF] flex items-center gap-1">View All <ArrowUpRight size={13} /></button>
+              <button onClick={() => onSearch('')} className="text-xs font-semibold text-[#6200FF] flex items-center gap-1">View All <ArrowUpRight size={13} /></button>
             </div>
-            <div className="space-y-4">
-              {orderMenu.map((o, i) => (
-                <div key={i} className="flex items-center gap-3">
+            <div className="space-y-1">
+              {recentReviews.map((o) => (
+                <button key={o.id} onClick={() => onSelectLocation(o.id)} className="w-full flex items-center gap-3 p-2 -mx-2 rounded-xl hover:bg-slate-50 transition-colors text-left">
                   <img src={o.img} alt={o.name} className="w-10 h-10 rounded-xl object-cover" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-[#2b2521] line-clamp-1">{o.name}</p>
-                    <p className="text-xs text-[#a89a8b]">{o.price}</p>
+                    <p className="text-xs text-[#a89a8b]">{o.when}</p>
                   </div>
-                  <span className="text-sm font-semibold text-[#6b6258]">{o.qty}</span>
-                </div>
+                  <span className="flex items-center gap-0.5 text-sm font-semibold text-amber-600"><Star size={12} className="fill-amber-500 text-amber-500" />{o.rating}</span>
+                </button>
               ))}
             </div>
           </div>
 
-          {/* Map */}
-          <div className="bg-white rounded-3xl border border-slate-100 p-5">
+          {/* Nearby map → opens Explore */}
+          <button onClick={() => onSearch('')} className="w-full bg-white rounded-3xl border border-slate-100 p-5 text-left hover:shadow-lg transition-shadow group">
             <div className="flex items-center justify-between mb-3">
               <h4 className="font-display font-bold text-[#2b2521]">Nearby</h4>
-              <ArrowUpRight size={15} className="text-[#6200FF]" />
+              <span className="flex items-center gap-1 text-xs font-semibold text-[#6200FF]">Open map <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" /></span>
             </div>
             <div className="relative h-32 rounded-2xl overflow-hidden bg-[#eef1ee]">
               <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 130" preserveAspectRatio="none">
@@ -189,10 +200,11 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
               <span className="absolute left-[30%] top-[40%] w-3 h-3 rounded-full bg-[#6200FF] border-2 border-white shadow" />
               <span className="absolute left-[62%] top-[55%] w-3 h-3 rounded-full bg-rose-400 border-2 border-white shadow" />
               <span className="absolute left-[45%] top-[68%] w-3 h-3 rounded-full bg-amber-400 border-2 border-white shadow" />
+              <span className="absolute inset-0 bg-[#6200FF]/0 group-hover:bg-[#6200FF]/5 transition-colors" />
             </div>
-          </div>
+          </button>
 
-          {/* Delivery person */}
+          {/* Local guide */}
           <div className="bg-white rounded-3xl border border-slate-100 p-4">
             <div className="flex items-center gap-3 mb-4">
               <img src="https://i.pravatar.cc/64?img=33" alt="Guide" className="w-11 h-11 rounded-full object-cover" />
@@ -200,17 +212,16 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
                 <p className="font-semibold text-[#2b2521] text-sm">Robert Fox</p>
                 <p className="text-xs text-[#a89a8b]">Local Guide</p>
               </div>
-              <button className="w-9 h-9 rounded-full bg-[#f1ebff] flex items-center justify-center text-[#6200FF]">
+              <button onClick={() => flash('Calling Robert Fox…')} title="Call guide" className="w-9 h-9 rounded-full bg-[#f1ebff] flex items-center justify-center text-[#6200FF] hover:bg-[#e3d6ff] transition-colors">
                 <Phone size={16} />
+              </button>
+              <button onClick={() => flash('Message sent to Robert Fox')} title="Message guide" className="w-9 h-9 rounded-full bg-[#f1ebff] flex items-center justify-center text-[#6200FF] hover:bg-[#e3d6ff] transition-colors">
+                <MessageCircle size={16} />
               </button>
             </div>
             <div className="space-y-2.5 text-sm">
-              <div className="flex items-center gap-2 text-[#6b6258]">
-                <Clock size={15} className="text-[#6200FF]" /> <span className="font-medium text-[#2b2521]">30 Minutes</span> away
-              </div>
-              <div className="flex items-center gap-2 text-[#6b6258]">
-                <MapPin size={15} className="text-[#6200FF]" /> 123 Main Street, Downtown
-              </div>
+              <div className="flex items-center gap-2 text-[#6b6258]"><Clock size={15} className="text-[#6200FF]" /> <span className="font-medium text-[#2b2521]">30 Minutes</span> away</div>
+              <div className="flex items-center gap-2 text-[#6b6258]"><MapPin size={15} className="text-[#6200FF]" /> 123 Main Street, Downtown</div>
             </div>
             <button onClick={onAddLocation} className="w-full mt-4 py-2.5 rounded-xl bg-[#6200FF] text-white text-sm font-semibold hover:bg-[#5400dd] transition-colors">
               Add a Place
@@ -218,6 +229,16 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
           </div>
         </div>
       </div>
+
+      {/* toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
+            className="fixed top-24 left-1/2 -translate-x-1/2 z-[1000] bg-[#2b2521] text-white text-sm font-medium px-5 py-3 rounded-full shadow-2xl">
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

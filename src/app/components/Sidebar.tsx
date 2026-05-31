@@ -1,13 +1,14 @@
-import { Home, ShoppingBag, Heart, MessageCircle, Clock, Bell, Receipt, Store, Car, Settings, ChevronDown } from 'lucide-react';
+import { Home, ShoppingBag, Heart, MessageCircle, Clock, Bell, Receipt, Store, Car, Settings, ChevronDown, Crown } from 'lucide-react';
 import wetigoLogo from './figma/logo.png';
 
 interface SidebarProps {
   active: string;
   onNavigate: (page: string) => void;
   onAddLocation: () => void;
+  onGoPremium: () => void;
 }
 
-export function Sidebar({ active, onNavigate, onAddLocation }: SidebarProps) {
+export function Sidebar({ active, onNavigate, onAddLocation, onGoPremium }: SidebarProps) {
   const items = [
     { id: 'home', icon: Home, label: 'Home' },
     { id: 'search', icon: ShoppingBag, label: 'Explore Places' },
@@ -24,8 +25,8 @@ export function Sidebar({ active, onNavigate, onAddLocation }: SidebarProps) {
   return (
     <aside className="hidden lg:flex flex-col w-64 shrink-0 h-screen sticky top-0 bg-white border-r border-slate-100 px-4 py-6">
       {/* Logo */}
-      <button onClick={() => onNavigate('home')} className="flex items-center px-3 mb-8">
-        <img src={wetigoLogo} alt="Wetigo" className="h-12 w-auto object-contain" />
+      <button onClick={() => onNavigate('home')} className="flex items-center px-2 mb-8">
+        <img src={wetigoLogo} alt="Wetigo" className="h-16 w-auto object-contain" />
       </button>
 
       {/* Nav */}
@@ -52,15 +53,19 @@ export function Sidebar({ active, onNavigate, onAddLocation }: SidebarProps) {
         })}
       </nav>
 
-      {/* Promo card */}
-      <div className="mt-4 rounded-2xl bg-gradient-to-br from-[#f1ebff] to-[#e7dbff] p-4 text-center">
-        <p className="font-display font-semibold text-[#2b2521] text-sm leading-tight mb-3">Share your own<br />favorite spot</p>
-        <button
-          onClick={onAddLocation}
-          className="w-full py-2.5 rounded-xl bg-[#6200FF] text-white text-sm font-semibold shadow-lg shadow-[#6200FF]/25 hover:bg-[#5400dd] transition-colors"
-        >
-          Add Place
-        </button>
+      {/* Premium upsell */}
+      <div className="mt-4 rounded-2xl p-4 text-white relative overflow-hidden" style={{ background: 'linear-gradient(150deg,#6200FF,#8b3bff)' }}>
+        <div className="pointer-events-none absolute -right-6 -top-6 w-24 h-24 rounded-full bg-white/10" />
+        <div className="relative">
+          <div className="flex items-center gap-1.5 mb-1"><Crown size={16} className="text-amber-300" /><span className="font-semibold text-sm">Own a business?</span></div>
+          <p className="text-white/80 text-xs leading-relaxed mb-3">Get promoted to the top of search &amp; categories and reach more customers.</p>
+          <button onClick={onGoPremium} className="w-full py-2.5 rounded-xl bg-white text-[#6200FF] text-sm font-bold hover:bg-white/90 transition-colors">
+            Go Premium
+          </button>
+          <button onClick={onAddLocation} className="w-full mt-2 py-2 rounded-xl bg-white/15 text-white text-xs font-semibold hover:bg-white/25 transition-colors">
+            + Add your place free
+          </button>
+        </div>
       </div>
     </aside>
   );

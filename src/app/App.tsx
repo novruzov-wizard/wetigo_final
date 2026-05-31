@@ -152,6 +152,7 @@ export default function App() {
         active={activeTab}
         onNavigate={navigate}
         onAddLocation={() => setShowAddLocation(true)}
+        onGoPremium={() => { setSelectedLocation(null); setShowAddLocation(false); setCheckoutPlan(null); setShowSubscription(true); }}
       />
       <div className="flex-1 min-w-0 flex flex-col">
         <Topbar
