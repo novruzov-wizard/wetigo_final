@@ -57,6 +57,7 @@ const en: Dict = {
   'home.viewAll': 'View All',
   'home.recent': 'Recent Reviews',
   'home.nearby': 'Nearby',
+  'home.nearest': 'Nearest to you',
   'home.openMap': 'Open map',
   'home.guide': 'Local Guide',
   'home.away': 'away',
@@ -102,6 +103,13 @@ const en: Dict = {
   'auth.back': 'Back',
   'auth.discover': 'Discover places worth your time.',
   'auth.discoverDesc': 'Join 50,000+ explorers finding and reviewing the best local businesses — rated by a community you can trust.',
+  'title.place': 'Place Details',
+  'title.premium': 'Go Premium',
+  'title.addplace': 'Add a Place',
+  'title.checkout': 'Checkout',
+  'app.title': 'Get the Wetigo mobile app',
+  'app.desc': 'Discover places, write reviews and plan visits on the go. iOS & Android — coming soon.',
+  'app.soon': 'Coming soon',
 };
 
 const az: Dict = {
@@ -149,6 +157,7 @@ const az: Dict = {
   'home.viewAll': 'Hamısına bax',
   'home.recent': 'Son rəylər',
   'home.nearby': 'Yaxınlıqda',
+  'home.nearest': 'Sənə ən yaxın',
   'home.openMap': 'Xəritəni aç',
   'home.guide': 'Yerli bələdçi',
   'home.away': 'məsafədə',
@@ -194,6 +203,13 @@ const az: Dict = {
   'auth.back': 'Geri',
   'auth.discover': 'Vaxtına dəyər məkanları kəşf et.',
   'auth.discoverDesc': '50,000+ kəşfiyyatçıya qoşul — etibar etdiyin icma tərəfindən qiymətləndirilən ən yaxşı məkanları tap və rəy yaz.',
+  'title.place': 'Məkan haqqında',
+  'title.premium': 'Premium',
+  'title.addplace': 'Məkan əlavə et',
+  'title.checkout': 'Ödəniş',
+  'app.title': 'Wetigo mobil tətbiqini al',
+  'app.desc': 'Məkanları kəşf et, rəy yaz və ziyarətləri yolda planla. iOS & Android — tezliklə.',
+  'app.soon': 'Tezliklə',
 };
 
 const tr: Dict = {

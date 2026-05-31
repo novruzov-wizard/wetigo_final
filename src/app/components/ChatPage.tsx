@@ -15,6 +15,7 @@ export function ChatPage({ onBack }: ChatPageProps) {
   const [activeChat, setActiveChat] = useState(0);
   const [showInfo, setShowInfo] = useState(true);
   const [mobileView, setMobileView] = useState<'list' | 'chat'>('list');
+  const [chatSearch, setChatSearch] = useState('');
   const [sent, setSent] = useState<Sent[]>([]);
   const [callOpen, setCallOpen] = useState(false);
   const [callSecs, setCallSecs] = useState(0);
@@ -85,11 +86,14 @@ export function ChatPage({ onBack }: ChatPageProps) {
           <div className="p-4">
             <div className="relative bg-[#f1ebff] rounded-xl">
               <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6200FF]" />
-              <input placeholder="Search" className="w-full pl-10 pr-3 py-2.5 bg-transparent text-sm text-[#2b2521] placeholder:text-[#9d93c4] focus:outline-none rounded-xl" />
+              <input value={chatSearch} onChange={(e) => setChatSearch(e.target.value)} placeholder="Search" className="w-full pl-10 pr-3 py-2.5 bg-transparent text-sm text-[#2b2521] placeholder:text-[#9d93c4] focus:outline-none rounded-xl" />
             </div>
           </div>
           <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-1">
-            {chats.map((c, i) => (
+            {chats.map((c, i) => {
+              const q = chatSearch.toLowerCase().trim();
+              if (q && !c.name.toLowerCase().includes(q) && !c.preview.toLowerCase().includes(q)) return null;
+              return (
               <button
                 key={i}
                 onClick={() => { setActiveChat(i); setMobileView('chat'); }}
@@ -117,7 +121,8 @@ export function ChatPage({ onBack }: ChatPageProps) {
                 </div>
                 {c.pinned && <Pin size={14} className="text-[#6200FF] fill-[#6200FF] shrink-0" />}
               </button>
-            ))}
+              );
+            })}
           </div>
         </div>
 

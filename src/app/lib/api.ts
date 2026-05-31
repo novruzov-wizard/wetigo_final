@@ -56,7 +56,14 @@ export const places = {
     get<unknown[]>(`/places${params ? `?${new URLSearchParams(Object.entries(params).filter(([, v]) => v != null).map(([k, v]) => [k, String(v)]))}` : ''}`),
   get: (id: number) => get<unknown>(`/places/${id}`),
   create: (data: unknown) => post<unknown>('/places', data),
-  nearby: (lat: number, lng: number) => get<unknown[]>(`/places/nearby?lat=${lat}&lng=${lng}`),
+  nearby: (lat: number, lng: number, radiusM = 3000) => get<unknown[]>(`/places/nearby?lat=${lat}&lng=${lng}&radius=${radiusM}`),
+  /**
+   * Real places from external providers. The backend proxies Google Places /
+   * TripAdvisor (keys stay server-side) and returns normalized Place objects.
+   * provider: 'google' | 'tripadvisor' | 'all'
+   */
+  external: (params: { lat: number; lng: number; q?: string; provider?: 'google' | 'tripadvisor' | 'all' }) =>
+    get<unknown[]>(`/places/external?${new URLSearchParams(Object.entries(params).filter(([, v]) => v != null).map(([k, v]) => [k, String(v)]))}`),
 };
 
 // ---------------- Reviews & threads ----------------
@@ -128,6 +135,7 @@ export const API_ENDPOINTS = [
   'GET    /places/:id',
   'POST   /places',
   'GET    /places/nearby',
+  'GET    /places/external   (proxies Google Places / TripAdvisor)',
   'GET    /places/:id/reviews',
   'POST   /places/:id/reviews',
   'POST   /reviews/:id/like',

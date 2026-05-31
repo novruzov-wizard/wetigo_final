@@ -1,7 +1,7 @@
 import { Search, MapPin, Star, X, LayoutGrid, Map as MapIcon, Clock, Navigation, Crosshair, Bookmark, BadgeCheck } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { PLACES, distanceKm, type Place } from '../data/places';
+import { PLACES, distanceKm, COUNTRIES, type Place } from '../data/places';
 import { useStore } from '../store';
 
 declare const L: any;
@@ -20,7 +20,7 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
   const [openNow, setOpenNow] = useState(false);
   const [topRated, setTopRated] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
-  const { favorites, isFavorite, toggleFavorite, t } = useStore();
+  const { favorites, isFavorite, toggleFavorite, t, country, setCountry } = useStore();
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
 
@@ -39,7 +39,8 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
     const matchesCategory = selectedCategory === 'all' || p.categoryId === selectedCategory;
     const matchesRating = p.rating >= minRating;
     const matchesOpen = !openNow || p.open;
-    return matchesSearch && matchesCategory && matchesRating && matchesOpen;
+    const matchesCountry = country === 'all' || p.country === country;
+    return matchesSearch && matchesCategory && matchesRating && matchesOpen && matchesCountry;
   });
   results = [...results].sort((a, b) => {
     if (topRated) return b.rating - a.rating;
@@ -127,6 +128,15 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
     }
   }, [view, results.map((r) => r.id).join(','), selected, userLoc]);
 
+  // fit map to the current set of places (e.g. when country changes)
+  useEffect(() => {
+    if (view !== 'map' || !mapRef.current || markersRef.current.length === 0) return;
+    try {
+      const group = L.featureGroup(markersRef.current.map((m: any) => m.marker));
+      mapRef.current.fitBounds(group.getBounds().pad(0.3), { maxZoom: 13 });
+    } catch { /* ignore */ }
+  }, [view, country, results.map((r) => r.id).join(',')]);
+
   // pan to selected / user + open its popup
   useEffect(() => {
     if (view === 'map' && mapRef.current && selected != null) {
@@ -162,6 +172,13 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
 
       {/* quick chips */}
       <div className="flex items-center gap-2 mb-5 overflow-x-auto pb-1">
+        <div className="relative shrink-0">
+          <select value={country} onChange={(e) => setCountry(e.target.value)}
+            className="appearance-none pl-8 pr-7 py-2 rounded-full text-sm font-medium border border-[#e5e7eb] bg-white text-[#5c524a] focus:outline-none focus:ring-2 focus:ring-[#6200FF] cursor-pointer">
+            {COUNTRIES.map((c) => <option key={c.id} value={c.id}>{c.flag} {c.name}</option>)}
+          </select>
+          <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6200FF] pointer-events-none" />
+        </div>
         <button onClick={() => setOpenNow(!openNow)} className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium border transition-colors shrink-0" style={openNow ? { background: '#2b2521', color: '#fff', borderColor: '#2b2521' } : { background: '#fff', color: '#5c524a', borderColor: '#e5e7eb' }}><Clock size={15} /> {t('common.open')}</button>
         <button onClick={() => setTopRated(!topRated)} className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium border transition-colors shrink-0" style={topRated ? { background: '#2b2521', color: '#fff', borderColor: '#2b2521' } : { background: '#fff', color: '#5c524a', borderColor: '#e5e7eb' }}><Star size={15} /> {t('explore.topRated')}</button>
         {categories.slice(1).map((cat) => (
