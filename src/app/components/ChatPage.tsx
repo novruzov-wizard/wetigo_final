@@ -1,4 +1,4 @@
-import { Search, Phone, MoreVertical, Paperclip, Mic, Send, Pin, CheckCheck, Eye, Play, Image as ImageIcon, Video, FileText, Music, Link2, Mic2, ChevronDown, X, CalendarPlus, MapPin, Calendar, Clock, Users, PhoneOff, MicOff, Video as VideoIcon, Check } from 'lucide-react';
+import { Search, Phone, MoreVertical, Paperclip, Mic, Send, Pin, CheckCheck, Eye, Play, Image as ImageIcon, Video, FileText, Music, Link2, Mic2, ChevronDown, X, CalendarPlus, MapPin, Calendar, Clock, Users, PhoneOff, MicOff, Video as VideoIcon, Check, ArrowLeft } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -14,6 +14,7 @@ export function ChatPage({ onBack }: ChatPageProps) {
   const [message, setMessage] = useState('');
   const [activeChat, setActiveChat] = useState(0);
   const [showInfo, setShowInfo] = useState(true);
+  const [mobileView, setMobileView] = useState<'list' | 'chat'>('list');
   const [sent, setSent] = useState<Sent[]>([]);
   const [callOpen, setCallOpen] = useState(false);
   const [callSecs, setCallSecs] = useState(0);
@@ -80,7 +81,7 @@ export function ChatPage({ onBack }: ChatPageProps) {
     <div className="px-4 sm:px-6 lg:px-8 pb-6">
       <div className="flex rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm" style={{ height: 'calc(100vh - 110px)' }}>
         {/* ===== Chat list ===== */}
-        <div className="w-[300px] shrink-0 border-r border-slate-100 flex flex-col">
+        <div className={`${mobileView === 'chat' ? 'hidden' : 'flex'} md:flex w-full md:w-[260px] lg:w-[300px] shrink-0 border-r border-slate-100 flex-col`}>
           <div className="p-4">
             <div className="relative bg-[#f1ebff] rounded-xl">
               <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6200FF]" />
@@ -91,7 +92,7 @@ export function ChatPage({ onBack }: ChatPageProps) {
             {chats.map((c, i) => (
               <button
                 key={i}
-                onClick={() => setActiveChat(i)}
+                onClick={() => { setActiveChat(i); setMobileView('chat'); }}
                 className="w-full flex items-center gap-3 p-2.5 rounded-2xl transition-colors text-left"
                 style={{ backgroundColor: activeChat === i ? '#f1ebff' : 'transparent' }}
               >
@@ -121,18 +122,23 @@ export function ChatPage({ onBack }: ChatPageProps) {
         </div>
 
         {/* ===== Conversation ===== */}
-        <div className="flex-1 min-w-0 flex flex-col bg-white">
+        <div className={`${mobileView === 'list' ? 'hidden' : 'flex'} md:flex flex-1 min-w-0 flex-col bg-white`}>
           {/* header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-            <div>
-              <h2 className="font-display text-2xl font-bold text-[#2b2521]">Design chat</h2>
-              <p className="text-sm text-[#a89a8b]">23 members, 10 online</p>
+          <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-100">
+            <div className="flex items-center gap-3 min-w-0">
+              <button onClick={() => setMobileView('list')} className="md:hidden p-2 -ml-2 rounded-xl hover:bg-slate-100 text-slate-600 shrink-0"><ArrowLeft size={20} /></button>
+              {chats[activeChat].dark
+                ? <span className="w-10 h-10 rounded-xl bg-[#2b2333] text-white text-sm font-bold flex items-center justify-center shrink-0">{chats[activeChat].avatar}</span>
+                : <img src={chats[activeChat].img} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0" />}
+              <div className="min-w-0">
+                <h2 className="font-display text-lg sm:text-2xl font-bold text-[#2b2521] truncate">{chats[activeChat].name}</h2>
+                <p className="text-xs sm:text-sm text-[#a89a8b]">{(chats[activeChat] as any).participants ? `${(chats[activeChat] as any).participants} members, 10 online` : 'online'}</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-[#6b6258]">
+            <div className="flex items-center gap-1 sm:gap-2 text-[#6b6258] shrink-0">
               <button onClick={() => setEventOpen(true)} title="Create event" className="w-10 h-10 rounded-full hover:bg-[#f1ebff] hover:text-[#6200FF] flex items-center justify-center"><CalendarPlus size={19} /></button>
-              <button className="w-10 h-10 rounded-full hover:bg-[#f1ebff] hover:text-[#6200FF] flex items-center justify-center"><Search size={19} /></button>
               <button onClick={() => setCallOpen(true)} title="Start call" className="w-10 h-10 rounded-full hover:bg-[#f1ebff] hover:text-[#6200FF] flex items-center justify-center"><Phone size={19} /></button>
-              <button onClick={() => setShowInfo(!showInfo)} className="w-10 h-10 rounded-full hover:bg-[#f1ebff] hover:text-[#6200FF] flex items-center justify-center"><MoreVertical size={19} /></button>
+              <button onClick={() => setShowInfo(!showInfo)} className="hidden xl:flex w-10 h-10 rounded-full hover:bg-[#f1ebff] hover:text-[#6200FF] items-center justify-center"><MoreVertical size={19} /></button>
             </div>
           </div>
 
@@ -265,7 +271,7 @@ export function ChatPage({ onBack }: ChatPageProps) {
 
         {/* ===== Group info ===== */}
         {showInfo && (
-          <div className="w-[300px] shrink-0 border-l border-slate-100 flex flex-col bg-white overflow-y-auto">
+          <div className="hidden xl:flex w-[300px] shrink-0 border-l border-slate-100 flex-col bg-white overflow-y-auto">
             <div className="p-5 flex items-center justify-between">
               <h3 className="font-display text-xl font-bold text-[#2b2521]">Group Info</h3>
               <button onClick={() => setShowInfo(false)} className="text-[#a89a8b] hover:text-[#2b2521]"><X size={20} /></button>

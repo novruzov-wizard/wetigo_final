@@ -13,7 +13,7 @@ interface HomePageProps {
 export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: HomePageProps) {
   const [activeCat, setActiveCat] = useState('all');
   const [toast, setToast] = useState<string | null>(null);
-  const { isFavorite, toggleFavorite } = useStore();
+  const { isFavorite, toggleFavorite, t } = useStore();
 
   const categories = [
     { id: 'all', name: 'All', icon: Compass, tint: '#f1ebff', fg: '#6200FF', count: '3.2k' },
@@ -47,15 +47,22 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
         <div className="space-y-6 min-w-0">
           {/* Hero banner */}
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#efe6ff] to-[#e3d4ff] p-7 sm:p-9 flex items-center justify-between gap-6">
-            <div className="relative z-10 max-w-sm">
-              <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#2b2521] leading-tight mb-2">All best places in one place</h2>
-              <p className="text-sm text-[#6b6258] mb-5">Discover, review and share your favorite local spots.</p>
-              <button
-                onClick={() => onSearch('')}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#6200FF] text-white text-sm font-semibold shadow-lg shadow-[#6200FF]/25 hover:bg-[#5400dd] transition-colors"
-              >
-                Explore now <ShoppingCart size={16} />
-              </button>
+            <div className="relative z-10 max-w-md">
+              <span className="inline-flex items-center gap-1.5 bg-white/70 text-[#6200FF] text-xs font-bold px-3 py-1 rounded-full mb-3">
+                <Star size={12} className="fill-[#6200FF]" /> {t('home.badge')}
+              </span>
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#2b2521] leading-tight mb-2">{t('home.heroTitle')}</h2>
+              <p className="text-sm text-[#6b6258] mb-5">{t('home.heroDesc')}</p>
+              <div className="flex flex-wrap gap-2.5">
+                <button onClick={() => onSearch('')}
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#6200FF] text-white text-sm font-semibold shadow-lg shadow-[#6200FF]/25 hover:bg-[#5400dd] transition-colors">
+                  {t('home.exploreNow')} <ShoppingCart size={16} />
+                </button>
+                <button onClick={onAddLocation}
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white text-[#2b2521] text-sm font-semibold border border-[#e3d4ff] hover:bg-[#faf7ff] transition-colors">
+                  {t('home.listBusiness')}
+                </button>
+              </div>
             </div>
             <img
               src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=300&fit=crop"
@@ -67,8 +74,8 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
           {/* Categories */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display text-lg font-bold text-[#2b2521]">Browse by category</h3>
-              <button onClick={() => onCategorySelect('all')} className="text-sm font-semibold text-[#6200FF] flex items-center gap-1">See all <ChevronRight size={15} /></button>
+              <h3 className="font-display text-lg font-bold text-[#2b2521]">{t('home.browse')}</h3>
+              <button onClick={() => onCategorySelect('all')} className="text-sm font-semibold text-[#6200FF] flex items-center gap-1">{t('home.seeAll')} <ChevronRight size={15} /></button>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2">
               {categories.map((cat) => {
@@ -89,7 +96,7 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
                     </span>
                     <div className="text-left">
                       <p className="text-sm font-semibold" style={{ color: isActive ? '#6200FF' : '#2b2521' }}>{cat.name}</p>
-                      <p className="text-xs text-[#a89a8b]">{cat.count} places</p>
+                      <p className="text-xs text-[#a89a8b]">{cat.count} {t('common.places')}</p>
                     </div>
                   </motion.button>
                 );
@@ -100,8 +107,8 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
           {/* Place cards */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display text-lg font-bold text-[#2b2521]">Popular places</h3>
-              <button onClick={() => onSearch('')} className="text-sm font-semibold text-[#6200FF] flex items-center gap-1">View all <ChevronRight size={15} /></button>
+              <h3 className="font-display text-lg font-bold text-[#2b2521]">{t('home.popular')}</h3>
+              <button onClick={() => onSearch('')} className="text-sm font-semibold text-[#6200FF] flex items-center gap-1">{t('home.viewAll')} <ChevronRight size={15} /></button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {places.map((p, idx) => (
@@ -168,8 +175,8 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
           {/* Recent reviews */}
           <div className="bg-white rounded-3xl border border-slate-100 p-5">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="font-display font-bold text-[#2b2521]">Recent Reviews</h4>
-              <button onClick={() => onSearch('')} className="text-xs font-semibold text-[#6200FF] flex items-center gap-1">View All <ArrowUpRight size={13} /></button>
+              <h4 className="font-display font-bold text-[#2b2521]">{t('home.recent')}</h4>
+              <button onClick={() => onSearch('')} className="text-xs font-semibold text-[#6200FF] flex items-center gap-1">{t('home.viewAll')} <ArrowUpRight size={13} /></button>
             </div>
             <div className="space-y-1">
               {recentReviews.map((o) => (
@@ -188,8 +195,8 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
           {/* Nearby map → opens Explore */}
           <button onClick={() => onSearch('')} className="w-full bg-white rounded-3xl border border-slate-100 p-5 text-left hover:shadow-lg transition-shadow group">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="font-display font-bold text-[#2b2521]">Nearby</h4>
-              <span className="flex items-center gap-1 text-xs font-semibold text-[#6200FF]">Open map <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" /></span>
+              <h4 className="font-display font-bold text-[#2b2521]">{t('home.nearby')}</h4>
+              <span className="flex items-center gap-1 text-xs font-semibold text-[#6200FF]">{t('home.openMap')} <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" /></span>
             </div>
             <div className="relative h-32 rounded-2xl overflow-hidden bg-[#eef1ee]">
               <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 130" preserveAspectRatio="none">
@@ -210,7 +217,7 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
               <img src="https://i.pravatar.cc/64?img=33" alt="Guide" className="w-11 h-11 rounded-full object-cover" />
               <div className="flex-1">
                 <p className="font-semibold text-[#2b2521] text-sm">Robert Fox</p>
-                <p className="text-xs text-[#a89a8b]">Local Guide</p>
+                <p className="text-xs text-[#a89a8b]">{t('home.guide')}</p>
               </div>
               <button onClick={() => flash('Calling Robert Fox…')} title="Call guide" className="w-9 h-9 rounded-full bg-[#f1ebff] flex items-center justify-center text-[#6200FF] hover:bg-[#e3d6ff] transition-colors">
                 <Phone size={16} />
@@ -220,11 +227,11 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
               </button>
             </div>
             <div className="space-y-2.5 text-sm">
-              <div className="flex items-center gap-2 text-[#6b6258]"><Clock size={15} className="text-[#6200FF]" /> <span className="font-medium text-[#2b2521]">30 Minutes</span> away</div>
+              <div className="flex items-center gap-2 text-[#6b6258]"><Clock size={15} className="text-[#6200FF]" /> <span className="font-medium text-[#2b2521]">30 Minutes</span> {t('home.away')}</div>
               <div className="flex items-center gap-2 text-[#6b6258]"><MapPin size={15} className="text-[#6200FF]" /> 123 Main Street, Downtown</div>
             </div>
             <button onClick={onAddLocation} className="w-full mt-4 py-2.5 rounded-xl bg-[#6200FF] text-white text-sm font-semibold hover:bg-[#5400dd] transition-colors">
-              Add a Place
+              {t('home.addPlace')}
             </button>
           </div>
         </div>

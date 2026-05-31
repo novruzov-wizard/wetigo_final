@@ -11,7 +11,7 @@ interface TopbarProps {
 }
 
 export function Topbar({ title, emoji, query, onQuery, onSubmit, onMenu }: TopbarProps) {
-  const { user } = useStore();
+  const { user, t } = useStore();
   return (
     <header className="sticky top-0 z-30 bg-[#f5f6f4]/85 backdrop-blur-xl px-4 sm:px-6 lg:px-8 py-4">
       <div className="flex items-center gap-4">
@@ -30,7 +30,7 @@ export function Topbar({ title, emoji, query, onQuery, onSubmit, onMenu }: Topba
               value={query}
               onChange={(e) => onQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && onSubmit()}
-              placeholder="Search places, cuisines..."
+              placeholder={t('topbar.search')}
               className="w-full pl-11 pr-4 py-2.5 bg-transparent text-sm text-[#2b2521] placeholder:text-slate-400 focus:outline-none rounded-full"
             />
           </div>
