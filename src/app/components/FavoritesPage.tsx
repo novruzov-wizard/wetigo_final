@@ -13,7 +13,7 @@ export function FavoritesPage({ onSelectLocation }: FavoritesPageProps) {
       name: 'The Grand Ballroom',
       category: 'Wedding Venue',
       rating: 4.8,
-      image: 'https://images.unsplash.com/photo-1519167758481-83f29da8c68b?w=400&h=300&fit=crop',
+      image: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=400&h=300&fit=crop',
       location: 'Downtown, New York',
       verified: true,
     },
@@ -42,9 +42,9 @@ export function FavoritesPage({ onSelectLocation }: FavoritesPageProps) {
   };
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-br from-slate-50 to-gray-100 pb-24">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-5 py-6 pt-16">
+      <div className="mb-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -64,7 +64,7 @@ export function FavoritesPage({ onSelectLocation }: FavoritesPageProps) {
       </div>
 
       {/* Favorites List */}
-      <div className="px-5 py-4">
+      <div>
         <AnimatePresence>
           {favorites.length === 0 ? (
             <motion.div
@@ -81,7 +81,7 @@ export function FavoritesPage({ onSelectLocation }: FavoritesPageProps) {
               </p>
             </motion.div>
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {favorites.map((place, idx) => (
                 <motion.div
                   key={place.id}
@@ -103,7 +103,7 @@ export function FavoritesPage({ onSelectLocation }: FavoritesPageProps) {
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                         {place.verified && (
-                          <div className="absolute top-2 right-2 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                          <div className="absolute top-2 right-2 w-6 h-6 bg-[#6200FF] rounded-full flex items-center justify-center border-2 border-white shadow-lg">
                             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                               <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>

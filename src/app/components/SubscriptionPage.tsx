@@ -27,7 +27,7 @@ export function SubscriptionPage({ onBack }: SubscriptionPageProps) {
       name: 'Professional',
       price: '$79',
       period: '/month',
-      color: 'from-blue-600 to-cyan-600',
+      color: 'from-[#4a00cc] to-[#6200FF]',
       popular: true,
       features: [
         'Everything in Basic',
@@ -78,9 +78,9 @@ export function SubscriptionPage({ onBack }: SubscriptionPageProps) {
   ];
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-br from-slate-50 to-gray-100 pb-6">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="bg-gradient-to-br from-blue-600 to-cyan-600 px-5 pt-16 pb-8 rounded-b-[40px] shadow-xl shadow-blue-600/20">
+      <div className="bg-gradient-to-br from-[#4a00cc] to-[#6200FF] px-6 sm:px-8 pt-8 pb-8 rounded-3xl shadow-xl shadow-purple-600/20">
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={onBack}
@@ -99,7 +99,7 @@ export function SubscriptionPage({ onBack }: SubscriptionPageProps) {
             </div>
             <div>
               <h1 className="text-3xl text-white mb-1">Business Plans</h1>
-              <p className="text-blue-100">
+              <p className="text-purple-100">
                 Join 10,000+ thriving businesses
               </p>
             </div>
@@ -108,8 +108,8 @@ export function SubscriptionPage({ onBack }: SubscriptionPageProps) {
       </div>
 
       {/* Benefits */}
-      <div className="px-5 py-6">
-        <h2 className="font-semibold text-slate-900 mb-4">Why List on WeToGo?</h2>
+      <div className="py-6">
+        <h2 className="font-semibold text-slate-900 mb-4">Why List on Wetigo?</h2>
         <div className="space-y-3">
           {benefits.map((benefit, idx) => {
             const Icon = benefit.icon;
@@ -122,8 +122,8 @@ export function SubscriptionPage({ onBack }: SubscriptionPageProps) {
                 className="bg-white rounded-3xl p-5 border border-slate-200 shadow-md"
               >
                 <div className="flex gap-4">
-                  <div className="shrink-0 w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
-                    <Icon size={22} className="text-blue-600" />
+                  <div className="shrink-0 w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center">
+                    <Icon size={22} className="text-[#6200FF]" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-slate-900 mb-1.5">{benefit.title}</h3>
@@ -137,19 +137,19 @@ export function SubscriptionPage({ onBack }: SubscriptionPageProps) {
       </div>
 
       {/* Plans */}
-      <div className="px-5 mb-6">
+      <div className="mb-6">
         <h2 className="font-semibold text-slate-900 mb-4">Choose Your Plan</h2>
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
           {plans.map((plan, idx) => (
             <motion.div
               key={plan.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className="relative bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-slate-200 hover:border-blue-600 transition-all duration-300"
+              className="relative bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-slate-200 hover:border-[#6200FF] transition-all duration-300"
             >
               {plan.popular && (
-                <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-center py-2.5 text-sm font-semibold flex items-center justify-center gap-2 shadow-md">
+                <div className="bg-gradient-to-r from-[#4a00cc] to-[#6200FF] text-white text-center py-2.5 text-sm font-semibold flex items-center justify-center gap-2 shadow-md">
                   <Zap size={16} className="fill-white" />
                   Most Popular
                 </div>
@@ -195,7 +195,7 @@ export function SubscriptionPage({ onBack }: SubscriptionPageProps) {
       </div>
 
       {/* Stats */}
-      <div className="px-5 mb-6">
+      <div className="mb-6">
         <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-md">
           <h3 className="font-semibold text-slate-900 mb-4 text-center">Trusted by Businesses Worldwide</h3>
           <div className="grid grid-cols-3 gap-4">
@@ -214,7 +214,7 @@ export function SubscriptionPage({ onBack }: SubscriptionPageProps) {
                   className="text-center"
                 >
                   <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-2">
-                    <Icon size={22} className="text-blue-600" />
+                    <Icon size={22} className="text-[#6200FF]" />
                   </div>
                   <div className="text-2xl font-bold text-slate-900 mb-1">{stat.value}</div>
                   <div className="text-xs text-slate-600">{stat.label}</div>
@@ -226,7 +226,7 @@ export function SubscriptionPage({ onBack }: SubscriptionPageProps) {
       </div>
 
       {/* CTA */}
-      <div className="px-5 pb-6">
+      <div className="pb-6">
         <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-6 border border-slate-700 shadow-2xl">
           <h3 className="text-xl text-white mb-2 font-semibold">Need a Custom Solution?</h3>
           <p className="text-slate-300 text-sm mb-5 leading-relaxed">

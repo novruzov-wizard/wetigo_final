@@ -19,7 +19,7 @@ export function LocationDetail({ onBack, onStartChat }: LocationDetailProps) {
     category: 'Wedding Venue',
     rating: 4.8,
     reviewCount: 234,
-    image: 'https://images.unsplash.com/photo-1519167758481-83f29da8c68b?w=800&h=600&fit=crop',
+    image: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&h=600&fit=crop',
     address: '123 Main Street, Downtown',
     phone: '+1 234 567 8900',
     hours: 'Mon-Sun: 9:00 AM - 11:00 PM',
@@ -27,7 +27,7 @@ export function LocationDetail({ onBack, onStartChat }: LocationDetailProps) {
     description: 'Elegant wedding venue with stunning architecture and world-class service. Perfect for your special day with capacity for up to 300 guests.',
     verified: true,
     images: [
-      'https://images.unsplash.com/photo-1519167758481-83f29da8c68b?w=400&h=300&fit=crop',
+      'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=400&h=300&fit=crop',
       'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=400&h=300&fit=crop',
       'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=400&h=300&fit=crop',
     ],
@@ -69,9 +69,9 @@ export function LocationDetail({ onBack, onStartChat }: LocationDetailProps) {
   };
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-br from-slate-50 to-gray-100 pb-6">
+    <div className="pb-12">
       {/* Header Image */}
-      <div className="relative h-80">
+      <div className="relative h-80 sm:h-[420px]">
         <img
           src={location.image}
           alt={location.name}
@@ -82,7 +82,7 @@ export function LocationDetail({ onBack, onStartChat }: LocationDetailProps) {
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={onBack}
-          className="absolute top-16 left-5 bg-white/90 backdrop-blur-xl rounded-2xl p-3 shadow-2xl hover:bg-white transition-colors"
+          className="absolute top-6 left-5 bg-white/90 backdrop-blur-xl rounded-2xl p-3 shadow-2xl hover:bg-white transition-colors"
         >
           <ArrowLeft size={24} className="text-slate-900" />
         </motion.button>
@@ -90,7 +90,7 @@ export function LocationDetail({ onBack, onStartChat }: LocationDetailProps) {
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsFavorited(!isFavorited)}
-          className="absolute top-16 right-5 bg-white/90 backdrop-blur-xl rounded-2xl p-3 shadow-2xl hover:bg-white transition-colors"
+          className="absolute top-6 right-5 bg-white/90 backdrop-blur-xl rounded-2xl p-3 shadow-2xl hover:bg-white transition-colors"
         >
           <Heart
             size={24}
@@ -98,41 +98,41 @@ export function LocationDetail({ onBack, onStartChat }: LocationDetailProps) {
           />
         </motion.button>
 
-        <div className="absolute bottom-6 left-5 right-5">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <h1 className="text-3xl text-white">{location.name}</h1>
+        <div className="absolute bottom-8 inset-x-0 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur text-white text-xs font-semibold border border-white/25">{location.category}</span>
                 {location.verified && (
-                  <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-                    <CheckCircle size={16} className="text-white fill-white" />
-                  </div>
+                  <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#6200FF] text-white text-xs font-semibold shadow-lg">
+                    <CheckCircle size={13} className="fill-white text-[#6200FF]" /> Verified
+                  </span>
                 )}
               </div>
-              <p className="text-slate-200 text-sm">{location.category}</p>
+              <h1 className="font-display text-4xl sm:text-5xl font-bold text-white leading-tight drop-shadow-sm">{location.name}</h1>
             </div>
-            <div className="bg-white/95 backdrop-blur-xl px-4 py-2.5 rounded-2xl border border-white/50 flex items-center gap-2 shadow-xl shrink-0">
+            <div className="bg-white px-4 py-2.5 rounded-2xl flex items-center gap-2 shadow-xl shrink-0">
               <Star size={20} className="text-amber-500 fill-amber-500" />
-              <span className="text-xl text-slate-900 font-semibold">{location.rating}</span>
+              <span className="font-display text-xl text-slate-900 font-bold">{location.rating}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="px-5 -mt-4 mb-6 relative z-10">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 mb-8">
         <div className="flex gap-3">
           <motion.button
             whileTap={{ scale: 0.98 }}
             onClick={onStartChat}
-            className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-4 rounded-2xl flex items-center justify-center gap-2 hover:shadow-xl hover:shadow-blue-600/30 transition-all duration-300 shadow-lg font-semibold"
+            className="flex-1 bg-[#6200FF] text-white py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#5400dd] transition-colors duration-300 shadow-lg shadow-[#6200FF]/25 font-semibold"
           >
             <MessageCircle size={20} />
             Join Community
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.98 }}
-            className="bg-white text-slate-700 px-6 py-4 rounded-2xl hover:bg-slate-50 transition-all duration-300 shadow-lg border border-slate-200"
+            className="bg-white text-slate-700 px-6 py-4 rounded-2xl hover:bg-slate-50 transition-colors duration-300 shadow-sm border border-slate-200"
           >
             <Share2 size={20} />
           </motion.button>
@@ -140,7 +140,7 @@ export function LocationDetail({ onBack, onStartChat }: LocationDetailProps) {
       </div>
 
       {/* Tabs */}
-      <div className="px-5 mb-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
         <div className="bg-white rounded-2xl p-1.5 border border-slate-200 shadow-md flex gap-1">
           {(['about', 'reviews'] as const).map((tab) => (
             <button
@@ -151,7 +151,7 @@ export function LocationDetail({ onBack, onStartChat }: LocationDetailProps) {
               {activeTab === tab && (
                 <motion.div
                   layoutId="activeTabBg"
-                  className="absolute inset-0 bg-blue-600 rounded-xl shadow-md"
+                  className="absolute inset-0 bg-[#6200FF] rounded-xl shadow-md"
                   transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                 />
               )}
@@ -172,7 +172,7 @@ export function LocationDetail({ onBack, onStartChat }: LocationDetailProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="px-5 space-y-4"
+            className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4"
           >
             {/* Description */}
             <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-md">
@@ -184,8 +184,8 @@ export function LocationDetail({ onBack, onStartChat }: LocationDetailProps) {
             <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-md space-y-4">
               <h3 className="font-semibold text-slate-900 mb-3">Contact Information</h3>
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                  <MapPin size={18} className="text-blue-600" />
+                <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                  <MapPin size={18} className="text-[#6200FF]" />
                 </div>
                 <div className="flex-1">
                   <p className="text-xs text-slate-500 mb-0.5">Address</p>
@@ -211,12 +211,12 @@ export function LocationDetail({ onBack, onStartChat }: LocationDetailProps) {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-cyan-100 flex items-center justify-center">
-                  <Globe size={18} className="text-cyan-600" />
+                <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                  <Globe size={18} className="text-[#6200FF]" />
                 </div>
                 <div className="flex-1">
                   <p className="text-xs text-slate-500 mb-0.5">Website</p>
-                  <p className="text-cyan-600 font-medium">{location.website}</p>
+                  <p className="text-[#6200FF] font-medium">{location.website}</p>
                 </div>
               </div>
             </div>
@@ -255,7 +255,7 @@ export function LocationDetail({ onBack, onStartChat }: LocationDetailProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="px-5 space-y-4"
+            className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4"
           >
             {/* Add Review */}
             <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-md">
@@ -286,14 +286,14 @@ export function LocationDetail({ onBack, onStartChat }: LocationDetailProps) {
                 placeholder="Share your experience..."
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                className="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4 resize-none"
+                className="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent mb-4 resize-none"
                 rows={3}
               />
               <motion.button
                 whileTap={{ scale: 0.98 }}
                 onClick={handleSubmitReview}
                 disabled={userRating === 0 || !comment.trim()}
-                className="w-full bg-blue-600 text-white py-3.5 rounded-2xl hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all duration-300 shadow-md font-semibold"
+                className="w-full bg-[#6200FF] text-white py-3.5 rounded-2xl hover:bg-[#5000dd] disabled:bg-slate-200 disabled:cursor-not-allowed transition-all duration-300 shadow-md font-semibold"
               >
                 Submit Review
               </motion.button>
