@@ -1,7 +1,11 @@
-import { ShoppingCart, Heart, Plus, Star, MapPin, ArrowUpRight, Phone, Clock, Pizza, Coffee, ChevronRight, Compass, Building2, Dumbbell, ShoppingBag, Footprints, Sparkles, MessageCircle } from 'lucide-react';
-import { useState } from 'react';
+import { ShoppingCart, Heart, Plus, Star, MapPin, ArrowUpRight, Pizza, Coffee, ChevronRight, Compass, Building2, Dumbbell, ShoppingBag, Footprints, Sparkles, Navigation } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
+import { PLACES, distanceKm } from '../data/places';
+import { useRef } from 'react';
+
+declare const L: any;
 
 interface HomePageProps {
   onSelectLocation: (id: number) => void;
@@ -26,19 +30,60 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
     { id: 'footwear', name: 'Footwear', icon: Footprints, tint: '#e2ecf7', fg: '#3f6fc2', count: '210' },
   ];
 
-  const places = [
-    { id: 1, name: 'The Grand Ballroom', cuisine: 'Elegant venue, fine dining & events', price: '$29', off: '15% Off', tint: '#fdeef2', image: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&h=400&fit=crop', rating: 4.8 },
-    { id: 3, name: 'La Cucina Italiana', cuisine: 'Authentic pasta, wood-fired pizza', price: '$20', off: '12% Off', tint: '#fef4ea', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop', rating: 4.9 },
-    { id: 2, name: 'Fitness Plus Cafe', cuisine: 'Healthy bowls, smoothies & juices', price: '$35', off: '18% Off', tint: '#e9f7ef', image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=400&fit=crop', rating: 4.6 },
-  ];
+  const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => setUserLoc({ lat: 40.3777, lng: 49.892 }), // fallback: Baku
+      { timeout: 8000 }
+    );
+  }, []);
 
-  const recentReviews = [
-    { id: 1, name: 'The Grand Ballroom', rating: 4.8, when: '2d ago', img: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=80&h=80&fit=crop' },
-    { id: 3, name: 'La Cucina Italiana', rating: 4.9, when: '3d ago', img: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=80&h=80&fit=crop' },
-    { id: 2, name: 'Fitness Plus Gym', rating: 4.6, when: '5d ago', img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=80&h=80&fit=crop' },
-  ];
+  const offers = ['15% Off', '12% Off', '18% Off'];
+  const tints = ['#fdeef2', '#fef4ea', '#e9f7ef'];
+  const places = PLACES.slice(0, 3).map((p, i) => ({ ...p, off: offers[i], tint: tints[i] }));
+  const recentReviews = PLACES.slice(0, 3).map((p, i) => ({ id: p.id, name: p.name, rating: p.rating, when: `${i + 2}d ago`, img: `${p.image}` }));
+
+  // nearest real place to the user
+  const ranked = userLoc ? [...PLACES].map((p) => ({ p, d: distanceKm(userLoc.lat, userLoc.lng, p.lat, p.lng) })).sort((a, b) => a.d - b.d) : [];
+  const nearest = ranked[0];
+  const fmtDist = (d: number) => (d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`);
 
   const flash = (m: string) => { setToast(m); window.clearTimeout((flash as any)._t); (flash as any)._t = window.setTimeout(() => setToast(null), 2200); };
+
+  // real mini-map of nearby places
+  const nbEl = useRef<HTMLDivElement | null>(null);
+  const nbMap = useRef<any>(null);
+  useEffect(() => {
+    if (!nbEl.current || typeof L === 'undefined') return;
+    const center = userLoc ?? { lat: PLACES[6].lat, lng: PLACES[6].lng };
+    const t2 = setTimeout(() => {
+      if (!nbMap.current) {
+        nbMap.current = L.map(nbEl.current, { zoomControl: false, attributionControl: false, dragging: true, scrollWheelZoom: false }).setView([center.lat, center.lng], 12);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(nbMap.current);
+      } else {
+        nbMap.current.setView([center.lat, center.lng], 12);
+      }
+      const map = nbMap.current;
+      map._wetigoMarkers?.forEach((m: any) => map.removeLayer(m));
+      map._wetigoMarkers = [];
+      // user dot
+      if (userLoc) {
+        const u = L.circleMarker([userLoc.lat, userLoc.lng], { radius: 7, color: '#fff', weight: 3, fillColor: '#6200FF', fillOpacity: 1 }).addTo(map);
+        map._wetigoMarkers.push(u);
+      }
+      // nearby place pins
+      (ranked.length ? ranked.slice(0, 6).map((r) => r.p) : PLACES.slice(0, 6)).forEach((p) => {
+        const icon = L.divIcon({ className: 'wetigo-pin', html: `<div style="transform:translate(-50%,-100%)"><div style="width:14px;height:14px;border-radius:50% 50% 50% 0;background:${p.premium ? '#6200FF' : '#f43f5e'};transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div></div>` });
+        const mk = L.marker([p.lat, p.lng], { icon }).addTo(map);
+        mk.on('click', () => onSelectLocation(p.id));
+        map._wetigoMarkers.push(mk);
+      });
+      map.invalidateSize();
+    }, 120);
+    return () => clearTimeout(t2);
+  }, [userLoc, ranked.length]);
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 pb-10">
@@ -67,7 +112,7 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
             <img
               src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=300&fit=crop"
               alt="Featured"
-              className="hidden sm:block w-44 h-32 object-cover rounded-2xl shadow-xl rotate-3"
+              className="block w-24 h-24 sm:w-44 sm:h-32 object-cover rounded-2xl shadow-xl rotate-3 shrink-0"
             />
           </div>
 
@@ -132,7 +177,7 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
                       <h4 className="font-display font-semibold text-[#2b2521] line-clamp-1 text-left">{p.name}</h4>
                       <span className="flex items-center gap-0.5 text-xs font-bold text-amber-600 shrink-0"><Star size={12} className="fill-amber-500 text-amber-500" />{p.rating}</span>
                     </div>
-                    <p className="text-xs text-[#8a8175] line-clamp-2 text-left mb-3 leading-relaxed">{p.cuisine}</p>
+                    <p className="text-xs text-[#8a8175] line-clamp-2 text-left mb-3 leading-relaxed">{p.category} · {p.city}</p>
                   </button>
                   <div className="flex items-center justify-between">
                     <span className="font-display text-xl font-bold text-[#2b2521]">{p.price}</span>
@@ -142,6 +187,82 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
                   </div>
                 </motion.div>
               ))}
+            </div>
+          </div>
+
+          {/* App download marketing banner */}
+          <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8" style={{ background: 'linear-gradient(120deg,#2b1a4d 0%,#4a00cc 55%,#6200FF 100%)' }}>
+            <div className="pointer-events-none absolute -right-10 -bottom-16 w-56 h-56 rounded-full bg-white/10 blur-2xl" />
+            <div className="pointer-events-none absolute right-24 -top-12 w-32 h-32 rounded-full bg-fuchsia-400/20 blur-2xl" />
+            <div className="relative flex items-center justify-between gap-6">
+              <div className="max-w-md">
+                <span className="inline-flex items-center gap-1.5 bg-amber-400 text-amber-900 text-[11px] font-bold px-2.5 py-1 rounded-full mb-3">{t('app.soon')}</span>
+                <h3 className="font-display text-2xl sm:text-3xl font-bold text-white leading-tight mb-2">{t('app.title')}</h3>
+                <p className="text-white/70 text-sm mb-4">{t('app.desc')}</p>
+                {/* social proof */}
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="flex items-center gap-1">
+                    {[1,2,3,4,5].map((i) => <Star key={i} size={14} className="fill-amber-400 text-amber-400" />)}
+                    <span className="text-white text-sm font-semibold ml-1">4.9</span>
+                  </div>
+                  <span className="text-white/60 text-xs">·  1M+ explorers</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  {/* App Store badge */}
+                  <span className="flex items-center gap-2.5 bg-black text-white pl-3 pr-4 py-2 rounded-xl cursor-pointer hover:opacity-90 transition-opacity">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M16.5 1.6c0 1.1-.4 2.1-1.2 2.9-.9.9-2 1.5-3.1 1.4-.1-1.1.4-2.2 1.1-2.9.8-.9 2.1-1.5 3.2-1.4ZM20.3 17c-.5 1.2-.8 1.7-1.5 2.8-1 1.5-2.4 3.4-4.1 3.4-1.5 0-1.9-1-4-1-2 0-2.5 1-4 1-1.7 0-3-1.7-4-3.2-2.8-4.3-3.1-9.3-1.4-12 1.2-1.9 3.1-3 4.9-3 1.8 0 2.9 1 4.4 1 1.4 0 2.3-1 4.4-1 1.6 0 3.3.9 4.5 2.4-3.9 2.2-3.3 7.8.3 9.6Z"/></svg>
+                    <span className="text-left leading-none"><span className="block text-[9px] text-white/70">Download on the</span><span className="block text-sm font-semibold">App Store</span></span>
+                  </span>
+                  {/* Google Play badge */}
+                  <span className="flex items-center gap-2.5 bg-black text-white pl-3 pr-4 py-2 rounded-xl cursor-pointer hover:opacity-90 transition-opacity">
+                    <svg width="18" height="20" viewBox="0 0 24 24"><path fill="#34A853" d="M3.6 2.3 13.4 12 3.6 21.7c-.4-.2-.6-.6-.6-1.1V3.4c0-.5.2-.9.6-1.1Z"/><path fill="#4285F4" d="M16.9 8.5 13.4 12 3.9 2.1c.1 0 .3 0 .5.1l12.5 6.3Z"/><path fill="#FBBC04" d="m16.9 15.5-3.5-3.5 3.5-3.5 3.2 1.6c.9.5.9 1.8 0 2.3l-3.2 1.6Z"/><path fill="#EA4335" d="M3.9 21.9 13.4 12l3.5 3.5-12.5 6.3c-.2.1-.4.1-.5.1Z"/></svg>
+                    <span className="text-left leading-none"><span className="block text-[9px] text-white/70">GET IT ON</span><span className="block text-sm font-semibold">Google Play</span></span>
+                  </span>
+                </div>
+              </div>
+              {/* Realistic phone */}
+              <div className="hidden sm:block relative shrink-0">
+                <div className="relative w-[150px] h-[300px] rounded-[2rem] bg-[#1a1130] p-2 shadow-2xl rotate-6 border border-white/10">
+                  {/* screen */}
+                  <div className="relative w-full h-full rounded-[1.5rem] overflow-hidden bg-[#f5f6f4]">
+                    {/* notch */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-4 bg-[#1a1130] rounded-b-2xl z-20" />
+                    {/* status bar */}
+                    <div className="flex items-center justify-between px-3 pt-1.5 text-[7px] font-semibold text-[#2b2521]">
+                      <span>9:41</span><span>📶 🔋</span>
+                    </div>
+                    {/* app header */}
+                    <div className="px-3 pt-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black" style={{ color: '#6200FF' }}>Wetigo</span>
+                        <span className="w-4 h-4 rounded-full bg-[#e7dcff]" />
+                      </div>
+                      <div className="mt-1.5 h-5 rounded-lg bg-white border border-slate-200 flex items-center px-2"><span className="text-[7px] text-slate-400">Search…</span></div>
+                    </div>
+                    {/* hero chip */}
+                    <div className="mx-3 mt-2 rounded-xl p-2" style={{ background: 'linear-gradient(120deg,#efe6ff,#e3d4ff)' }}>
+                      <div className="h-1.5 w-12 bg-[#6200FF]/60 rounded-full mb-1" />
+                      <div className="h-1.5 w-8 bg-[#6200FF]/30 rounded-full" />
+                    </div>
+                    {/* place cards */}
+                    <div className="px-3 mt-2 space-y-1.5">
+                      {PLACES.slice(0, 2).map((p) => (
+                        <div key={p.id} className="flex gap-1.5 bg-white rounded-lg p-1 shadow-sm">
+                          <img src={p.image} alt="" className="w-8 h-8 rounded-md object-cover" />
+                          <div className="flex-1 pt-0.5">
+                            <div className="h-1.5 w-full bg-slate-200 rounded-full mb-1" />
+                            <div className="h-1.5 w-2/3 bg-slate-100 rounded-full" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {/* bottom nav */}
+                    <div className="absolute bottom-0 inset-x-0 h-7 bg-white border-t border-slate-100 flex items-center justify-around">
+                      {[0,1,2,3].map((i) => <span key={i} className="w-3.5 h-3.5 rounded-md" style={{ background: i === 0 ? '#6200FF' : '#e2e8f0' }} />)}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -192,47 +313,49 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
             </div>
           </div>
 
-          {/* Nearby map → opens Explore */}
-          <button onClick={() => onSearch('')} className="w-full bg-white rounded-3xl border border-slate-100 p-5 text-left hover:shadow-lg transition-shadow group">
+          {/* Real nearby mini-map */}
+          <div className="bg-white rounded-3xl border border-slate-100 p-5">
             <div className="flex items-center justify-between mb-3">
               <h4 className="font-display font-bold text-[#2b2521]">{t('home.nearby')}</h4>
-              <span className="flex items-center gap-1 text-xs font-semibold text-[#6200FF]">{t('home.openMap')} <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" /></span>
+              <button onClick={() => onSearch('')} className="flex items-center gap-1 text-xs font-semibold text-[#6200FF] hover:gap-1.5 transition-all">{t('home.openMap')} <ArrowUpRight size={14} /></button>
             </div>
-            <div className="relative h-32 rounded-2xl overflow-hidden bg-[#eef1ee]">
-              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 130" preserveAspectRatio="none">
-                <path d="M-10 40 Q 120 10 200 70 T 340 80" fill="none" stroke="#fff" strokeWidth="8" />
-                <path d="M60 -10 Q 90 70 50 140" fill="none" stroke="#fff" strokeWidth="6" />
-                <rect x="200" y="70" width="90" height="50" rx="8" fill="#dbe7da" />
-              </svg>
-              <span className="absolute left-[30%] top-[40%] w-3 h-3 rounded-full bg-[#6200FF] border-2 border-white shadow" />
-              <span className="absolute left-[62%] top-[55%] w-3 h-3 rounded-full bg-rose-400 border-2 border-white shadow" />
-              <span className="absolute left-[45%] top-[68%] w-3 h-3 rounded-full bg-amber-400 border-2 border-white shadow" />
-              <span className="absolute inset-0 bg-[#6200FF]/0 group-hover:bg-[#6200FF]/5 transition-colors" />
-            </div>
-          </button>
+            <div ref={nbEl} className="relative h-40 rounded-2xl overflow-hidden bg-[#eef1ee] z-0" />
+          </div>
 
-          {/* Local guide */}
+          {/* Nearest to you (real, geolocation-driven) */}
           <div className="bg-white rounded-3xl border border-slate-100 p-4">
-            <div className="flex items-center gap-3 mb-4">
-              <img src="https://i.pravatar.cc/64?img=33" alt="Guide" className="w-11 h-11 rounded-full object-cover" />
-              <div className="flex-1">
-                <p className="font-semibold text-[#2b2521] text-sm">Robert Fox</p>
-                <p className="text-xs text-[#a89a8b]">{t('home.guide')}</p>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-display font-bold text-[#2b2521]">{t('home.nearest')}</h4>
+              <span className="flex items-center gap-1 text-xs font-semibold text-[#6200FF]"><Compass size={13} /> {userLoc ? t('explore.located') : '…'}</span>
+            </div>
+            {nearest ? (
+              <>
+                <button onClick={() => onSelectLocation(nearest.p.id)} className="block w-full text-left">
+                  <div className="relative h-28 rounded-2xl overflow-hidden mb-3">
+                    <img src={nearest.p.image} alt={nearest.p.name} className="w-full h-full object-cover" />
+                    <span className="absolute top-2 left-2 text-[10px] font-bold text-white px-2 py-0.5 rounded-full" style={{ backgroundColor: '#6200FF' }}>{fmtDist(nearest.d)}</span>
+                    <span className="absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full" style={nearest.p.open ? { background: '#dff0e6', color: '#2f9461' } : { background: '#fdecec', color: '#c2603f' }}>{nearest.p.open ? t('common.open') : t('common.closed')}</span>
+                  </div>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <p className="font-semibold text-[#2b2521] text-sm line-clamp-1">{nearest.p.name}</p>
+                    <span className="flex items-center gap-0.5 text-xs font-bold text-amber-600"><Star size={12} className="fill-amber-500 text-amber-500" />{nearest.p.rating}</span>
+                  </div>
+                  <p className="text-xs text-[#a89a8b] flex items-center gap-1 mb-3"><MapPin size={12} className="text-[#6200FF]" />{nearest.p.city}</p>
+                </button>
+                <div className="flex gap-2">
+                  <a href={`https://www.google.com/maps/dir/?api=1&destination=${nearest.p.lat},${nearest.p.lng}`} target="_blank" rel="noreferrer"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#6200FF] text-white text-sm font-semibold hover:bg-[#5400dd] transition-colors">
+                    <Navigation size={15} /> {t('explore.directions')}
+                  </a>
+                  <button onClick={() => onSearch('')} className="px-4 py-2.5 rounded-xl bg-[#f1ebff] text-[#6200FF] text-sm font-semibold hover:bg-[#e3d6ff] transition-colors">{t('home.openMap')}</button>
+                </div>
+              </>
+            ) : (
+              <div className="py-8 text-center text-sm text-[#a89a8b]">
+                <MapPin size={28} className="mx-auto mb-2 text-slate-300" />
+                Allow location to see the nearest place to you.
               </div>
-              <button onClick={() => flash('Calling Robert Fox…')} title="Call guide" className="w-9 h-9 rounded-full bg-[#f1ebff] flex items-center justify-center text-[#6200FF] hover:bg-[#e3d6ff] transition-colors">
-                <Phone size={16} />
-              </button>
-              <button onClick={() => flash('Message sent to Robert Fox')} title="Message guide" className="w-9 h-9 rounded-full bg-[#f1ebff] flex items-center justify-center text-[#6200FF] hover:bg-[#e3d6ff] transition-colors">
-                <MessageCircle size={16} />
-              </button>
-            </div>
-            <div className="space-y-2.5 text-sm">
-              <div className="flex items-center gap-2 text-[#6b6258]"><Clock size={15} className="text-[#6200FF]" /> <span className="font-medium text-[#2b2521]">30 Minutes</span> {t('home.away')}</div>
-              <div className="flex items-center gap-2 text-[#6b6258]"><MapPin size={15} className="text-[#6200FF]" /> 123 Main Street, Downtown</div>
-            </div>
-            <button onClick={onAddLocation} className="w-full mt-4 py-2.5 rounded-xl bg-[#6200FF] text-white text-sm font-semibold hover:bg-[#5400dd] transition-colors">
-              {t('home.addPlace')}
-            </button>
+            )}
           </div>
         </div>
       </div>

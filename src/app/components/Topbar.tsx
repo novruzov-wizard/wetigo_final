@@ -1,4 +1,6 @@
-import { Search, Bell, Mail, Menu } from 'lucide-react';
+import { Search, Bell, Mail, Menu, Star, MessageCircle, MapPin } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 
 interface TopbarProps {
@@ -8,10 +10,19 @@ interface TopbarProps {
   onQuery: (v: string) => void;
   onSubmit: () => void;
   onMenu: () => void;
+  onNavigate: (page: string) => void;
 }
 
-export function Topbar({ title, emoji, query, onQuery, onSubmit, onMenu }: TopbarProps) {
+export function Topbar({ title, emoji, query, onQuery, onSubmit, onMenu, onNavigate }: TopbarProps) {
   const { user, t } = useStore();
+  const [notifOpen, setNotifOpen] = useState(false);
+
+  const notifs = [
+    { icon: Star, color: '#f59e0b', text: 'New 5★ review on The Grand Ballroom', time: '2m' },
+    { icon: MessageCircle, color: '#6200FF', text: 'Jasmin replied in Design chat', time: '1h' },
+    { icon: MapPin, color: '#10b981', text: 'A new place opened near you', time: '3h' },
+  ];
+
   return (
     <header className="sticky top-0 z-30 bg-[#f5f6f4]/85 backdrop-blur-xl px-4 sm:px-6 lg:px-8 py-4">
       <div className="flex items-center gap-4">
@@ -37,20 +48,52 @@ export function Topbar({ title, emoji, query, onQuery, onSubmit, onMenu }: Topba
         </div>
 
         <div className="flex items-center gap-2.5 ml-auto shrink-0">
-          <button className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-[#6200FF] transition-colors">
+          <button onClick={() => onNavigate('chat')} title={t('nav.messages')} className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-[#6200FF] transition-colors">
             <Mail size={17} />
           </button>
-          <button className="relative w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-[#6200FF] transition-colors">
-            <Bell size={17} />
-            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#6200FF] text-white text-[9px] font-bold flex items-center justify-center">2</span>
-          </button>
-          <div className="flex items-center gap-2.5 pl-1.5 pr-3 py-1.5 rounded-full bg-white border border-slate-200">
+
+          {/* Notifications */}
+          <div className="relative">
+            <button onClick={() => setNotifOpen((o) => !o)} className="relative w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-[#6200FF] transition-colors">
+              <Bell size={17} />
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#6200FF] text-white text-[9px] font-bold flex items-center justify-center">{notifs.length}</span>
+            </button>
+            <AnimatePresence>
+              {notifOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+                    className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-slate-100 font-display font-bold text-[#2b2521]">{t('nav.notification')}</div>
+                    <div className="divide-y divide-slate-50">
+                      {notifs.map((n, i) => {
+                        const Icon = n.icon;
+                        return (
+                          <button key={i} onClick={() => { setNotifOpen(false); onNavigate('home'); }} className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 text-left">
+                            <span className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${n.color}1a` }}>
+                              <Icon size={15} style={{ color: n.color }} />
+                            </span>
+                            <div className="min-w-0">
+                              <p className="text-sm text-[#2b2521] leading-snug">{n.text}</p>
+                              <p className="text-xs text-slate-400 mt-0.5">{n.time}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <button onClick={() => onNavigate('profile')} className="flex items-center gap-2.5 pl-1.5 pr-3 py-1.5 rounded-full bg-white border border-slate-200 hover:border-[#6200FF] transition-colors">
             <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full object-cover" />
-            <div className="hidden sm:block leading-tight">
+            <div className="hidden sm:block leading-tight text-left">
               <p className="text-sm font-semibold text-[#2b2521]">{user.name}</p>
               <p className="text-xs text-slate-400">User</p>
             </div>
-          </div>
+          </button>
         </div>
       </div>
     </header>

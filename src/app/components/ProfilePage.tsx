@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 import { LANGUAGES, type Lang } from '../i18n';
+import { COUNTRIES } from '../data/places';
 
 interface ProfilePageProps {
   onShowSubscription: () => void;
@@ -12,10 +13,9 @@ interface ProfilePageProps {
 }
 
 export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan = 'free' }: ProfilePageProps) {
-  const { user, updateUser, favorites, lang, setLang, t } = useStore();
+  const { user, updateUser, favorites, lang, setLang, t, country, setCountry } = useStore();
   const [notifications, setNotifications] = useState(false);
   const [emailUpdates, setEmailUpdates] = useState(false);
-  const [country, setCountry] = useState('us');
   const [toast, setToast] = useState<string | null>(null);
   const flash = (m: string) => { setToast(m); window.clearTimeout((flash as any)._t); (flash as any)._t = window.setTimeout(() => setToast(null), 2200); };
 
@@ -205,13 +205,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan
             <div className="flex items-center gap-3"><Globe size={20} className="text-slate-700" /><span className="text-slate-900 font-medium">{t('settings.country')}</span></div>
             <select value={country} onChange={(e) => changeCountry(e.target.value)}
               className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#6200FF]">
-              <option value="us">🇺🇸 United States</option>
-              <option value="az">🇦🇿 Azerbaijan</option>
-              <option value="uk">🇬🇧 United Kingdom</option>
-              <option value="tr">🇹🇷 Türkiye</option>
-              <option value="de">🇩🇪 Germany</option>
-              <option value="fr">🇫🇷 France</option>
-              <option value="es">🇪🇸 Spain</option>
+              {COUNTRIES.map((c) => <option key={c.id} value={c.id}>{c.flag} {c.name}</option>)}
             </select>
           </div>
 

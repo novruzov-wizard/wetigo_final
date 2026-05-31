@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useStore } from './store';
 import { AuthPage } from './components/AuthPage';
 import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
@@ -15,6 +16,7 @@ import { AddLocationPage } from './components/AddLocationPage';
 interface SelectedPlan { id: string; name: string; price: number; cycle: 'month' | 'year'; }
 
 export default function App() {
+  const { t } = useStore();
   const [authed, setAuthed] = useState(false);
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
@@ -135,13 +137,13 @@ export default function App() {
   const activeTab = selectedLocation || showSubscription || showAddLocation || checkoutPlan ? '' : currentPage;
 
   const titles: Record<string, { t: string; e?: string }> = {
-    home: { t: 'Home', e: '😋' },
-    search: { t: 'Explore Places', e: '🗺️' },
-    favorites: { t: 'Favorites', e: '❤️' },
-    chat: { t: 'Messages', e: '💬' },
-    profile: { t: 'Settings', e: '⚙️' },
+    home: { t: t('nav.home'), e: '😋' },
+    search: { t: t('nav.explore'), e: '🗺️' },
+    favorites: { t: t('nav.favorites'), e: '❤️' },
+    chat: { t: t('nav.messages'), e: '💬' },
+    profile: { t: t('nav.settings'), e: '⚙️' },
   };
-  const heading = checkoutPlan ? { t: 'Checkout' } : selectedLocation ? { t: 'Place Details' } : showSubscription ? { t: 'Go Premium' } : showAddLocation ? { t: 'Add a Place' } : (titles[currentPage] || { t: 'Wetigo' });
+  const heading = checkoutPlan ? { t: t('title.checkout') } : selectedLocation ? { t: t('title.place') } : showSubscription ? { t: t('title.premium') } : showAddLocation ? { t: t('title.addplace') } : (titles[currentPage] || { t: 'Wetigo' });
 
   if (!authed) {
     return <AuthPage onAuth={() => setAuthed(true)} />;
@@ -165,6 +167,7 @@ export default function App() {
           onQuery={setSearchQuery}
           onSubmit={() => handleSearch(searchQuery)}
           onMenu={() => setDrawerOpen(true)}
+          onNavigate={navigate}
         />
         <main className="flex-1">{renderContent()}</main>
       </div>

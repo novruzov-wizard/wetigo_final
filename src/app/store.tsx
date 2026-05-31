@@ -17,6 +17,8 @@ interface Store {
   lang: Lang;
   setLang: (l: Lang) => void;
   t: (key: string) => string;
+  country: string;
+  setCountry: (c: string) => void;
 }
 
 const StoreContext = createContext<Store | null>(null);
@@ -36,6 +38,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<number[]>(() => load('wetigo:favorites', [1, 2, 3]));
   const [user, setUser] = useState<UserProfile>(() => load('wetigo:user', DEFAULT_USER));
   const [lang, setLangState] = useState<Lang>(() => load<Lang | null>('wetigo:lang', null) ?? detectLang());
+  const [country, setCountryState] = useState<string>(() => load('wetigo:country', 'all'));
 
   useEffect(() => { localStorage.setItem('wetigo:favorites', JSON.stringify(favorites)); }, [favorites]);
   useEffect(() => { localStorage.setItem('wetigo:user', JSON.stringify(user)); }, [user]);
@@ -46,9 +49,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const updateUser = (patch: Partial<UserProfile>) => setUser((u) => ({ ...u, ...patch }));
   const setLang = (l: Lang) => setLangState(l);
   const t = (key: string) => translate(lang, key);
+  const setCountry = (c: string) => setCountryState(c);
+  useEffect(() => { localStorage.setItem('wetigo:country', JSON.stringify(country)); }, [country]);
 
   return (
-    <StoreContext.Provider value={{ favorites, isFavorite, toggleFavorite, user, updateUser, lang, setLang, t }}>
+    <StoreContext.Provider value={{ favorites, isFavorite, toggleFavorite, user, updateUser, lang, setLang, t, country, setCountry }}>
       {children}
     </StoreContext.Provider>
   );
