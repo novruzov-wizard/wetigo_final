@@ -9,7 +9,10 @@ import { ChatPage } from './components/ChatPage';
 import { ProfilePage } from './components/ProfilePage';
 import { LocationDetail } from './components/LocationDetail';
 import { SubscriptionPage } from './components/SubscriptionPage';
+import { PaymentPage } from './components/PaymentPage';
 import { AddLocationPage } from './components/AddLocationPage';
+
+interface SelectedPlan { id: string; name: string; price: number; cycle: 'month' | 'year'; }
 
 export default function App() {
   const [authed, setAuthed] = useState(false);
@@ -19,6 +22,8 @@ export default function App() {
   const [showAddLocation, setShowAddLocation] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchCategory, setSearchCategory] = useState('all');
+  const [plan, setPlan] = useState('free');
+  const [checkoutPlan, setCheckoutPlan] = useState<SelectedPlan | null>(null);
 
   const handleSelectLocation = (id: number) => {
     setSelectedLocation(id);
@@ -50,13 +55,31 @@ export default function App() {
     setSelectedLocation(null);
     setShowSubscription(false);
     setShowAddLocation(false);
+    setCheckoutPlan(null);
     setCurrentPage(page);
     window.scrollTo({ top: 0 });
   };
 
   const renderContent = () => {
     if (showAddLocation) return <AddLocationPage onBack={() => setShowAddLocation(false)} />;
-    if (showSubscription) return <SubscriptionPage onBack={() => setShowSubscription(false)} />;
+    if (checkoutPlan) {
+      return (
+        <PaymentPage
+          plan={checkoutPlan}
+          onBack={() => setCheckoutPlan(null)}
+          onSuccess={(planId) => { setPlan(planId); setCheckoutPlan(null); setShowSubscription(false); }}
+        />
+      );
+    }
+    if (showSubscription) {
+      return (
+        <SubscriptionPage
+          onBack={() => setShowSubscription(false)}
+          onChoosePlan={(p) => setCheckoutPlan(p)}
+          currentPlan={plan}
+        />
+      );
+    }
     if (selectedLocation) {
       return (
         <LocationDetail
@@ -107,7 +130,7 @@ export default function App() {
     }
   };
 
-  const activeTab = selectedLocation || showSubscription || showAddLocation ? '' : currentPage;
+  const activeTab = selectedLocation || showSubscription || showAddLocation || checkoutPlan ? '' : currentPage;
 
   const titles: Record<string, { t: string; e?: string }> = {
     home: { t: 'Home', e: '😋' },
@@ -116,7 +139,7 @@ export default function App() {
     chat: { t: 'Messages', e: '💬' },
     profile: { t: 'Settings', e: '⚙️' },
   };
-  const heading = selectedLocation ? { t: 'Place Details' } : showSubscription ? { t: 'Go Premium' } : showAddLocation ? { t: 'Add a Place' } : (titles[currentPage] || { t: 'Wetigo' });
+  const heading = checkoutPlan ? { t: 'Checkout' } : selectedLocation ? { t: 'Place Details' } : showSubscription ? { t: 'Go Premium' } : showAddLocation ? { t: 'Add a Place' } : (titles[currentPage] || { t: 'Wetigo' });
 
   if (!authed) {
     return <AuthPage onAuth={() => setAuthed(true)} />;
