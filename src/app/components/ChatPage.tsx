@@ -1,15 +1,49 @@
-import { Search, Phone, MoreVertical, Paperclip, Mic, Send, Pin, CheckCheck, Eye, Play, Image as ImageIcon, Video, FileText, Music, Link2, Mic2, ChevronDown, X } from 'lucide-react';
-import { useState } from 'react';
-import { motion } from 'motion/react';
+import { Search, Phone, MoreVertical, Paperclip, Mic, Send, Pin, CheckCheck, Eye, Play, Image as ImageIcon, Video, FileText, Music, Link2, Mic2, ChevronDown, X, CalendarPlus, MapPin, Calendar, Clock, Users, PhoneOff, MicOff, Video as VideoIcon, Check } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface ChatPageProps {
   onBack: () => void;
 }
 
+interface SentText { kind: 'text'; id: number; text: string; time: string; }
+interface SentEvent { kind: 'event'; id: number; title: string; place: string; date: string; time: string; going: number; rsvp: 'none' | 'going' | 'maybe'; }
+type Sent = SentText | SentEvent;
+
 export function ChatPage({ onBack }: ChatPageProps) {
   const [message, setMessage] = useState('');
   const [activeChat, setActiveChat] = useState(0);
   const [showInfo, setShowInfo] = useState(true);
+  const [sent, setSent] = useState<Sent[]>([]);
+  const [callOpen, setCallOpen] = useState(false);
+  const [callSecs, setCallSecs] = useState(0);
+  const [muted, setMuted] = useState(false);
+  const [eventOpen, setEventOpen] = useState(false);
+  const [evt, setEvt] = useState({ title: '', place: '', date: '', time: '' });
+
+  const now = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  const sendMessage = () => {
+    if (!message.trim()) return;
+    setSent((s) => [...s, { kind: 'text', id: Date.now(), text: message.trim(), time: now() }]);
+    setMessage('');
+  };
+
+  const createEvent = () => {
+    if (!evt.title.trim() || !evt.date || !evt.time) return;
+    setSent((s) => [...s, { kind: 'event', id: Date.now(), title: evt.title.trim(), place: evt.place.trim() || 'TBD', date: evt.date, time: evt.time, going: 1, rsvp: 'going' }]);
+    setEvt({ title: '', place: '', date: '', time: '' });
+    setEventOpen(false);
+  };
+
+  const setRsvp = (id: number, rsvp: 'going' | 'maybe') => setSent((s) => s.map((m) => m.kind === 'event' && m.id === id ? { ...m, rsvp, going: m.going + (rsvp === 'going' && m.rsvp !== 'going' ? 1 : rsvp !== 'going' && m.rsvp === 'going' ? -1 : 0) } : m));
+
+  useEffect(() => {
+    if (!callOpen) { setCallSecs(0); return; }
+    const t = setInterval(() => setCallSecs((s) => s + 1), 1000);
+    return () => clearInterval(t);
+  }, [callOpen]);
+  const mmss = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
   const chats = [
     { name: 'Design chat', time: '4m', preview: 'Jessie Rollins sent…', avatar: 'DC', dark: true, unread: 1, pinned: true },
@@ -95,8 +129,9 @@ export function ChatPage({ onBack }: ChatPageProps) {
               <p className="text-sm text-[#a89a8b]">23 members, 10 online</p>
             </div>
             <div className="flex items-center gap-2 text-[#6b6258]">
+              <button onClick={() => setEventOpen(true)} title="Create event" className="w-10 h-10 rounded-full hover:bg-[#f1ebff] hover:text-[#6200FF] flex items-center justify-center"><CalendarPlus size={19} /></button>
               <button className="w-10 h-10 rounded-full hover:bg-[#f1ebff] hover:text-[#6200FF] flex items-center justify-center"><Search size={19} /></button>
-              <button className="w-10 h-10 rounded-full hover:bg-[#f1ebff] hover:text-[#6200FF] flex items-center justify-center"><Phone size={19} /></button>
+              <button onClick={() => setCallOpen(true)} title="Start call" className="w-10 h-10 rounded-full hover:bg-[#f1ebff] hover:text-[#6200FF] flex items-center justify-center"><Phone size={19} /></button>
               <button onClick={() => setShowInfo(!showInfo)} className="w-10 h-10 rounded-full hover:bg-[#f1ebff] hover:text-[#6200FF] flex items-center justify-center"><MoreVertical size={19} /></button>
             </div>
           </div>
@@ -178,20 +213,52 @@ export function ChatPage({ onBack }: ChatPageProps) {
                 </div>
               </div>
             </div>
+
+            {/* dynamic sent items */}
+            {sent.map((m) => m.kind === 'text' ? (
+              <div key={m.id} className="flex gap-3 justify-end">
+                <div className="max-w-[70%]">
+                  <div className="bg-[#6200FF] text-white rounded-2xl rounded-tr-md px-4 py-3">
+                    <p className="text-sm leading-relaxed">{m.text}</p>
+                    <div className="flex justify-end mt-1"><span className="flex items-center gap-1 text-xs text-white/70"><CheckCheck size={13} /> {m.time}</span></div>
+                  </div>
+                </div>
+                <img src="https://i.pravatar.cc/64?img=12" className="w-9 h-9 rounded-full object-cover mt-1 shrink-0" />
+              </div>
+            ) : (
+              <div key={m.id} className="flex justify-end">
+                <div className="max-w-[78%] w-80 bg-white border-2 border-[#e7dcff] rounded-2xl overflow-hidden shadow-sm">
+                  <div className="bg-gradient-to-r from-[#6200FF] to-[#8b3bff] px-4 py-3 text-white">
+                    <div className="flex items-center gap-2 text-xs font-semibold opacity-90 mb-1"><Calendar size={13} /> EVENT</div>
+                    <p className="font-display font-bold text-lg leading-tight">{m.title}</p>
+                  </div>
+                  <div className="p-4 space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-[#2b2521]"><Calendar size={15} className="text-[#6200FF]" /> {m.date} · <Clock size={14} className="text-[#6200FF]" /> {m.time}</div>
+                    <div className="flex items-center gap-2 text-sm text-[#6b6258]"><MapPin size={15} className="text-[#6200FF]" /> {m.place}</div>
+                    <div className="flex items-center gap-2 text-sm text-[#6b6258]"><Users size={15} className="text-[#6200FF]" /> {m.going} going</div>
+                    <div className="flex gap-2 pt-1">
+                      <button onClick={() => setRsvp(m.id, 'going')} className="flex-1 py-2 rounded-xl text-sm font-semibold transition-colors" style={m.rsvp === 'going' ? { background: '#6200FF', color: '#fff' } : { background: '#f1ebff', color: '#6200FF' }}>{m.rsvp === 'going' ? '✓ Going' : 'Going'}</button>
+                      <button onClick={() => setRsvp(m.id, 'maybe')} className="flex-1 py-2 rounded-xl text-sm font-semibold transition-colors" style={m.rsvp === 'maybe' ? { background: '#2b2521', color: '#fff' } : { background: '#f1f5f9', color: '#64748b' }}>Maybe</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* input */}
           <div className="px-6 py-4 border-t border-slate-100">
             <div className="flex items-center gap-3 bg-[#f6f4f9] rounded-2xl px-4 py-2.5">
-              <button className="text-[#a89a8b] hover:text-[#6200FF]"><Paperclip size={20} /></button>
+              <button onClick={() => setEventOpen(true)} title="Create event" className="text-[#a89a8b] hover:text-[#6200FF]"><CalendarPlus size={20} /></button>
               <input
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="Your message"
                 className="flex-1 bg-transparent text-sm text-[#2b2521] placeholder:text-[#a89a8b] focus:outline-none"
               />
               <button className="text-[#a89a8b] hover:text-[#6200FF]"><Mic size={20} /></button>
-              <button className="text-[#6200FF]"><Send size={20} /></button>
+              <button onClick={sendMessage} className="text-[#6200FF]"><Send size={20} /></button>
             </div>
           </div>
         </div>
@@ -244,6 +311,71 @@ export function ChatPage({ onBack }: ChatPageProps) {
           </div>
         )}
       </div>
+
+      {/* ===== Call modal ===== */}
+      <AnimatePresence>
+        {callOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm rounded-3xl overflow-hidden text-center text-white p-8" style={{ background: 'linear-gradient(160deg,#3a00b0,#6200FF)' }}>
+              <div className="relative w-28 h-28 mx-auto mb-5">
+                <span className="absolute inset-0 rounded-full bg-white/20 animate-ping" />
+                <span className="relative w-28 h-28 rounded-2xl bg-[#2b2333] flex items-center justify-center text-3xl font-bold">DC</span>
+              </div>
+              <h3 className="font-display text-2xl font-bold mb-1">Design chat</h3>
+              <p className="text-white/70 mb-8">{callSecs === 0 ? 'Calling…' : mmss(callSecs)}</p>
+              <div className="flex items-center justify-center gap-4">
+                <button onClick={() => setMuted(!muted)} className="w-14 h-14 rounded-full flex items-center justify-center transition-colors" style={{ background: muted ? '#fff' : 'rgba(255,255,255,.2)', color: muted ? '#6200FF' : '#fff' }}>
+                  {muted ? <MicOff size={22} /> : <Mic size={22} />}
+                </button>
+                <button onClick={() => { setCallOpen(false); setMuted(false); }} className="w-16 h-16 rounded-full bg-rose-500 flex items-center justify-center shadow-lg hover:bg-rose-600">
+                  <PhoneOff size={26} />
+                </button>
+                <button className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center"><VideoIcon size={22} /></button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== Create event modal ===== */}
+      <AnimatePresence>
+        {eventOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[1000] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setEventOpen(false)}>
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }} onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
+              <div className="bg-gradient-to-r from-[#6200FF] to-[#8b3bff] px-6 py-5 text-white flex items-center justify-between">
+                <h3 className="font-display text-xl font-bold flex items-center gap-2"><CalendarPlus size={20} /> Create event</h3>
+                <button onClick={() => setEventOpen(false)} className="text-white/80 hover:text-white"><X size={20} /></button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#5c524a] mb-1.5">Event title</label>
+                  <input value={evt.title} onChange={(e) => setEvt({ ...evt, title: e.target.value })} placeholder="Dinner at La Cucina" className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-[#2b2521] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF]" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#5c524a] mb-1.5">Place</label>
+                  <input value={evt.place} onChange={(e) => setEvt({ ...evt, place: e.target.value })} placeholder="La Cucina Italiana, Chicago" className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-[#2b2521] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF]" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-[#5c524a] mb-1.5">Date</label>
+                    <input type="date" value={evt.date} onChange={(e) => setEvt({ ...evt, date: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-[#2b2521] focus:outline-none focus:ring-2 focus:ring-[#6200FF]" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#5c524a] mb-1.5">Time</label>
+                    <input type="time" value={evt.time} onChange={(e) => setEvt({ ...evt, time: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-[#2b2521] focus:outline-none focus:ring-2 focus:ring-[#6200FF]" />
+                  </div>
+                </div>
+                <button onClick={createEvent} disabled={!evt.title.trim() || !evt.date || !evt.time}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#6200FF] text-white font-semibold shadow-lg shadow-[#6200FF]/25 hover:bg-[#5400dd] disabled:bg-slate-200 disabled:cursor-not-allowed transition-colors">
+                  <Check size={18} /> Share event with group
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
