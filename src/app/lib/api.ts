@@ -45,7 +45,8 @@ export const auth = {
   verifyOtp: (data: { email: string; code: string }) => post<{ token: string; user: unknown }>('/auth/verify-otp', data),
   resendOtp: (data: { email: string }) => post<void>('/auth/resend-otp', data),
   oauth: (provider: 'google' | 'facebook') => post<{ url: string }>(`/auth/oauth/${provider}`),
-  forgotPassword: (data: { email: string }) => post<void>('/auth/forgot-password', data),
+  forgotPassword: (data: { email: string }) => post<{ devCode?: string }>('/auth/forgot-password', data),
+  resetPassword: (data: { email: string; code: string; password: string }) => post<{ token?: string; user?: unknown }>('/auth/reset-password', data),
   me: () => get<unknown>('/auth/me'),
   logout: () => post<void>('/auth/logout'),
 };
@@ -119,6 +120,8 @@ export const notifications = {
 export const profile = {
   update: (data: { name?: string; email?: string; bio?: string; avatar?: string }) => patch<unknown>('/profile', data),
   updateSettings: (data: { notifications?: boolean; emailUpdates?: boolean; country?: string; language?: string }) => patch<void>('/profile/settings', data),
+  stats: () => get<{ reviews: number; favorites: number; plans: number; card?: { number: string; expires: string } }>('/profile/stats'),
+  activity: () => get<{ id: number; type: string; place: string; action: string; time: string }[]>('/profile/activity'),
 };
 
 /** Reference list of endpoints the backend must expose. */

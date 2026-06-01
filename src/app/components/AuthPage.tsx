@@ -12,7 +12,9 @@ interface AuthPageProps {
 export function AuthPage({ onAuth }: AuthPageProps) {
   const { t, updateUser } = useStore();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
-  const [step, setStep] = useState<'form' | 'verify'>('form');
+  const [step, setStep] = useState<'form' | 'verify' | 'forgot' | 'reset'>('form');
+  const [newPassword, setNewPassword] = useState('');
+  const [info, setInfo] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [remember, setRemember] = useState(true);
@@ -87,6 +89,32 @@ export function AuthPage({ onAuth }: AuthPageProps) {
     try { await authApi.resendOtp({ email: form.email }); setResent(true); setTimeout(() => setResent(false), 2500); } catch { /* ignore */ }
   };
 
+  // ---- forgot / reset password ----
+  const sendReset = async () => {
+    if (!form.email.trim() || loading) return;
+    setError(''); setInfo(''); setLoading(true);
+    try {
+      await authApi.forgotPassword({ email: form.email.trim() });
+      setCode(['', '', '', '', '', '']); setNewPassword('');
+      setInfo('We sent a 6-digit code to your email.');
+      setStep('reset');
+    } catch (err: any) {
+      setError(err?.message || 'Could not send reset code');
+    } finally { setLoading(false); }
+  };
+  const doReset = async () => {
+    if (!codeComplete || newPassword.trim().length < 6 || loading) return;
+    setError(''); setLoading(true);
+    try {
+      const res = await authApi.resetPassword({ email: form.email.trim(), code: code.join(''), password: newPassword.trim() });
+      if (res && (res as any).token) { finishAuth(res as any); return; }
+      setInfo('Password updated. Please sign in.');
+      setStep('form'); setMode('signin'); setForm({ ...form, password: '' });
+    } catch (err: any) {
+      setError(err?.message || 'Invalid or expired code');
+    } finally { setLoading(false); }
+  };
+
   const oauth = (provider: 'google' | 'facebook') => {
     // Redirect to the backend's OAuth start; it bounces to Google/Facebook,
     // then back to {APP_URL}/auth/callback#token=... (handled in App).
@@ -102,7 +130,56 @@ export function AuthPage({ onAuth }: AuthPageProps) {
           <img src={wetigoLogo} alt="Wetigo" className="h-20 w-auto object-contain -ml-2 mb-8" />
 
           <AnimatePresence mode="wait">
-            {step === 'form' ? (
+            {step === 'forgot' ? (
+              <motion.div key="forgot" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }}
+                className="flex-1 flex flex-col justify-center max-w-md w-full">
+                <button onClick={() => { setStep('form'); setError(''); setInfo(''); }} className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-[#6200FF] mb-6 w-fit">
+                  <ArrowLeft size={16} /> {t('auth.back')}
+                </button>
+                <div className="w-14 h-14 rounded-2xl bg-[#f1ebff] flex items-center justify-center mb-5"><ShieldCheck size={26} className="text-[#6200FF]" /></div>
+                <h1 className="font-display text-3xl sm:text-4xl font-semibold text-[#2b2521] mb-2">{t('auth.forgotTitle')}</h1>
+                <p className="text-slate-500 mb-8">{t('auth.forgotDesc')}</p>
+                <label className="block text-sm font-medium text-[#5c524a] mb-1.5">{t('auth.email')}</label>
+                <input type="email" placeholder="example@gmail.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-slate-200 text-[#2b2521] placeholder:text-slate-400 focus:outline-none focus:border-[#6200FF] focus:ring-2 focus:ring-[#6200FF]/15 transition mb-4" />
+                {error && <p className="text-sm text-rose-600 mb-3">{error}</p>}
+                <button onClick={sendReset} disabled={!form.email.trim() || loading}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#6200FF] text-white font-semibold shadow-lg shadow-[#6200FF]/25 hover:bg-[#5400dd] disabled:bg-slate-200 disabled:shadow-none disabled:cursor-not-allowed transition">
+                  {loading ? <Loader2 size={18} className="animate-spin" /> : <>{t('auth.sendCode')} <ArrowRight size={18} /></>}
+                </button>
+              </motion.div>
+            ) : step === 'reset' ? (
+              <motion.div key="reset" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }}
+                className="flex-1 flex flex-col justify-center max-w-md w-full">
+                <button onClick={() => { setStep('forgot'); setError(''); }} className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-[#6200FF] mb-6 w-fit">
+                  <ArrowLeft size={16} /> {t('auth.back')}
+                </button>
+                <div className="w-14 h-14 rounded-2xl bg-[#f1ebff] flex items-center justify-center mb-5"><ShieldCheck size={26} className="text-[#6200FF]" /></div>
+                <h1 className="font-display text-3xl sm:text-4xl font-semibold text-[#2b2521] mb-2">{t('auth.resetTitle')}</h1>
+                <p className="text-slate-500 mb-6">{t('auth.verifyDesc')} <span className="font-semibold text-[#2b2521]">{form.email}</span>.</p>
+                {info && <p className="text-sm text-emerald-600 mb-3">{info}</p>}
+                <div className="flex gap-2 sm:gap-3 mb-5">
+                  {code.map((c, i) => (
+                    <input key={i} ref={(el) => { codeRefs.current[i] = el; }} value={c} onChange={(e) => setDigit(i, e.target.value)} onKeyDown={(e) => onCodeKey(i, e)}
+                      inputMode="numeric" maxLength={1}
+                      className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold rounded-xl bg-slate-50 border-2 border-slate-200 text-[#2b2521] focus:outline-none focus:border-[#6200FF] focus:ring-2 focus:ring-[#6200FF]/15 transition" />
+                  ))}
+                </div>
+                <label className="block text-sm font-medium text-[#5c524a] mb-1.5">{t('auth.newPassword')}</label>
+                <div className="relative mb-4">
+                  <input type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-4 py-3.5 pr-12 rounded-xl bg-slate-50 border border-slate-200 text-[#2b2521] placeholder:text-slate-400 focus:outline-none focus:border-[#6200FF] focus:ring-2 focus:ring-[#6200FF]/15 transition" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#6200FF] p-1">{showPassword ? <EyeOff size={19} /> : <Eye size={19} />}</button>
+                </div>
+                {newPassword.length > 0 && newPassword.length < 6 && <p className="text-xs text-rose-500 mb-3">Password must be at least 6 characters</p>}
+                {error && <p className="text-sm text-rose-600 mb-3">{error}</p>}
+                <button onClick={doReset} disabled={!codeComplete || newPassword.trim().length < 6 || loading}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#6200FF] text-white font-semibold shadow-lg shadow-[#6200FF]/25 hover:bg-[#5400dd] disabled:bg-slate-200 disabled:shadow-none disabled:cursor-not-allowed transition mb-4">
+                  {loading ? <Loader2 size={18} className="animate-spin" /> : <>{t('auth.resetTitle')} <ArrowRight size={18} /></>}
+                </button>
+                <p className="text-sm text-slate-500 text-center">{t('auth.didnt')} <button onClick={sendReset} className="font-semibold text-[#6200FF] hover:opacity-80">{t('auth.resend')}</button></p>
+              </motion.div>
+            ) : step === 'form' ? (
               <motion.div key="form" initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
                 className="flex-1 flex flex-col justify-center max-w-md w-full">
                 <h1 className="font-display text-4xl sm:text-5xl font-semibold text-[#2b2521] mb-3">
@@ -147,8 +224,9 @@ export function AuthPage({ onAuth }: AuthPageProps) {
                       </span>
                       {t('auth.remember')}
                     </button>
-                    <button type="button" className="text-sm font-semibold text-[#2b2521] underline underline-offset-4 hover:text-[#6200FF]">{t('auth.forgot')}</button>
+                    <button type="button" onClick={() => { setStep('forgot'); setError(''); setInfo(''); }} className="text-sm font-semibold text-[#2b2521] underline underline-offset-4 hover:text-[#6200FF]">{t('auth.forgot')}</button>
                   </div>
+                  {info && <p className="text-sm text-emerald-600">{info}</p>}
                   {error && <p className="text-sm text-rose-600">{error}</p>}
                   <button type="submit" disabled={!canSubmit || loading}
                     className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#6200FF] text-white font-semibold shadow-lg shadow-[#6200FF]/25 hover:bg-[#5400dd] disabled:bg-slate-200 disabled:shadow-none disabled:cursor-not-allowed transition">

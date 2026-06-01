@@ -1,4 +1,4 @@
-import { ArrowLeft, Star, MapPin, Phone, Clock, Share2, MessageCircle, Globe, CheckCircle, ThumbsUp, ImagePlus, Send, CornerDownRight, X, ChevronLeft, ChevronRight, Flag, Inbox, MessageSquare, Navigation } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, Clock, Share2, MessageCircle, CheckCircle, ThumbsUp, ImagePlus, Send, CornerDownRight, X, ChevronLeft, ChevronRight, Flag, Inbox, MessageSquare, Navigation } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PLACES } from '../data/places';
@@ -38,23 +38,17 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
     reviewCount: place.reviews ?? 0,
     image: heroImg,
     address: place.city,
-    phone: '+1 234 567 8900',
-    hours: 'Mon-Sun: 9:00 AM - 11:00 PM',
-    website: 'www.wetigo.com',
-    description: `${place.name} — ${place.category} in ${place.city}. Discover photos, reviews and ratings from the Wetigo community.`,
+    price: place.price || '$$',
+    open: place.open,
+    description: `${place.name} is a ${place.category.toLowerCase()} in ${place.city}. Browse real photos, ratings and reviews shared by the Wetigo community, then get directions or save it to your favorites.`,
     verified: place.verified,
-    images: [
-      heroImg,
-      'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=900&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=900&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=900&h=600&fit=crop',
-    ],
   };
   const [galleryIdx, setGalleryIdx] = useState(0);
+  const [lightbox, setLightbox] = useState<{ imgs: string[]; idx: number } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const flash = (m: string) => { setToast(m); window.clearTimeout((flash as any)._t); (flash as any)._t = window.setTimeout(() => setToast(null), 2200); };
-  const nextImg = () => setGalleryIdx((i) => (i + 1) % location.images.length);
-  const prevImg = () => setGalleryIdx((i) => (i - 1 + location.images.length) % location.images.length);
+  const nextImg = () => setGalleryIdx((i) => (i + 1) % Math.max(galleryImages.length, 1));
+  const prevImg = () => setGalleryIdx((i) => (i - 1 + galleryImages.length) % Math.max(galleryImages.length, 1));
 
   // mini map
   const miniEl = useRef<HTMLDivElement | null>(null);
@@ -98,6 +92,20 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
     const urls = files.slice(0, 4 - photos.length).map((f) => URL.createObjectURL(f));
     setPhotos([...photos, ...urls]);
     e.target.value = '';
+  };
+
+  // Real gallery = place photo + all photos shared in reviews (deduped). No stock fillers.
+  const galleryImages = Array.from(new Set([heroImg, ...reviews.flatMap((r) => r.photos)])).filter(Boolean);
+
+  // Share via the native share sheet, falling back to clipboard.
+  const handleShare = async () => {
+    const url = window.location.href;
+    const data = { title: location.name, text: `${location.name} — ${location.category} on Wetigo`, url };
+    try {
+      if (navigator.share) { await navigator.share(data); return; }
+      await navigator.clipboard.writeText(url);
+      flash('Link copied to clipboard');
+    } catch { flash('Could not share'); }
   };
 
   const avg = reviews.reduce((s, r) => s + r.rating, 0) / (reviews.length || 1);
@@ -173,8 +181,10 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
         <div className="absolute bottom-8 inset-x-0 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
                 <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur text-white text-xs font-semibold border border-white/25">{location.category}</span>
+                <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur text-white text-xs font-semibold border border-white/25">{location.price}</span>
+                <span className="px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg" style={location.open ? { background: '#16a34a', color: '#fff' } : { background: '#e11d48', color: '#fff' }}>{location.open ? 'Open now' : 'Closed'}</span>
                 {location.verified && (
                   <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#6200FF] text-white text-xs font-semibold shadow-lg">
                     <CheckCircle size={13} className="fill-white text-[#6200FF]" /> Verified
@@ -196,17 +206,18 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
         <div className="flex flex-wrap gap-3">
           <motion.button
             whileTap={{ scale: 0.98 }}
-            onClick={onStartChat}
+            onClick={() => flash('Community chat — coming soon')}
             className="flex-1 min-w-[180px] bg-[#6200FF] text-white py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#5400dd] transition-colors shadow-lg shadow-[#6200FF]/25 font-semibold"
           >
             <MessageCircle size={20} />
             Join Community
+            <span className="text-[10px] font-bold uppercase tracking-wide bg-white/25 px-1.5 py-0.5 rounded">Soon</span>
           </motion.button>
           {[
-            { key: 'comment', icon: MessageSquare, label: 'Comment', on: () => { setActiveTab('reviews'); flash('Jump to reviews'); }, active: false },
-            { key: 'inbox', icon: Inbox, label: 'Send', on: () => flash('Sent to your inbox'), active: false },
-            { key: 'share', icon: Share2, label: 'Share', on: () => flash('Link copied to clipboard'), active: false },
-            { key: 'report', icon: Flag, label: 'Report', on: () => flash('Report submitted — thank you'), active: false },
+            { key: 'comment', icon: MessageSquare, label: 'Reviews', on: () => setActiveTab('reviews'), active: false },
+            { key: 'inbox', icon: Inbox, label: 'Message', on: () => flash('Messaging — coming soon'), active: false },
+            { key: 'share', icon: Share2, label: 'Share', on: handleShare, active: false },
+            { key: 'report', icon: Flag, label: 'Report', on: () => { if (authApi.getToken()) reviewsApi.report(locationId, 'place').catch(() => {}); flash('Report submitted — thank you'); }, active: false },
           ].map((b) => {
             const Icon = b.icon;
             return (
@@ -262,76 +273,77 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
               <p className="text-slate-700 leading-relaxed">{location.description}</p>
             </div>
 
-            {/* Contact Info */}
+            {/* Details */}
             <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-md space-y-4">
-              <h3 className="font-semibold text-slate-900 mb-3">Contact Information</h3>
+              <h3 className="font-semibold text-slate-900 mb-3">Details</h3>
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
                   <MapPin size={18} className="text-[#6200FF]" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs text-slate-500 mb-0.5">Address</p>
+                  <p className="text-xs text-slate-500 mb-0.5">Location</p>
                   <p className="text-slate-900 font-medium">{location.address}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                  <Star size={18} className="text-amber-600 fill-amber-500" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-slate-500 mb-0.5">Rating</p>
+                  <p className="text-slate-900 font-medium">{location.rating.toFixed(1)} · {location.reviewCount.toLocaleString()} reviews</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
-                  <Phone size={18} className="text-green-600" />
+                  <Clock size={18} className="text-green-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs text-slate-500 mb-0.5">Phone</p>
-                  <p className="text-slate-900 font-medium">{location.phone}</p>
+                  <p className="text-xs text-slate-500 mb-0.5">Status & price</p>
+                  <p className="font-medium" style={{ color: location.open ? '#16a34a' : '#e11d48' }}>{location.open ? 'Open now' : 'Closed'} <span className="text-slate-400">·</span> <span className="text-slate-900">{location.price}</span></p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
+              <a href={`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lng}`} target="_blank" rel="noreferrer" className="flex items-center gap-4 group">
                 <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-                  <Clock size={18} className="text-purple-600" />
+                  <Navigation size={18} className="text-[#6200FF]" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs text-slate-500 mb-0.5">Hours</p>
-                  <p className="text-slate-900 font-medium">{location.hours}</p>
+                  <p className="text-xs text-slate-500 mb-0.5">Directions</p>
+                  <p className="text-[#6200FF] font-medium group-hover:underline">Open in Google Maps</p>
                 </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-                  <Globe size={18} className="text-[#6200FF]" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs text-slate-500 mb-0.5">Website</p>
-                  <p className="text-[#6200FF] font-medium">{location.website}</p>
-                </div>
-              </div>
+              </a>
             </div>
 
-            {/* Photo Gallery — carousel */}
+            {/* Photo Gallery — real photos only (place + community photos) */}
+            {galleryImages.length > 1 && (
             <div>
               <h3 className="font-semibold text-slate-900 mb-4">Gallery</h3>
               <div className="relative rounded-3xl overflow-hidden shadow-md group">
-                <div className="relative h-64 sm:h-80 bg-slate-100">
+                <div className="relative h-64 sm:h-80 bg-slate-100 cursor-zoom-in" onClick={() => setLightbox({ imgs: galleryImages, idx: galleryIdx })}>
                   <AnimatePresence mode="wait">
                     <motion.img
                       key={galleryIdx}
-                      src={location.images[galleryIdx]}
-                      alt={`Gallery ${galleryIdx + 1}`}
+                      src={galleryImages[galleryIdx]}
+                      alt={`${location.name} photo ${galleryIdx + 1}`}
                       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
                       className="absolute inset-0 w-full h-full object-cover"
                     />
                   </AnimatePresence>
                   {/* arrows */}
-                  <button onClick={prevImg} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur shadow-lg flex items-center justify-center text-slate-800 hover:bg-white"><ChevronLeft size={20} /></button>
-                  <button onClick={nextImg} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur shadow-lg flex items-center justify-center text-slate-800 hover:bg-white"><ChevronRight size={20} /></button>
+                  <button onClick={(e) => { e.stopPropagation(); prevImg(); }} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur shadow-lg flex items-center justify-center text-slate-800 hover:bg-white"><ChevronLeft size={20} /></button>
+                  <button onClick={(e) => { e.stopPropagation(); nextImg(); }} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur shadow-lg flex items-center justify-center text-slate-800 hover:bg-white"><ChevronRight size={20} /></button>
                   {/* counter */}
-                  <span className="absolute top-3 right-3 text-xs font-semibold text-white bg-black/50 px-2.5 py-1 rounded-full">{galleryIdx + 1} / {location.images.length}</span>
+                  <span className="absolute top-3 right-3 text-xs font-semibold text-white bg-black/50 px-2.5 py-1 rounded-full">{galleryIdx + 1} / {galleryImages.length}</span>
                   {/* dots */}
                   <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                    {location.images.map((_, i) => (
-                      <button key={i} onClick={() => setGalleryIdx(i)} className="w-2 h-2 rounded-full transition-all" style={{ background: i === galleryIdx ? '#fff' : 'rgba(255,255,255,.5)', width: i === galleryIdx ? 20 : 8 }} />
+                    {galleryImages.map((_, i) => (
+                      <button key={i} onClick={(e) => { e.stopPropagation(); setGalleryIdx(i); }} className="w-2 h-2 rounded-full transition-all" style={{ background: i === galleryIdx ? '#fff' : 'rgba(255,255,255,.5)', width: i === galleryIdx ? 20 : 8 }} />
                     ))}
                   </div>
                 </div>
                 {/* thumbnails */}
                 <div className="flex gap-2 p-3 bg-white overflow-x-auto">
-                  {location.images.map((img, i) => (
+                  {galleryImages.map((img, i) => (
                     <button key={i} onClick={() => setGalleryIdx(i)} className="shrink-0 w-16 h-16 rounded-xl overflow-hidden ring-2 transition-all" style={{ ['--tw-ring-color' as any]: i === galleryIdx ? '#6200FF' : 'transparent', ringColor: i === galleryIdx ? '#6200FF' : 'transparent' }}>
                       <img src={img} alt="" className="w-full h-full object-cover" style={{ opacity: i === galleryIdx ? 1 : 0.6 }} />
                     </button>
@@ -339,6 +351,7 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                 </div>
               </div>
             </div>
+            )}
 
             {/* Interactive map */}
             <div>
@@ -350,13 +363,15 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
               </div>
               <div className="relative h-72 rounded-3xl overflow-hidden border border-slate-200 shadow-md">
                 <div ref={miniEl} className="absolute inset-0 z-0" />
-                <div className="absolute z-[500] bottom-3 left-3 right-3 bg-white/95 backdrop-blur rounded-2xl px-4 py-3 flex items-center gap-2 shadow-lg pointer-events-none">
+                <a href={`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lng}`} target="_blank" rel="noreferrer"
+                  className="absolute z-[500] bottom-3 left-3 right-3 bg-white/95 backdrop-blur rounded-2xl px-4 py-3 flex items-center gap-2 shadow-lg hover:bg-white transition-colors">
                   <MapPin size={18} className="text-[#6200FF] shrink-0" />
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-slate-900 line-clamp-1">{location.name}</p>
                     <p className="text-xs text-slate-500 line-clamp-1">{place.city}</p>
                   </div>
-                </div>
+                  <Navigation size={16} className="text-[#6200FF] shrink-0" />
+                </a>
               </div>
             </div>
           </motion.div>
@@ -472,8 +487,12 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                       <p className="text-sm text-slate-700 leading-relaxed">{review.comment}</p>
 
                       {review.photos.length > 0 && (
-                        <div className="flex gap-2 mt-3">
-                          {review.photos.map((p, i) => <img key={i} src={p} alt="" className="w-20 h-20 rounded-xl object-cover" />)}
+                        <div className="flex gap-2 mt-3 flex-wrap">
+                          {review.photos.map((p, i) => (
+                            <button key={i} onClick={() => setLightbox({ imgs: review.photos, idx: i })} className="w-20 h-20 rounded-xl overflow-hidden cursor-zoom-in hover:opacity-90 transition-opacity">
+                              <img src={p} alt={`Review photo ${i + 1}`} className="w-full h-full object-cover" />
+                            </button>
+                          ))}
                         </div>
                       )}
 
@@ -526,6 +545,29 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                 </motion.div>
               ))}
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Fullscreen image lightbox */}
+      <AnimatePresence>
+        {lightbox && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setLightbox(null)}
+            className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+            <button onClick={() => setLightbox(null)} className="absolute top-5 right-5 w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center"><X size={22} /></button>
+            {lightbox.imgs.length > 1 && (
+              <>
+                <button onClick={(e) => { e.stopPropagation(); setLightbox((lb) => lb && ({ ...lb, idx: (lb.idx - 1 + lb.imgs.length) % lb.imgs.length })); }} className="absolute left-4 sm:left-8 w-12 h-12 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center"><ChevronLeft size={26} /></button>
+                <button onClick={(e) => { e.stopPropagation(); setLightbox((lb) => lb && ({ ...lb, idx: (lb.idx + 1) % lb.imgs.length })); }} className="absolute right-4 sm:right-8 w-12 h-12 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center"><ChevronRight size={26} /></button>
+              </>
+            )}
+            <motion.img key={lightbox.idx} src={lightbox.imgs[lightbox.idx]} alt="" onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+              className="max-w-[92vw] max-h-[88vh] object-contain rounded-2xl shadow-2xl" />
+            {lightbox.imgs.length > 1 && (
+              <span className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-sm font-medium bg-white/10 px-3 py-1 rounded-full">{lightbox.idx + 1} / {lightbox.imgs.length}</span>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

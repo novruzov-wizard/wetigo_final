@@ -17,7 +17,7 @@ interface HomePageProps {
 export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: HomePageProps) {
   const [activeCat, setActiveCat] = useState('all');
   const [toast, setToast] = useState<string | null>(null);
-  const { isFavorite, toggleFavorite, t, places: PLACES } = useStore();
+  const { isFavorite, toggleFavorite, t, places: PLACES, user } = useStore();
 
   // real counts from loaded places
   const countFor = (id: string) => id === 'all' ? PLACES.length : PLACES.filter((p) => p.categoryId === id).length;
@@ -42,10 +42,17 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
     );
   }, []);
 
-  const offers = ['15% Off', '12% Off', '18% Off'];
   const tints = ['#fdeef2', '#fef4ea', '#e9f7ef'];
-  const places = PLACES.slice(0, 3).map((p, i) => ({ ...p, off: offers[i], tint: tints[i] }));
-  const recentReviews = PLACES.slice(0, 3).map((p, i) => ({ id: p.id, name: p.name, rating: p.rating, when: `${i + 2}d ago`, img: `${p.image}` }));
+  // Popular = promoted (premium) listings first, then highest rated. No fake discounts.
+  const places = [...PLACES]
+    .sort((a, b) => (Number(b.premium) - Number(a.premium)) || (b.rating - a.rating) || ((b.reviews ?? 0) - (a.reviews ?? 0)))
+    .slice(0, 3)
+    .map((p, i) => ({ ...p, tint: tints[i % tints.length] }));
+  // Recent = most-reviewed real places (proxy for recent community activity)
+  const recentReviews = [...PLACES]
+    .sort((a, b) => (b.reviews ?? 0) - (a.reviews ?? 0))
+    .slice(0, 3)
+    .map((p) => ({ id: p.id, name: p.name, rating: p.rating, when: `${(p.reviews ?? 0).toLocaleString()} reviews`, img: `${p.image}` }));
 
   // nearest real place to the user
   const ranked = userLoc ? [...PLACES].map((p) => ({ p, d: distanceKm(userLoc.lat, userLoc.lng, p.lat, p.lng) })).sort((a, b) => a.d - b.d) : [];
@@ -53,6 +60,15 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
   const fmtDist = (d: number) => (d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`);
 
   const flash = (m: string) => { setToast(m); window.clearTimeout((flash as any)._t); (flash as any)._t = window.setTimeout(() => setToast(null), 2200); };
+
+  // Wetigo membership card — derived deterministically from the user so it's
+  // stable per account (the real number is issued by the backend on register).
+  const cardNumber = (() => {
+    const seed = (user.email || user.name || 'wetigo').split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+    const grp = (n: number) => String(1000 + (n % 9000));
+    return `${grp(seed)} ${grp(seed >> 3)} ${grp(seed >> 6)} ${grp(seed >> 9)}`;
+  })();
+  const cardExpiry = (() => { const d = new Date(); return `${String((d.getMonth() % 12) + 1).padStart(2, '0')}/${String((d.getFullYear() + 4) % 100)}`; })();
 
   // real mini-map of nearby places
   const nbEl = useRef<HTMLDivElement | null>(null);
@@ -169,7 +185,11 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
                   style={{ backgroundColor: p.tint }}
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#6200FF] bg-white/70 px-2.5 py-1 rounded-full">{p.off}</span>
+                    {p.premium ? (
+                      <span className="flex items-center gap-1 text-xs font-semibold text-[#6200FF] bg-white/70 px-2.5 py-1 rounded-full"><Star size={11} className="fill-[#6200FF]" /> {t('common.promoted')}</span>
+                    ) : p.verified ? (
+                      <span className="text-xs font-semibold text-emerald-600 bg-white/70 px-2.5 py-1 rounded-full">{t('common.verified')}</span>
+                    ) : <span />}
                     <button onClick={() => toggleFavorite(p.id)} className="w-8 h-8 rounded-full bg-white/70 flex items-center justify-center text-rose-400 hover:text-rose-500" title="Save place">
                       <Heart size={15} className={isFavorite(p.id) ? 'fill-rose-500 text-rose-500' : ''} />
                     </button>
@@ -279,15 +299,15 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
               <span className="font-semibold">Wetigo Card</span>
               <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-xs">◎</span>
             </div>
-            <p className="font-display text-xl tracking-widest mb-6">8763 2736 9873 0329</p>
+            <p className="font-display text-xl tracking-widest mb-6">{cardNumber}</p>
             <div className="flex items-end justify-between text-xs">
               <div>
                 <p className="text-white/60 mb-0.5">Card Holder</p>
-                <p className="font-semibold tracking-wide">JHON SMITH</p>
+                <p className="font-semibold tracking-wide">{(user.name || 'Wetigo Member').toUpperCase()}</p>
               </div>
               <div>
                 <p className="text-white/60 mb-0.5">Expires</p>
-                <p className="font-semibold">10/28</p>
+                <p className="font-semibold">{cardExpiry}</p>
               </div>
               <div className="flex -space-x-2">
                 <span className="w-6 h-6 rounded-full bg-rose-400" />

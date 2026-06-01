@@ -60,13 +60,22 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan
   };
 
   const isPremium = plan !== 'free';
-  const stats = { reviews: 24, favorites: favorites.length, plans: 12 };
 
-  const recentActivity = [
-    { id: 1, type: 'review', place: 'The Grand Ballroom', action: 'Left a 5-star review', time: '2 days ago', icon: Star, color: 'from-amber-500 to-yellow-600' },
-    { id: 2, type: 'favorite', place: 'Fitness Plus Gym', action: 'Saved to favorites', time: '5 days ago', icon: Heart, color: 'from-rose-500 to-pink-600' },
-    { id: 3, type: 'plan', place: 'La Cucina Italiana', action: 'Created a visit plan', time: '1 week ago', icon: MapPin, color: 'from-[#6200FF] to-[#8b00ff]' },
-  ];
+  // Real stats + activity from the backend (fall back to what we know locally).
+  const [stats, setStats] = useState({ reviews: 0, favorites: favorites.length, plans: 0 });
+  const [recentActivity, setRecentActivity] = useState<{ id: number; type: string; place: string; action: string; time: string }[]>([]);
+  const [activityLoaded, setActivityLoaded] = useState(false);
+  useEffect(() => {
+    setStats((s) => ({ ...s, favorites: favorites.length }));
+  }, [favorites.length]);
+  useEffect(() => {
+    if (!authApi.getToken()) { setActivityLoaded(true); return; }
+    profileApi.stats().then((s: any) => { if (s) setStats({ reviews: s.reviews ?? 0, favorites: s.favorites ?? favorites.length, plans: s.plans ?? 0 }); }).catch(() => {});
+    profileApi.activity().then((a: any) => { if (Array.isArray(a)) setRecentActivity(a); }).catch(() => {}).finally(() => setActivityLoaded(true));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const activityIcon = (type: string) => type === 'favorite' ? Heart : type === 'plan' ? MapPin : Star;
+  const activityColor = (type: string) => type === 'favorite' ? 'from-rose-500 to-pink-600' : type === 'plan' ? 'from-[#6200FF] to-[#8b00ff]' : 'from-amber-500 to-yellow-600';
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -154,8 +163,15 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan
       <div className="mb-8">
         <h2 className="font-semibold text-slate-900 mb-4">{t('settings.recent')}</h2>
         <div className="space-y-3">
+          {recentActivity.length === 0 && activityLoaded && (
+            <div className="bg-white rounded-3xl p-8 shadow-md border border-slate-200 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3"><Star size={22} className="text-slate-300" /></div>
+              <p className="text-sm font-medium text-slate-700 mb-1">No activity yet</p>
+              <p className="text-xs text-slate-500">Leave a review or save a place and it will show up here.</p>
+            </div>
+          )}
           {recentActivity.map((activity, idx) => {
-            const Icon = activity.icon;
+            const Icon = activityIcon(activity.type);
             return (
               <motion.div
                 key={activity.id}
@@ -165,7 +181,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan
                 className="bg-white rounded-3xl p-4 shadow-md border border-slate-200"
               >
                 <div className="flex items-start gap-3">
-                  <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${activity.color} flex items-center justify-center shrink-0 shadow-lg`}>
+                  <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${activityColor(activity.type)} flex items-center justify-center shrink-0 shadow-lg`}>
                     <Icon size={18} className="text-white" />
                   </div>
                   <div className="flex-1">
