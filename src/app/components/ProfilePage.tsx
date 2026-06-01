@@ -1,7 +1,8 @@
 import { Crown, MapPin, Star, Heart, Bell, LogOut, Plus, Globe, Languages, Pencil, Camera, X, Check } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
+import { profile as profileApi, auth as authApi } from '../lib/api';
 import { LANGUAGES, type Lang } from '../i18n';
 import { COUNTRIES } from '../data/places';
 
@@ -37,7 +38,22 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan
   const [draft, setDraft] = useState(user);
   const avatarRef = useRef<HTMLInputElement | null>(null);
   const openEdit = () => { setDraft(user); setEditing(true); };
-  const saveEdit = () => { updateUser(draft); setEditing(false); };
+  const saveEdit = () => {
+    updateUser(draft);                 // optimistic local update
+    setEditing(false);
+    if (authApi.getToken()) {
+      profileApi.update({ name: draft.name, email: draft.email, bio: draft.bio, avatar: draft.avatar }).catch(() => {});
+    }
+  };
+
+  // On mount, if logged in, refresh profile from the server so edits survive reloads.
+  useEffect(() => {
+    if (!authApi.getToken()) return;
+    authApi.me().then((u: any) => {
+      if (u) updateUser({ name: u.name ?? draft.name, email: u.email ?? draft.email, bio: u.bio ?? '', avatar: u.avatar ?? draft.avatar });
+    }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const onAvatar = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (f) setDraft((d) => ({ ...d, avatar: URL.createObjectURL(f) }));
