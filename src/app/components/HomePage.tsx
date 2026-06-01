@@ -2,7 +2,7 @@ import { ShoppingCart, Heart, Plus, Star, MapPin, ArrowUpRight, Pizza, Coffee, C
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
-import { PLACES, distanceKm } from '../data/places';
+import { distanceKm } from '../data/places';
 import { useRef } from 'react';
 
 declare const L: any;
@@ -17,7 +17,7 @@ interface HomePageProps {
 export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: HomePageProps) {
   const [activeCat, setActiveCat] = useState('all');
   const [toast, setToast] = useState<string | null>(null);
-  const { isFavorite, toggleFavorite, t } = useStore();
+  const { isFavorite, toggleFavorite, t, places: PLACES } = useStore();
 
   const categories = [
     { id: 'all', name: 'All', icon: Compass, tint: '#f1ebff', fg: '#6200FF', count: '3.2k' },
@@ -57,7 +57,8 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
   const nbMap = useRef<any>(null);
   useEffect(() => {
     if (!nbEl.current || typeof L === 'undefined') return;
-    const center = userLoc ?? { lat: PLACES[6].lat, lng: PLACES[6].lng };
+    const fallback = PLACES.find((p) => p.country === 'az') ?? PLACES[0] ?? { lat: 40.3713, lng: 49.8516 };
+    const center = userLoc ?? { lat: fallback.lat, lng: fallback.lng };
     const t2 = setTimeout(() => {
       if (!nbMap.current) {
         nbMap.current = L.map(nbEl.current, { zoomControl: false, attributionControl: false, dragging: true, scrollWheelZoom: false }).setView([center.lat, center.lng], 12);
@@ -83,7 +84,7 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
       map.invalidateSize();
     }, 120);
     return () => clearTimeout(t2);
-  }, [userLoc, ranked.length]);
+  }, [userLoc, ranked.length, PLACES.length]);
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 pb-10">

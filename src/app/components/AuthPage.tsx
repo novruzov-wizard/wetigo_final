@@ -1,15 +1,16 @@
 import { useRef, useState } from 'react';
-import { Eye, EyeOff, Star, MapPin, ArrowRight, Check, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, Star, MapPin, ArrowRight, Check, ShieldCheck, ArrowLeft, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import wetigoLogo from './figma/logo.png';
 import { useStore } from '../store';
+import { auth as authApi } from '../lib/api';
 
 interface AuthPageProps {
   onAuth: () => void;
 }
 
 export function AuthPage({ onAuth }: AuthPageProps) {
-  const { t } = useStore();
+  const { t, updateUser } = useStore();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [step, setStep] = useState<'form' | 'verify'>('form');
   const [showPassword, setShowPassword] = useState(false);
@@ -17,17 +18,44 @@ export function AuthPage({ onAuth }: AuthPageProps) {
   const [remember, setRemember] = useState(true);
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [resent, setResent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const codeRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const isSignup = mode === 'signup';
   const canSubmit = form.email.trim() && form.password.trim() && (!isSignup || form.name.trim());
 
-  const submit = (e: React.FormEvent) => {
+  // Save token + user into the store, then enter the app.
+  const finishAuth = (res: { token: string; user: any }) => {
+    authApi.setToken(res.token);
+    if (res.user) {
+      updateUser({
+        name: res.user.name ?? 'Wetigo User',
+        email: res.user.email ?? '',
+        bio: res.user.bio ?? '',
+        avatar: res.user.avatar ?? 'https://i.pravatar.cc/160?img=12',
+      });
+    }
+    onAuth();
+  };
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit) return;
-    // Backend hook: await auth.register(form) / auth.login(form)
-    if (isSignup) setStep('verify'); // require email verification for new accounts
-    else onAuth();
+    if (!canSubmit || loading) return;
+    setError(''); setLoading(true);
+    try {
+      if (isSignup) {
+        await authApi.register(form);   // backend sends OTP (emails it / returns devCode)
+        setStep('verify');
+      } else {
+        const res = await authApi.login({ email: form.email, password: form.password });
+        finishAuth(res as any);
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Something went wrong');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const setDigit = (i: number, v: string) => {
@@ -41,7 +69,29 @@ export function AuthPage({ onAuth }: AuthPageProps) {
     if (e.key === 'Backspace' && !code[i] && i > 0) codeRefs.current[i - 1]?.focus();
   };
   const codeComplete = code.every((c) => c !== '');
-  const verify = () => { if (codeComplete) onAuth(); }; // Backend hook: auth.verifyOtp({ email, code: code.join('') })
+
+  const verify = async () => {
+    if (!codeComplete || loading) return;
+    setError(''); setLoading(true);
+    try {
+      const res = await authApi.verifyOtp({ email: form.email, code: code.join('') });
+      finishAuth(res as any);
+    } catch (err: any) {
+      setError(err?.message || 'Invalid code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resend = async () => {
+    try { await authApi.resendOtp({ email: form.email }); setResent(true); setTimeout(() => setResent(false), 2500); } catch { /* ignore */ }
+  };
+
+  const oauth = async (provider: 'google' | 'facebook') => {
+    // Backend returns an OAuth URL to redirect to; until configured, just enter.
+    try { const r = await authApi.oauth(provider) as any; if (r?.url) { window.location.href = r.url; return; } } catch { /* ignore */ }
+    onAuth();
+  };
 
   return (
     <div className="min-h-screen w-full flex items-stretch bg-[#f5f6f4] p-3 sm:p-5">
@@ -98,9 +148,10 @@ export function AuthPage({ onAuth }: AuthPageProps) {
                     </button>
                     <button type="button" className="text-sm font-semibold text-[#2b2521] underline underline-offset-4 hover:text-[#6200FF]">{t('auth.forgot')}</button>
                   </div>
-                  <button type="submit" disabled={!canSubmit}
+                  {error && <p className="text-sm text-rose-600">{error}</p>}
+                  <button type="submit" disabled={!canSubmit || loading}
                     className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#6200FF] text-white font-semibold shadow-lg shadow-[#6200FF]/25 hover:bg-[#5400dd] disabled:bg-slate-200 disabled:shadow-none disabled:cursor-not-allowed transition">
-                    {isSignup ? t('auth.create') : t('auth.signin')} <ArrowRight size={18} />
+                    {loading ? <Loader2 size={18} className="animate-spin" /> : <>{isSignup ? t('auth.create') : t('auth.signin')} <ArrowRight size={18} /></>}
                   </button>
                 </form>
 
@@ -110,11 +161,11 @@ export function AuthPage({ onAuth }: AuthPageProps) {
                   <div className="flex-1 h-px bg-slate-200" />
                 </div>
                 <div className="space-y-3">
-                  <button onClick={onAuth} className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-slate-200 bg-white text-[#2b2521] font-medium hover:bg-slate-50 transition">
+                  <button onClick={() => oauth('google')} className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-slate-200 bg-white text-[#2b2521] font-medium hover:bg-slate-50 transition">
                     <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1Z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23Z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84Z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38Z"/></svg>
                     {t('auth.continueGoogle')}
                   </button>
-                  <button onClick={onAuth} className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-slate-200 bg-white text-[#2b2521] font-medium hover:bg-slate-50 transition">
+                  <button onClick={() => oauth('facebook')} className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-slate-200 bg-white text-[#2b2521] font-medium hover:bg-slate-50 transition">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.69.24 2.69.24v2.97h-1.52c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07Z"/></svg>
                     {t('auth.continueFacebook')}
                   </button>
@@ -153,7 +204,7 @@ export function AuthPage({ onAuth }: AuthPageProps) {
                 </button>
                 <p className="text-sm text-slate-500 text-center">
                   {t('auth.didnt')}{' '}
-                  <button onClick={() => { setResent(true); setTimeout(() => setResent(false), 2500); }} className="font-semibold text-[#6200FF] hover:opacity-80">
+                  <button onClick={resend} className="font-semibold text-[#6200FF] hover:opacity-80">
                     {resent ? t('auth.resent') : t('auth.resend')}
                   </button>
                 </p>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useStore } from './store';
+import { auth as authApi } from './lib/api';
 import { AuthPage } from './components/AuthPage';
 import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
@@ -16,7 +17,7 @@ import { AddLocationPage } from './components/AddLocationPage';
 interface SelectedPlan { id: string; name: string; price: number; cycle: 'month' | 'year'; }
 
 export default function App() {
-  const { t } = useStore();
+  const { t, refreshFavorites } = useStore();
   const [authed, setAuthed] = useState(false);
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
@@ -119,7 +120,7 @@ export default function App() {
           <ProfilePage
             onShowSubscription={() => setShowSubscription(true)}
             onAddLocation={() => setShowAddLocation(true)}
-            onSignOut={() => { setAuthed(false); setCurrentPage('home'); }}
+            onSignOut={() => { authApi.setToken(null); authApi.logout().catch(() => {}); setAuthed(false); setCurrentPage('home'); }}
             plan={plan}
           />
         );
@@ -146,7 +147,7 @@ export default function App() {
   const heading = checkoutPlan ? { t: t('title.checkout') } : selectedLocation ? { t: t('title.place') } : showSubscription ? { t: t('title.premium') } : showAddLocation ? { t: t('title.addplace') } : (titles[currentPage] || { t: 'Wetigo' });
 
   if (!authed) {
-    return <AuthPage onAuth={() => setAuthed(true)} />;
+    return <AuthPage onAuth={() => { setAuthed(true); refreshFavorites(); }} />;
   }
 
   return (

@@ -1,6 +1,5 @@
 import { Heart, MapPin, Star, Trash2, BadgeCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { PLACES } from '../data/places';
 import { useStore } from '../store';
 
 interface FavoritesPageProps {
@@ -8,8 +7,8 @@ interface FavoritesPageProps {
 }
 
 export function FavoritesPage({ onSelectLocation }: FavoritesPageProps) {
-  const { favorites, toggleFavorite } = useStore();
-  const saved = PLACES.filter((p) => favorites.includes(p.id));
+  const { favorites, toggleFavorite, places } = useStore();
+  const saved = places.filter((p) => favorites.includes(p.id));
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
