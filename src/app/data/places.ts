@@ -16,6 +16,22 @@ export interface Place {
   lng: number;
 }
 
+// Category → stock image fallback (when a place has no image).
+const CATEGORY_IMAGES: Record<string, string> = {
+  restaurant: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop',
+  cafe: 'https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=600&h=400&fit=crop',
+  fashion: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&h=400&fit=crop',
+  footwear: 'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=600&h=400&fit=crop',
+  fitness: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=400&fit=crop',
+  beauty: 'https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=600&h=400&fit=crop',
+  entertainment: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&h=400&fit=crop',
+  wedding: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&h=400&fit=crop',
+};
+export function placeImage(p: { image?: string; categoryId?: string }): string {
+  if (p.image && p.image.trim()) return p.image;
+  return CATEGORY_IMAGES[p.categoryId ?? ''] ?? 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=600&h=400&fit=crop';
+}
+
 // Real, recognizable venues with accurate coordinates.
 // In production these are served by the backend from Google Places / TripAdvisor (see api.places).
 export const PLACES: Place[] = [

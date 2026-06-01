@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { translate, detectLang, type Lang } from './i18n';
-import { PLACES as SEED_PLACES, type Place } from './data/places';
+import { PLACES as SEED_PLACES, placeImage, type Place } from './data/places';
 import { places as placesApi, favorites as favoritesApi, auth as authApi } from './lib/api';
 
 export interface UserProfile {
@@ -55,7 +55,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let alive = true;
     placesApi.list()
-      .then((data) => { if (alive && Array.isArray(data) && data.length) setPlaces(data as Place[]); })
+      .then((data: any) => {
+        if (alive && Array.isArray(data) && data.length) {
+          // normalize backend rows: reviewsCount -> reviews, image fallback
+          const norm: Place[] = data.map((p: any) => ({
+            id: p.id, name: p.name, category: p.category, categoryId: p.categoryId ?? 'all',
+            rating: p.rating ?? 0, reviews: p.reviews ?? p.reviewsCount ?? 0,
+            image: placeImage(p), city: p.city ?? '', country: p.country ?? 'all',
+            price: p.price ?? '$$', verified: !!p.verified, premium: !!p.premium,
+            open: p.open ?? true, lat: p.lat ?? 0, lng: p.lng ?? 0,
+          }));
+          setPlaces(norm);
+        }
+      })
       .catch(() => { /* keep seed */ })
       .finally(() => { if (alive) setPlacesLoading(false); });
     return () => { alive = false; };

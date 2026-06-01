@@ -19,16 +19,18 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
   const [toast, setToast] = useState<string | null>(null);
   const { isFavorite, toggleFavorite, t, places: PLACES } = useStore();
 
+  // real counts from loaded places
+  const countFor = (id: string) => id === 'all' ? PLACES.length : PLACES.filter((p) => p.categoryId === id).length;
   const categories = [
-    { id: 'all', name: 'All', icon: Compass, tint: '#f1ebff', fg: '#6200FF', count: '3.2k' },
-    { id: 'restaurant', name: 'Dining', icon: Pizza, tint: '#fef0e3', fg: '#c2853f', count: '1.2k' },
-    { id: 'wedding', name: 'Wedding', icon: Building2, tint: '#fdeaf0', fg: '#c23f78', count: '320' },
-    { id: 'fitness', name: 'Fitness', icon: Dumbbell, tint: '#e4f5ec', fg: '#2f9461', count: '430' },
-    { id: 'cafe', name: 'Cafes', icon: Coffee, tint: '#f6efd9', fg: '#b0902f', count: '880' },
-    { id: 'beauty', name: 'Beauty', icon: Sparkles, tint: '#fbe7f0', fg: '#c23f96', count: '360' },
-    { id: 'fashion', name: 'Fashion', icon: ShoppingBag, tint: '#ece4f7', fg: '#7a3fc2', count: '540' },
-    { id: 'footwear', name: 'Footwear', icon: Footprints, tint: '#e2ecf7', fg: '#3f6fc2', count: '210' },
-  ];
+    { id: 'all', name: 'All', icon: Compass, tint: '#f1ebff', fg: '#6200FF' },
+    { id: 'restaurant', name: 'Dining', icon: Pizza, tint: '#fef0e3', fg: '#c2853f' },
+    { id: 'cafe', name: 'Cafes', icon: Coffee, tint: '#f6efd9', fg: '#b0902f' },
+    { id: 'fashion', name: 'Fashion', icon: ShoppingBag, tint: '#ece4f7', fg: '#7a3fc2' },
+    { id: 'fitness', name: 'Fitness', icon: Dumbbell, tint: '#e4f5ec', fg: '#2f9461' },
+    { id: 'beauty', name: 'Beauty', icon: Sparkles, tint: '#fbe7f0', fg: '#c23f96' },
+    { id: 'footwear', name: 'Footwear', icon: Footprints, tint: '#e2ecf7', fg: '#3f6fc2' },
+    { id: 'entertainment', name: 'Fun', icon: Building2, tint: '#fdeaf0', fg: '#c23f78' },
+  ].map((c) => ({ ...c, count: String(countFor(c.id)) }));
 
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   useEffect(() => {
