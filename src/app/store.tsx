@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { translate, detectLang, type Lang } from './i18n';
+import { PLACES as SEED_PLACES, type Place } from './data/places';
+import { places as placesApi, favorites as favoritesApi, auth as authApi } from './lib/api';
 
 export interface UserProfile {
   name: string;
@@ -19,6 +21,9 @@ interface Store {
   t: (key: string) => string;
   country: string;
   setCountry: (c: string) => void;
+  places: Place[];
+  placesLoading: boolean;
+  refreshFavorites: () => void;
 }
 
 const StoreContext = createContext<Store | null>(null);
@@ -39,13 +44,39 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile>(() => load('wetigo:user', DEFAULT_USER));
   const [lang, setLangState] = useState<Lang>(() => load<Lang | null>('wetigo:lang', null) ?? detectLang());
   const [country, setCountryState] = useState<string>(() => load('wetigo:country', 'all'));
+  const [places, setPlaces] = useState<Place[]>(SEED_PLACES);
+  const [placesLoading, setPlacesLoading] = useState(true);
 
   useEffect(() => { localStorage.setItem('wetigo:favorites', JSON.stringify(favorites)); }, [favorites]);
   useEffect(() => { localStorage.setItem('wetigo:user', JSON.stringify(user)); }, [user]);
   useEffect(() => { localStorage.setItem('wetigo:lang', JSON.stringify(lang)); document.documentElement.lang = lang; }, [lang]);
 
+  // Load real places from the backend (falls back to seed data on failure).
+  useEffect(() => {
+    let alive = true;
+    placesApi.list()
+      .then((data) => { if (alive && Array.isArray(data) && data.length) setPlaces(data as Place[]); })
+      .catch(() => { /* keep seed */ })
+      .finally(() => { if (alive) setPlacesLoading(false); });
+    return () => { alive = false; };
+  }, []);
+
+  // If logged in, load favorites from the backend.
+  const refreshFavorites = () => {
+    if (!authApi.getToken()) return;
+    favoritesApi.list().then((ids) => { if (Array.isArray(ids)) setFavorites(ids as number[]); }).catch(() => {});
+  };
+  useEffect(() => { refreshFavorites(); }, []);
+
   const isFavorite = (id: number) => favorites.includes(id);
-  const toggleFavorite = (id: number) => setFavorites((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id]));
+  const toggleFavorite = (id: number) => {
+    setFavorites((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id]));
+    // persist server-side when authenticated
+    if (authApi.getToken()) {
+      const adding = !favorites.includes(id);
+      (adding ? favoritesApi.add(id) : favoritesApi.remove(id)).catch(() => {});
+    }
+  };
   const updateUser = (patch: Partial<UserProfile>) => setUser((u) => ({ ...u, ...patch }));
   const setLang = (l: Lang) => setLangState(l);
   const t = (key: string) => translate(lang, key);
@@ -53,7 +84,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => { localStorage.setItem('wetigo:country', JSON.stringify(country)); }, [country]);
 
   return (
-    <StoreContext.Provider value={{ favorites, isFavorite, toggleFavorite, user, updateUser, lang, setLang, t, country, setCountry }}>
+    <StoreContext.Provider value={{ favorites, isFavorite, toggleFavorite, user, updateUser, lang, setLang, t, country, setCountry, places, placesLoading, refreshFavorites }}>
       {children}
     </StoreContext.Provider>
   );

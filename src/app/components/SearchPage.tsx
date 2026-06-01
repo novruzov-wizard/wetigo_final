@@ -1,7 +1,7 @@
 import { Search, MapPin, Star, X, LayoutGrid, Map as MapIcon, Clock, Navigation, Crosshair, Bookmark, BadgeCheck } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { PLACES, distanceKm, COUNTRIES, type Place } from '../data/places';
+import { distanceKm, COUNTRIES, type Place } from '../data/places';
 import { useStore } from '../store';
 
 declare const L: any;
@@ -20,7 +20,7 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
   const [openNow, setOpenNow] = useState(false);
   const [topRated, setTopRated] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
-  const { favorites, isFavorite, toggleFavorite, t, country, setCountry } = useStore();
+  const { favorites, isFavorite, toggleFavorite, t, country, setCountry, places: PLACES } = useStore();
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
 

@@ -40,7 +40,7 @@ const del = <T>(p: string) => request<T>(p, { method: 'DELETE' });
 export const auth = {
   setToken(t: string | null) { TOKEN = t; try { t ? localStorage.setItem('wetigo:token', t) : localStorage.removeItem('wetigo:token'); } catch { /* ignore */ } },
   getToken() { return TOKEN; },
-  register: (data: { name: string; email: string; password: string }) => post<{ pendingVerification: boolean }>('/auth/register', data),
+  register: (data: { name: string; email: string; password: string }) => post<{ pendingVerification: boolean; devCode?: string }>('/auth/register', data),
   login: (data: { email: string; password: string }) => post<{ token: string; user: unknown }>('/auth/login', data),
   verifyOtp: (data: { email: string; code: string }) => post<{ token: string; user: unknown }>('/auth/verify-otp', data),
   resendOtp: (data: { email: string }) => post<void>('/auth/resend-otp', data),

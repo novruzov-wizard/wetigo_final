@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from './store';
+import { auth as authApi } from './lib/api';
 import { AuthPage } from './components/AuthPage';
 import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
@@ -16,8 +17,23 @@ import { AddLocationPage } from './components/AddLocationPage';
 interface SelectedPlan { id: string; name: string; price: number; cycle: 'month' | 'year'; }
 
 export default function App() {
-  const { t } = useStore();
-  const [authed, setAuthed] = useState(false);
+  const { t, refreshFavorites, updateUser } = useStore();
+  const [authed, setAuthed] = useState(() => !!authApi.getToken());
+
+  // OAuth callback: backend redirects to /auth/callback#token=...&name=...&email=...
+  useEffect(() => {
+    if (!window.location.hash.includes('token=')) return;
+    const p = new URLSearchParams(window.location.hash.slice(1));
+    const token = p.get('token');
+    if (token) {
+      authApi.setToken(token);
+      updateUser({ name: p.get('name') || 'Wetigo User', email: p.get('email') || '' });
+      setAuthed(true);
+      refreshFavorites();
+    }
+    history.replaceState(null, '', window.location.pathname); // clean the hash
+  }, []);
+
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
   const [showSubscription, setShowSubscription] = useState(false);
@@ -119,7 +135,7 @@ export default function App() {
           <ProfilePage
             onShowSubscription={() => setShowSubscription(true)}
             onAddLocation={() => setShowAddLocation(true)}
-            onSignOut={() => { setAuthed(false); setCurrentPage('home'); }}
+            onSignOut={() => { authApi.setToken(null); authApi.logout().catch(() => {}); setAuthed(false); setCurrentPage('home'); }}
             plan={plan}
           />
         );
@@ -146,7 +162,7 @@ export default function App() {
   const heading = checkoutPlan ? { t: t('title.checkout') } : selectedLocation ? { t: t('title.place') } : showSubscription ? { t: t('title.premium') } : showAddLocation ? { t: t('title.addplace') } : (titles[currentPage] || { t: 'Wetigo' });
 
   if (!authed) {
-    return <AuthPage onAuth={() => setAuthed(true)} />;
+    return <AuthPage onAuth={() => { setAuthed(true); refreshFavorites(); }} />;
   }
 
   return (

@@ -2,6 +2,8 @@ import { ArrowLeft, Star, MapPin, Phone, Clock, Share2, MessageCircle, Globe, Ch
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PLACES } from '../data/places';
+import { useStore } from '../store';
+import { reviews as reviewsApi, auth as authApi } from '../lib/api';
 
 declare const L: any;
 
@@ -25,28 +27,29 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
   const [reviewSort, setReviewSort] = useState<'recent' | 'high' | 'low' | 'liked'>('recent');
   const fileRef = useRef<HTMLInputElement | null>(null);
 
+  const { places: storePlaces } = useStore();
+  const place = storePlaces.find((p) => p.id === locationId) ?? PLACES.find((p) => p.id === locationId) ?? PLACES[0];
+
+  const heroImg = place.image || 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&h=600&fit=crop';
   const location = {
-    name: 'The Grand Ballroom',
-    category: 'Wedding Venue',
-    rating: 4.8,
-    reviewCount: 234,
-    image: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&h=600&fit=crop',
-    address: '123 Main Street, Downtown',
+    name: place.name,
+    category: place.category,
+    rating: place.rating,
+    reviewCount: place.reviews ?? 0,
+    image: heroImg,
+    address: place.city,
     phone: '+1 234 567 8900',
     hours: 'Mon-Sun: 9:00 AM - 11:00 PM',
-    website: 'www.grandballroom.com',
-    description: 'Elegant wedding venue with stunning architecture and world-class service. Perfect for your special day with capacity for up to 300 guests.',
-    verified: true,
+    website: 'www.wetigo.com',
+    description: `${place.name} — ${place.category} in ${place.city}. Discover photos, reviews and ratings from the Wetigo community.`,
+    verified: place.verified,
     images: [
-      'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=900&h=600&fit=crop',
+      heroImg,
       'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=900&h=600&fit=crop',
       'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=900&h=600&fit=crop',
       'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=900&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=900&h=600&fit=crop',
     ],
   };
-
-  const place = PLACES.find((p) => p.id === locationId) ?? PLACES[0];
   const [galleryIdx, setGalleryIdx] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const flash = (m: string) => { setToast(m); window.clearTimeout((flash as any)._t); (flash as any)._t = window.setTimeout(() => setToast(null), 2200); };
@@ -71,24 +74,24 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
     return () => clearTimeout(t);
   }, [activeTab, place.lat, place.lng]);
 
-  const [reviews, setReviews] = useState<Review[]>([
-    {
-      id: 1, user: 'Sarah Johnson', avatar: 'https://i.pravatar.cc/64?img=45', rating: 5,
-      comment: 'Absolutely stunning venue! Our wedding was perfect here. The staff was professional and accommodating.',
-      date: '2 weeks ago', photos: ['https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=300&h=300&fit=crop'], likes: 12, liked: false,
-      replies: [{ id: 11, user: 'The Grand Ballroom', avatar: 'https://i.pravatar.cc/64?img=5', text: 'Thank you so much, Sarah! It was a pleasure hosting your big day. 💜', date: '1 week ago' }],
-    },
-    {
-      id: 2, user: 'Michael Chen', avatar: 'https://i.pravatar.cc/64?img=13', rating: 4,
-      comment: 'Great service and beautiful location. Highly recommended for special events!',
-      date: '1 month ago', photos: [], likes: 5, liked: false, replies: [],
-    },
-    {
-      id: 3, user: 'Emma Williams', avatar: 'https://i.pravatar.cc/64?img=27', rating: 5,
-      comment: 'The team was amazing and very accommodating. Every detail was perfect. Worth every penny!',
-      date: '2 months ago', photos: [], likes: 8, liked: false, replies: [],
-    },
-  ]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+
+  // map a backend review row to our view model
+  const mapReview = (r: any): Review => ({
+    id: r.id, user: r.user ?? 'User', avatar: r.avatar ?? 'https://i.pravatar.cc/64?img=12',
+    rating: r.rating, comment: r.comment, date: r.date ? new Date(r.date).toLocaleDateString() : 'Just now',
+    photos: r.photos ?? [], likes: r.likes ?? 0, liked: r.liked ?? false,
+    replies: (r.replies ?? []).map((p: any) => ({ id: p.id, user: p.user ?? 'User', avatar: p.avatar ?? 'https://i.pravatar.cc/64?img=12', text: p.text, date: p.date ? new Date(p.date).toLocaleDateString() : 'Just now' })),
+  });
+
+  // load real reviews for this place
+  useEffect(() => {
+    let alive = true;
+    reviewsApi.list(locationId, reviewSort)
+      .then((data) => { if (alive && Array.isArray(data)) setReviews(data.map(mapReview)); })
+      .catch(() => { /* none */ });
+    return () => { alive = false; };
+  }, [locationId, reviewSort]);
 
   const onFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
@@ -100,13 +103,21 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
   const avg = reviews.reduce((s, r) => s + r.rating, 0) / (reviews.length || 1);
   const dist = [5, 4, 3, 2, 1].map((star) => ({ star, count: reviews.filter((r) => r.rating === star).length }));
 
-  const handleSubmitReview = () => {
+  const handleSubmitReview = async () => {
     if (userRating === 0 || !comment.trim()) return;
-    setReviews([{ id: Date.now(), user: 'You', avatar: 'https://i.pravatar.cc/64?img=12', rating: userRating, comment: comment.trim(), date: 'Just now', photos, likes: 0, liked: false, replies: [] }, ...reviews]);
+    const body = { rating: userRating, comment: comment.trim(), photos };
     setUserRating(0); setComment(''); setPhotos([]);
+    if (authApi.getToken()) {
+      try { const saved = await reviewsApi.create(locationId, body); setReviews((rs) => [mapReview(saved), ...rs]); return; } catch { /* fall through */ }
+    }
+    // optimistic / offline fallback
+    setReviews((rs) => [{ id: Date.now(), user: 'You', avatar: 'https://i.pravatar.cc/64?img=12', rating: body.rating, comment: body.comment, date: 'Just now', photos: body.photos, likes: 0, liked: false, replies: [] }, ...rs]);
   };
 
-  const toggleLike = (id: number) => setReviews((rs) => rs.map((r) => r.id === id ? { ...r, liked: !r.liked, likes: r.liked ? r.likes - 1 : r.likes + 1 } : r));
+  const toggleLike = (id: number) => {
+    setReviews((rs) => rs.map((r) => r.id === id ? { ...r, liked: !r.liked, likes: r.liked ? r.likes - 1 : r.likes + 1 } : r));
+    if (authApi.getToken()) reviewsApi.like(id).catch(() => {});
+  };
 
   // search + sort comments
   const shownReviews = reviews
@@ -124,8 +135,10 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
 
   const addReply = (id: number) => {
     if (!replyText.trim()) return;
-    setReviews((rs) => rs.map((r) => r.id === id ? { ...r, replies: [...r.replies, { id: Date.now(), user: 'You', avatar: 'https://i.pravatar.cc/64?img=12', text: replyText.trim(), date: 'Just now' }] } : r));
+    const text = replyText.trim();
+    setReviews((rs) => rs.map((r) => r.id === id ? { ...r, replies: [...r.replies, { id: Date.now(), user: 'You', avatar: 'https://i.pravatar.cc/64?img=12', text, date: 'Just now' }] } : r));
     setReplyText(''); setReplyOpen(null);
+    if (authApi.getToken()) reviewsApi.reply(id, text).catch(() => {});
   };
 
   return (
@@ -469,7 +482,7 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                         <button onClick={() => toggleLike(review.id)} className="flex items-center gap-1.5 text-sm font-medium transition-colors" style={{ color: review.liked ? '#6200FF' : '#94a3b8' }}>
                           <ThumbsUp size={15} className={review.liked ? 'fill-[#6200FF]' : ''} /> {review.likes}
                         </button>
-                        <button onClick={() => flash('Comment reported — our team will review it')} className="flex items-center gap-1.5 text-sm font-medium text-slate-400 hover:text-rose-500 transition-colors">
+                        <button onClick={() => { if (authApi.getToken()) reviewsApi.report(review.id, 'inappropriate').catch(() => {}); flash('Comment reported — our team will review it'); }} className="flex items-center gap-1.5 text-sm font-medium text-slate-400 hover:text-rose-500 transition-colors">
                           <Flag size={15} /> Report
                         </button>
                         <button onClick={() => { setReplyOpen(replyOpen === review.id ? null : review.id); setReplyText(''); }} className="flex items-center gap-1.5 text-sm font-medium text-slate-400 hover:text-[#6200FF] transition-colors">
