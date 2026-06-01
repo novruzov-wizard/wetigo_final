@@ -1,6 +1,7 @@
-import { ArrowLeft, MapPin, Upload, Plus, X, Building2, Phone, Clock, Globe, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, MapPin, Upload, Plus, X, Building2, Phone, Clock, Globe, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { places as placesApi, auth as authApi } from '../lib/api';
 
 interface AddLocationPageProps {
   onBack: () => void;
@@ -22,6 +23,43 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
 
   const [images, setImages] = useState<string[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  // ---- validation ----
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRe = /^[+]?[\d\s()-]{7,20}$/;
+  const urlRe = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/;
+
+  const validateStep = (step: number): boolean => {
+    const e: Record<string, string> = {};
+    if (step === 1) {
+      if (formData.businessName.trim().length < 2) e.businessName = 'Enter at least 2 characters';
+      if (!formData.category) e.category = 'Please choose a category';
+      if (formData.description.trim().length < 20) e.description = 'Description must be at least 20 characters';
+    }
+    if (step === 2) {
+      if (formData.address.trim().length < 4) e.address = 'Enter a valid street address';
+      if (formData.city.trim().length < 2) e.city = 'Enter the city';
+      if (!formData.country.trim()) e.country = 'Enter the country';
+      if (!phoneRe.test(formData.phone.trim())) e.phone = 'Enter a valid phone number';
+      if (formData.email.trim() && !emailRe.test(formData.email.trim())) e.email = 'Enter a valid email';
+      if (formData.website.trim() && !urlRe.test(formData.website.trim())) e.website = 'Enter a valid website URL';
+      if (!formData.hours.trim()) e.hours = 'Enter opening hours';
+    }
+    if (step === 3) {
+      if (images.length < 3) e.images = 'Please add at least 3 photos';
+    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const goToStep = (target: number) => {
+    // validate the current step before advancing
+    if (target > currentStep && !validateStep(currentStep)) return;
+    setCurrentStep(target);
+  };
 
   const categories = [
     { id: 'wedding', name: 'Wedding Venues', icon: '💒' },
@@ -38,9 +76,29 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
     { id: 'education', name: 'Education', icon: '📚' },
   ];
 
-  const handleSubmit = () => {
-    alert('Business location submitted successfully! Our team will review it within 24 hours.');
-    onBack();
+  const [done, setDone] = useState(false);
+  const handleSubmit = async () => {
+    if (!validateStep(3)) return;
+    setSubmitError(''); setSubmitting(true);
+    const payload = {
+      name: formData.businessName.trim(),
+      category: categories.find((c) => c.id === formData.category)?.name ?? formData.category,
+      categoryId: formData.category,
+      image: images[0] ?? '',
+      city: `${formData.city.trim()}, ${formData.country.trim()}`,
+      country: formData.country.trim().toLowerCase().slice(0, 2),
+      price: '$$',
+    };
+    try {
+      if (authApi.getToken()) {
+        await placesApi.create(payload);   // backend stores as "pending" for review
+      }
+      setDone(true);
+      setTimeout(onBack, 1600);
+    } catch (err: any) {
+      setSubmitError(err?.message || 'Could not submit. Please try again.');
+      setSubmitting(false);
+    }
   };
 
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -109,8 +167,9 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                     placeholder="Enter your business name"
                     value={formData.businessName}
                     onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                    className="w-full px-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm"
+                    className={`w-full px-4 py-3.5 rounded-2xl bg-white border text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm ${errors.businessName ? 'border-rose-400' : 'border-slate-200'}`}
                   />
+                  {errors.businessName && <p className="flex items-center gap-1 text-xs text-rose-500 mt-1.5"><AlertCircle size={13} /> {errors.businessName}</p>}
                 </div>
 
                 <div>
@@ -135,6 +194,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                       </button>
                     ))}
                   </div>
+                  {errors.category && <p className="flex items-center gap-1 text-xs text-rose-500 mt-1.5"><AlertCircle size={13} /> {errors.category}</p>}
                 </div>
 
                 <div>
@@ -143,18 +203,21 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                     placeholder="Describe your business, services, and what makes you unique..."
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm resize-none"
+                    className={`w-full px-4 py-3.5 rounded-2xl bg-white border text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm resize-none ${errors.description ? 'border-rose-400' : 'border-slate-200'}`}
                     rows={4}
                   />
+                  <div className="flex items-center justify-between mt-1.5">
+                    {errors.description ? <p className="flex items-center gap-1 text-xs text-rose-500"><AlertCircle size={13} /> {errors.description}</p> : <span />}
+                    <span className="text-xs text-slate-400">{formData.description.trim().length}/20</span>
+                  </div>
                 </div>
               </div>
             </div>
 
             <motion.button
               whileTap={{ scale: 0.98 }}
-              onClick={() => setCurrentStep(2)}
-              disabled={!formData.businessName || !formData.category || !formData.description}
-              className="w-full bg-gradient-to-r from-[#4a00cc] to-[#6200FF] text-white py-4 rounded-2xl font-semibold hover:shadow-lg hover:shadow-purple-600/30 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed transition-all duration-300 shadow-md"
+              onClick={() => goToStep(2)}
+              className="w-full bg-gradient-to-r from-[#4a00cc] to-[#6200FF] text-white py-4 rounded-2xl font-semibold hover:shadow-lg hover:shadow-purple-600/30 transition-all duration-300 shadow-md"
             >
               Continue to Location
             </motion.button>
@@ -182,9 +245,10 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                       placeholder="123 Main Street"
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm"
+                      className={`w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm ${errors.address ? 'border-rose-400' : 'border-slate-200'}`}
                     />
                   </div>
+                  {errors.address && <p className="flex items-center gap-1 text-xs text-rose-500 mt-1.5"><AlertCircle size={13} /> {errors.address}</p>}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -195,8 +259,9 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                       placeholder="New York"
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      className="w-full px-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm"
+                      className={`w-full px-4 py-3.5 rounded-2xl bg-white border text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm ${errors.city ? 'border-rose-400' : 'border-slate-200'}`}
                     />
+                    {errors.city && <p className="flex items-center gap-1 text-xs text-rose-500 mt-1.5"><AlertCircle size={13} /> {errors.city}</p>}
                   </div>
                   <div>
                     <label className="block text-sm text-slate-700 mb-2">Country *</label>
@@ -205,8 +270,9 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                       placeholder="USA"
                       value={formData.country}
                       onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                      className="w-full px-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm"
+                      className={`w-full px-4 py-3.5 rounded-2xl bg-white border text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm ${errors.country ? 'border-rose-400' : 'border-slate-200'}`}
                     />
+                    {errors.country && <p className="flex items-center gap-1 text-xs text-rose-500 mt-1.5"><AlertCircle size={13} /> {errors.country}</p>}
                   </div>
                 </div>
 
@@ -219,9 +285,22 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                       placeholder="+1 (555) 123-4567"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm"
+                      className={`w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm ${errors.phone ? 'border-rose-400' : 'border-slate-200'}`}
                     />
                   </div>
+                  {errors.phone && <p className="flex items-center gap-1 text-xs text-rose-500 mt-1.5"><AlertCircle size={13} /> {errors.phone}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm text-slate-700 mb-2">Email (optional)</label>
+                  <input
+                    type="email"
+                    placeholder="hello@yourbusiness.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className={`w-full px-4 py-3.5 rounded-2xl bg-white border text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm ${errors.email ? 'border-rose-400' : 'border-slate-200'}`}
+                  />
+                  {errors.email && <p className="flex items-center gap-1 text-xs text-rose-500 mt-1.5"><AlertCircle size={13} /> {errors.email}</p>}
                 </div>
 
                 <div>
@@ -233,9 +312,10 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                       placeholder="https://yourbusiness.com"
                       value={formData.website}
                       onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm"
+                      className={`w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm ${errors.website ? 'border-rose-400' : 'border-slate-200'}`}
                     />
                   </div>
+                  {errors.website && <p className="flex items-center gap-1 text-xs text-rose-500 mt-1.5"><AlertCircle size={13} /> {errors.website}</p>}
                 </div>
 
                 <div>
@@ -247,9 +327,10 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                       placeholder="Mon-Fri: 9:00 AM - 6:00 PM"
                       value={formData.hours}
                       onChange={(e) => setFormData({ ...formData, hours: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm"
+                      className={`w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm ${errors.hours ? 'border-rose-400' : 'border-slate-200'}`}
                     />
                   </div>
+                  {errors.hours && <p className="flex items-center gap-1 text-xs text-rose-500 mt-1.5"><AlertCircle size={13} /> {errors.hours}</p>}
                 </div>
               </div>
             </div>
@@ -264,9 +345,8 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setCurrentStep(3)}
-                disabled={!formData.address || !formData.city || !formData.country || !formData.phone || !formData.hours}
-                className="flex-1 bg-gradient-to-r from-[#4a00cc] to-[#6200FF] text-white py-4 rounded-2xl font-semibold hover:shadow-lg hover:shadow-purple-600/30 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed transition-all duration-300 shadow-md"
+                onClick={() => goToStep(3)}
+                className="flex-1 bg-gradient-to-r from-[#4a00cc] to-[#6200FF] text-white py-4 rounded-2xl font-semibold hover:shadow-lg hover:shadow-purple-600/30 transition-all duration-300 shadow-md"
               >
                 Continue to Photos
               </motion.button>
@@ -316,6 +396,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                 )}
                 <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={onFiles} />
               </div>
+              {errors.images && <p className="flex items-center gap-1 text-xs text-rose-500 mb-3"><AlertCircle size={13} /> {errors.images}</p>}
 
               <div className="bg-purple-50 border border-blue-200 rounded-2xl p-4">
                 <div className="flex gap-3">
@@ -332,6 +413,8 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
               </div>
             </div>
 
+            {submitError && <p className="flex items-center gap-1.5 text-sm text-rose-600 mb-2"><AlertCircle size={15} /> {submitError}</p>}
+            {done && <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl px-4 py-3 text-sm font-medium mb-2">✓ Submitted! Our team will review it within 24 hours.</div>}
             <div className="flex gap-3">
               <motion.button
                 whileTap={{ scale: 0.98 }}
@@ -343,10 +426,10 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
               <motion.button
                 whileTap={{ scale: 0.98 }}
                 onClick={handleSubmit}
-                disabled={images.length < 3}
-                className="flex-1 bg-gradient-to-r from-[#4a00cc] to-[#6200FF] text-white py-4 rounded-2xl font-semibold hover:shadow-lg hover:shadow-purple-600/30 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed transition-all duration-300 shadow-md"
+                disabled={submitting || done}
+                className="flex-1 bg-gradient-to-r from-[#4a00cc] to-[#6200FF] text-white py-4 rounded-2xl font-semibold hover:shadow-lg hover:shadow-purple-600/30 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 shadow-md"
               >
-                Submit for Review
+                {submitting ? 'Submitting…' : done ? 'Submitted ✓' : 'Submit for Review'}
               </motion.button>
             </div>
           </motion.div>
