@@ -120,11 +120,10 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan
           </div>
         </motion.button>
 
-        <motion.button
-          whileTap={{ scale: 0.98 }}
-          onClick={onShowSubscription}
-          className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-3xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 shadow-amber-500/20"
+        <div
+          className="relative bg-gradient-to-br from-amber-500 to-orange-600 rounded-3xl p-4 shadow-lg shadow-amber-500/20 opacity-90"
         >
+          <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wide bg-white/25 text-white px-2 py-0.5 rounded-md">{t('common.soon')}</span>
           <div className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center mb-3 border border-white/30">
             <Crown size={24} className="text-white" />
           </div>
@@ -132,7 +131,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan
             <p className="font-semibold text-white text-sm mb-1">Go Premium</p>
             <p className="text-xs text-amber-100">Grow your business</p>
           </div>
-        </motion.button>
+        </div>
       </div>
 
       {/* Recent Activity */}

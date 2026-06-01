@@ -19,7 +19,7 @@ export function Sidebar({ active, onNavigate, onAddLocation, onGoPremium, open, 
     { id: 'home', icon: Home, label: t('nav.home') },
     { id: 'search', icon: ShoppingBag, label: t('nav.explore') },
     { id: 'favorites', icon: Heart, label: t('nav.favorites') },
-    { id: 'chat', icon: MessageCircle, label: t('nav.messages') },
+    { id: 'chat', icon: MessageCircle, label: t('nav.messages'), soon: true },
     { id: 'history', icon: Clock, label: t('nav.history'), soon: true },
     { id: 'notification', icon: Bell, label: t('nav.notification'), soon: true },
     { id: 'bill', icon: Receipt, label: t('nav.bill'), soon: true },
@@ -67,9 +67,12 @@ export function Sidebar({ active, onNavigate, onAddLocation, onGoPremium, open, 
       <div className="mt-4 rounded-2xl p-4 text-white relative overflow-hidden" style={{ background: 'linear-gradient(150deg,#6200FF,#8b3bff)' }}>
         <div className="pointer-events-none absolute -right-6 -top-6 w-24 h-24 rounded-full bg-white/10" />
         <div className="relative">
-          <div className="flex items-center gap-1.5 mb-1"><Crown size={16} className="text-amber-300" /><span className="font-semibold text-sm">{t('premium.q')}</span></div>
+          <div className="flex items-center gap-1.5 mb-1">
+            <Crown size={16} className="text-amber-300" /><span className="font-semibold text-sm">{t('premium.q')}</span>
+            <span className="ml-auto text-[9px] font-bold uppercase tracking-wide bg-white/20 px-1.5 py-0.5 rounded-md">{t('common.soon')}</span>
+          </div>
           <p className="text-white/80 text-xs leading-relaxed mb-3">{t('premium.desc')}</p>
-          <button onClick={() => { onGoPremium(); onClose(); }} className="w-full py-2.5 rounded-xl bg-white text-[#6200FF] text-sm font-bold hover:bg-white/90 transition-colors">{t('premium.go')}</button>
+          <button disabled title={t('common.soon')} className="w-full py-2.5 rounded-xl bg-white/60 text-[#6200FF] text-sm font-bold cursor-not-allowed">{t('premium.go')}</button>
           <button onClick={() => { onAddLocation(); onClose(); }} className="w-full mt-2 py-2 rounded-xl bg-white/15 text-white text-xs font-semibold hover:bg-white/25 transition-colors">{t('premium.addFree')}</button>
         </div>
       </div>

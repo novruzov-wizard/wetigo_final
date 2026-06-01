@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from './store';
 import { auth as authApi } from './lib/api';
 import { AuthPage } from './components/AuthPage';
@@ -17,8 +17,23 @@ import { AddLocationPage } from './components/AddLocationPage';
 interface SelectedPlan { id: string; name: string; price: number; cycle: 'month' | 'year'; }
 
 export default function App() {
-  const { t, refreshFavorites } = useStore();
-  const [authed, setAuthed] = useState(false);
+  const { t, refreshFavorites, updateUser } = useStore();
+  const [authed, setAuthed] = useState(() => !!authApi.getToken());
+
+  // OAuth callback: backend redirects to /auth/callback#token=...&name=...&email=...
+  useEffect(() => {
+    if (!window.location.hash.includes('token=')) return;
+    const p = new URLSearchParams(window.location.hash.slice(1));
+    const token = p.get('token');
+    if (token) {
+      authApi.setToken(token);
+      updateUser({ name: p.get('name') || 'Wetigo User', email: p.get('email') || '' });
+      setAuthed(true);
+      refreshFavorites();
+    }
+    history.replaceState(null, '', window.location.pathname); // clean the hash
+  }, []);
+
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
   const [showSubscription, setShowSubscription] = useState(false);

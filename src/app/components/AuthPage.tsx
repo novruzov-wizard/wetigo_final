@@ -87,10 +87,11 @@ export function AuthPage({ onAuth }: AuthPageProps) {
     try { await authApi.resendOtp({ email: form.email }); setResent(true); setTimeout(() => setResent(false), 2500); } catch { /* ignore */ }
   };
 
-  const oauth = async (provider: 'google' | 'facebook') => {
-    // Backend returns an OAuth URL to redirect to; until configured, just enter.
-    try { const r = await authApi.oauth(provider) as any; if (r?.url) { window.location.href = r.url; return; } } catch { /* ignore */ }
-    onAuth();
+  const oauth = (provider: 'google' | 'facebook') => {
+    // Redirect to the backend's OAuth start; it bounces to Google/Facebook,
+    // then back to {APP_URL}/auth/callback#token=... (handled in App).
+    const base = (import.meta as any).env?.VITE_API_URL || '';
+    window.location.href = `${base}/auth/oauth/${provider}/start`;
   };
 
   return (
