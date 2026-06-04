@@ -20,6 +20,28 @@ export default function App() {
   const { t, refreshFavorites, updateUser } = useStore();
   const [authed, setAuthed] = useState(() => !!authApi.getToken());
 
+  // On load, validate the saved token and refresh the real user everywhere.
+  // If the token is missing/expired/invalid, force sign-out (gate all pages).
+  useEffect(() => {
+    if (!authApi.getToken()) { setAuthed(false); return; }
+    authApi.me()
+      .then((u: any) => {
+        if (u && u.email) {
+          updateUser({
+            name: u.name || 'Wetigo User',
+            email: u.email || '',
+            bio: u.bio || '',
+            avatar: u.avatar || 'https://i.pravatar.cc/160?img=12',
+          });
+          setAuthed(true);
+          refreshFavorites();
+        } else {
+          authApi.setToken(null); setAuthed(false);
+        }
+      })
+      .catch(() => { authApi.setToken(null); setAuthed(false); });
+  }, []);
+
   // OAuth callback: backend redirects to /auth/callback#token=...&name=...&email=...
   useEffect(() => {
     if (!window.location.hash.includes('token=')) return;
