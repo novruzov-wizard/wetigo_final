@@ -22,6 +22,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
   });
 
   const [images, setImages] = useState<string[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -91,7 +92,14 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
     };
     try {
       if (authApi.getToken()) {
-        await placesApi.create(payload);   // backend stores as "pending" for review
+        const created = await placesApi.create(payload);   // backend stores as "pending"
+        // upload the real photos as bytes (stored in our DB, served back as the place image)
+        const newId = (created as any)?.id;
+        if (newId) {
+          for (const f of files) {
+            try { await placesApi.uploadPhoto(newId, f); } catch { /* skip one */ }
+          }
+        }
       }
       setDone(true);
       setTimeout(onBack, 1600);
@@ -103,14 +111,15 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
 
   const fileRef = useRef<HTMLInputElement | null>(null);
   const onFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    const urls = files.slice(0, 10 - images.length).map((f) => URL.createObjectURL(f));
-    setImages([...images, ...urls]);
+    const picked = Array.from(e.target.files ?? []).slice(0, 10 - images.length);
+    setImages([...images, ...picked.map((f) => URL.createObjectURL(f))]);
+    setFiles([...files, ...picked]);
     e.target.value = '';
   };
 
   const removeImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
+    setFiles(files.filter((_, i) => i !== index));
   };
 
   return (

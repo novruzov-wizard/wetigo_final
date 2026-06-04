@@ -56,7 +56,14 @@ export const places = {
   list: (params?: { q?: string; category?: string; country?: string; minRating?: number; openNow?: boolean; lat?: number; lng?: number }) =>
     get<unknown[]>(`/places${params ? `?${new URLSearchParams(Object.entries(params).filter(([, v]) => v != null).map(([k, v]) => [k, String(v)]))}` : ''}`),
   get: (id: number) => get<unknown>(`/places/${id}`),
-  create: (data: unknown) => post<unknown>('/places', data),
+  create: (data: unknown) => post<{ id: number }>('/places', data),
+  uploadPhoto: (placeId: number, file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return request<{ ok: boolean; photoId: number }>(`/places/${placeId}/photos`, {
+      method: 'POST', body: fd, headers: TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {},
+    });
+  },
   nearby: (lat: number, lng: number, radiusM = 3000) => get<unknown[]>(`/places/nearby?lat=${lat}&lng=${lng}&radius=${radiusM}`),
   /**
    * Real places from external providers. The backend proxies Google Places /
