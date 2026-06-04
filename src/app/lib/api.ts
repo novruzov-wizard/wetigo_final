@@ -82,7 +82,7 @@ export const auth = {
     this.setToken(res?.token ?? null);
     this.setRefresh(res?.refreshToken ?? null);
   },
-  register: (data: { name: string; email: string; password: string }) => post<{ pendingVerification: boolean; devCode?: string }>('/auth/register', data),
+  register: (data: { name: string; email: string; password: string; birthDate?: string }) => post<{ pendingVerification: boolean; devCode?: string }>('/auth/register', data),
   login: (data: { email: string; password: string }) => post<AuthResult>('/auth/login', data),
   verifyOtp: (data: { email: string; code: string }) => post<AuthResult>('/auth/verify-otp', data),
   resendOtp: (data: { email: string }) => post<void>('/auth/resend-otp', data),

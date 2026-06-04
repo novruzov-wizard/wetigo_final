@@ -16,7 +16,7 @@ export function AuthPage({ onAuth }: AuthPageProps) {
   const [newPassword, setNewPassword] = useState('');
   const [info, setInfo] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', birthDate: '' });
   const [remember, setRemember] = useState(true);
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [resent, setResent] = useState(false);
@@ -25,7 +25,7 @@ export function AuthPage({ onAuth }: AuthPageProps) {
   const codeRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const isSignup = mode === 'signup';
-  const canSubmit = form.email.trim() && form.password.trim() && (!isSignup || form.name.trim());
+  const canSubmit = form.email.trim() && form.password.trim() && (!isSignup || (form.name.trim() && form.birthDate.trim()));
 
   // Save token + user into the store, then enter the app.
   const finishAuth = (res: { token: string; refreshToken?: string; user: any }) => {
@@ -198,6 +198,9 @@ export function AuthPage({ onAuth }: AuthPageProps) {
                       <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
                         <label className="block text-sm font-medium text-[#5c524a] mb-1.5">{t('auth.fullname')}</label>
                         <input type="text" placeholder="Jane Doe" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
+                          className="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-slate-200 text-[#2b2521] placeholder:text-slate-400 focus:outline-none focus:border-[#6200FF] focus:ring-2 focus:ring-[#6200FF]/15 transition" />
+                        <label className="block text-sm font-medium text-[#5c524a] mb-1.5 mt-4">{t('auth.birthDate')}</label>
+                        <input type="date" max={new Date().toISOString().slice(0, 10)} value={form.birthDate} onChange={(e) => setForm({ ...form, birthDate: e.target.value })}
                           className="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-slate-200 text-[#2b2521] placeholder:text-slate-400 focus:outline-none focus:border-[#6200FF] focus:ring-2 focus:ring-[#6200FF]/15 transition" />
                       </motion.div>
                     )}
