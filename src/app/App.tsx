@@ -23,10 +23,13 @@ export default function App() {
   const [role, setRole] = useState<string>('USER');
   const [showManage, setShowManage] = useState(false);
 
-  // On load, validate the saved token and refresh the real user everywhere.
-  // If the token is missing/expired/invalid, force sign-out (gate all pages).
+  // On load: if we have a token, enter immediately and refresh the real user in
+  // the background. Only sign out on a DEFINITIVE 401 (token truly invalid) —
+  // never on transient/network errors, so a hiccup can't kick the user to login.
   useEffect(() => {
     if (!authApi.getToken()) { setAuthed(false); return; }
+    setAuthed(true);              // trust the saved token; don't gate on network
+    refreshFavorites();
     authApi.me()
       .then((u: any) => {
         if (u && u.email) {
@@ -37,13 +40,13 @@ export default function App() {
             avatar: u.avatar || 'https://i.pravatar.cc/160?img=12',
           });
           if (u.role) setRole(u.role);
-          setAuthed(true);
-          refreshFavorites();
-        } else {
-          authApi.setSession(null); setAuthed(false);
         }
       })
-      .catch(() => { authApi.setSession(null); setAuthed(false); });
+      .catch((e: any) => {
+        const msg = String(e?.message || '');
+        if (msg.includes('401') || /unauthor/i.test(msg)) { authApi.setSession(null); setAuthed(false); }
+        // otherwise (network/CORS/transient): stay logged in
+      });
   }, []);
 
   // OAuth callback: backend redirects to /auth/callback#token=...&name=...&email=...
