@@ -36,10 +36,10 @@ export default function App() {
           setAuthed(true);
           refreshFavorites();
         } else {
-          authApi.setToken(null); setAuthed(false);
+          authApi.setSession(null); setAuthed(false);
         }
       })
-      .catch(() => { authApi.setToken(null); setAuthed(false); });
+      .catch(() => { authApi.setSession(null); setAuthed(false); });
   }, []);
 
   // OAuth callback: backend redirects to /auth/callback#token=...&name=...&email=...
@@ -157,7 +157,7 @@ export default function App() {
           <ProfilePage
             onShowSubscription={() => setShowSubscription(true)}
             onAddLocation={() => setShowAddLocation(true)}
-            onSignOut={() => { authApi.setToken(null); authApi.logout().catch(() => {}); setAuthed(false); setCurrentPage('home'); }}
+            onSignOut={() => { authApi.logout().catch(() => {}); authApi.setSession(null); setAuthed(false); setCurrentPage('home'); }}
             plan={plan}
           />
         );

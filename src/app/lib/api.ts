@@ -14,8 +14,38 @@ const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api';
 let TOKEN: string | null = (() => {
   try { return localStorage.getItem('wetigo:token'); } catch { return null; }
 })();
+let REFRESH: string | null = (() => {
+  try { return localStorage.getItem('wetigo:refresh'); } catch { return null; }
+})();
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+// Single-flight refresh so concurrent 401s don't all hit /auth/refresh.
+let refreshing: Promise<boolean> | null = null;
+async function doRefresh(): Promise<boolean> {
+  if (!REFRESH) return false;
+  if (!refreshing) {
+    refreshing = (async () => {
+      try {
+        const res = await fetch(`${BASE}/auth/refresh`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken: REFRESH }),
+        });
+        if (!res.ok) return false;
+        const data = await res.json();
+        if (data?.token) {
+          TOKEN = data.token;
+          REFRESH = data.refreshToken ?? REFRESH;
+          try { localStorage.setItem('wetigo:token', TOKEN!); if (REFRESH) localStorage.setItem('wetigo:refresh', REFRESH); } catch { /* ignore */ }
+          return true;
+        }
+        return false;
+      } catch { return false; }
+      finally { refreshing = null; }
+    })();
+  }
+  return refreshing;
+}
+
+async function request<T>(path: string, options: RequestInit = {}, _retry = false): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     ...options,
     headers: {
@@ -24,6 +54,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       ...(options.headers ?? {}),
     },
   });
+  // Access token expired → transparently refresh once and retry.
+  if (res.status === 401 && !_retry && REFRESH && !path.startsWith('/auth/refresh')) {
+    if (await doRefresh()) return request<T>(path, options, true);
+  }
   if (!res.ok) {
     const msg = await res.json().catch(() => ({}));
     throw new Error((msg as any).message || `Request failed: ${res.status}`);
@@ -37,18 +71,26 @@ const patch = <T>(p: string, body?: unknown) => request<T>(p, { method: 'PATCH',
 const del = <T>(p: string) => request<T>(p, { method: 'DELETE' });
 
 // ---------------- Auth ----------------
+type AuthResult = { token: string; refreshToken?: string; user: unknown };
 export const auth = {
   setToken(t: string | null) { TOKEN = t; try { t ? localStorage.setItem('wetigo:token', t) : localStorage.removeItem('wetigo:token'); } catch { /* ignore */ } },
   getToken() { return TOKEN; },
+  setRefresh(t: string | null) { REFRESH = t; try { t ? localStorage.setItem('wetigo:refresh', t) : localStorage.removeItem('wetigo:refresh'); } catch { /* ignore */ } },
+  getRefresh() { return REFRESH; },
+  /** Store both tokens after a successful auth, or clear them on sign-out. */
+  setSession(res: { token?: string | null; refreshToken?: string | null } | null) {
+    this.setToken(res?.token ?? null);
+    this.setRefresh(res?.refreshToken ?? null);
+  },
   register: (data: { name: string; email: string; password: string }) => post<{ pendingVerification: boolean; devCode?: string }>('/auth/register', data),
-  login: (data: { email: string; password: string }) => post<{ token: string; user: unknown }>('/auth/login', data),
-  verifyOtp: (data: { email: string; code: string }) => post<{ token: string; user: unknown }>('/auth/verify-otp', data),
+  login: (data: { email: string; password: string }) => post<AuthResult>('/auth/login', data),
+  verifyOtp: (data: { email: string; code: string }) => post<AuthResult>('/auth/verify-otp', data),
   resendOtp: (data: { email: string }) => post<void>('/auth/resend-otp', data),
   oauth: (provider: 'google' | 'facebook') => post<{ url: string }>(`/auth/oauth/${provider}`),
   forgotPassword: (data: { email: string }) => post<{ devCode?: string }>('/auth/forgot-password', data),
-  resetPassword: (data: { email: string; code: string; password: string }) => post<{ token?: string; user?: unknown }>('/auth/reset-password', data),
+  resetPassword: (data: { email: string; code: string; password: string }) => post<Partial<AuthResult>>('/auth/reset-password', data),
   me: () => get<unknown>('/auth/me'),
-  logout: () => post<void>('/auth/logout'),
+  logout: () => post<void>('/auth/logout', { refreshToken: REFRESH }),
 };
 
 // ---------------- Places ----------------

@@ -28,8 +28,8 @@ export function AuthPage({ onAuth }: AuthPageProps) {
   const canSubmit = form.email.trim() && form.password.trim() && (!isSignup || form.name.trim());
 
   // Save token + user into the store, then enter the app.
-  const finishAuth = (res: { token: string; user: any }) => {
-    authApi.setToken(res.token);
+  const finishAuth = (res: { token: string; refreshToken?: string; user: any }) => {
+    authApi.setSession(res);
     if (res.user) {
       updateUser({
         name: res.user.name ?? 'Wetigo User',
