@@ -1,4 +1,4 @@
-import { ArrowLeft, Star, MapPin, Clock, Share2, MessageCircle, CheckCircle, ThumbsUp, ImagePlus, Send, CornerDownRight, X, ChevronLeft, ChevronRight, Flag, Inbox, MessageSquare, Navigation } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, Clock, Share2, MessageCircle, CheckCircle, ThumbsUp, ImagePlus, Send, CornerDownRight, X, ChevronLeft, ChevronRight, Flag, Inbox, MessageSquare, Navigation, Phone, Globe } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PLACES } from '../data/places';
@@ -40,6 +40,9 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
     address: place.city,
     price: place.price || '$$',
     open: place.open,
+    phone: place.phone,
+    website: place.website,
+    hours: place.openingHours,
     description: `${place.name} is a ${place.category.toLowerCase()} in ${place.city}. Browse real photos, ratings and reviews shared by the Wetigo community, then get directions or save it to your favorites.`,
     verified: place.verified,
   };
@@ -303,6 +306,24 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                   <p className="font-medium" style={{ color: location.open ? '#16a34a' : '#e11d48' }}>{location.open ? 'Open now' : 'Closed'} <span className="text-slate-400">·</span> <span className="text-slate-900">{location.price}</span></p>
                 </div>
               </div>
+              {location.hours && (
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center"><Clock size={18} className="text-blue-600" /></div>
+                  <div className="flex-1"><p className="text-xs text-slate-500 mb-0.5">Opening hours</p><p className="text-slate-900 font-medium">{location.hours}</p></div>
+                </div>
+              )}
+              {location.phone && (
+                <a href={`tel:${location.phone}`} className="flex items-center gap-4 group">
+                  <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center"><Phone size={18} className="text-green-600" /></div>
+                  <div className="flex-1"><p className="text-xs text-slate-500 mb-0.5">Phone</p><p className="text-slate-900 font-medium group-hover:underline">{location.phone}</p></div>
+                </a>
+              )}
+              {location.website && (
+                <a href={location.website.startsWith('http') ? location.website : `https://${location.website}`} target="_blank" rel="noreferrer" className="flex items-center gap-4 group">
+                  <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center"><Globe size={18} className="text-[#6200FF]" /></div>
+                  <div className="flex-1 min-w-0"><p className="text-xs text-slate-500 mb-0.5">Website</p><p className="text-[#6200FF] font-medium group-hover:underline truncate">{location.website.replace(/^https?:\/\//, '')}</p></div>
+                </a>
+              )}
               <a href={`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lng}`} target="_blank" rel="noreferrer" className="flex items-center gap-4 group">
                 <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
                   <Navigation size={18} className="text-[#6200FF]" />

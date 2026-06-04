@@ -14,6 +14,9 @@ export interface Place {
   open: boolean;
   lat: number;
   lng: number;
+  phone?: string;
+  website?: string;
+  openingHours?: string;
 }
 
 // Category → stock image fallback (when a place has no image).
