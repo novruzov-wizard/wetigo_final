@@ -13,12 +13,15 @@ import { LocationDetail } from './components/LocationDetail';
 import { SubscriptionPage } from './components/SubscriptionPage';
 import { PaymentPage } from './components/PaymentPage';
 import { AddLocationPage } from './components/AddLocationPage';
+import { ManagePlacesPage } from './components/ManagePlacesPage';
 
 interface SelectedPlan { id: string; name: string; price: number; cycle: 'month' | 'year'; }
 
 export default function App() {
   const { t, refreshFavorites, updateUser } = useStore();
   const [authed, setAuthed] = useState(() => !!authApi.getToken());
+  const [role, setRole] = useState<string>('USER');
+  const [showManage, setShowManage] = useState(false);
 
   // On load, validate the saved token and refresh the real user everywhere.
   // If the token is missing/expired/invalid, force sign-out (gate all pages).
@@ -33,6 +36,7 @@ export default function App() {
             bio: u.bio || '',
             avatar: u.avatar || 'https://i.pravatar.cc/160?img=12',
           });
+          if (u.role) setRole(u.role);
           setAuthed(true);
           refreshFavorites();
         } else {
@@ -96,12 +100,14 @@ export default function App() {
     setSelectedLocation(null);
     setShowSubscription(false);
     setShowAddLocation(false);
+    setShowManage(false);
     setCheckoutPlan(null);
     setCurrentPage(page);
     window.scrollTo({ top: 0 });
   };
 
   const renderContent = () => {
+    if (showManage) return <ManagePlacesPage onBack={() => setShowManage(false)} isAdmin={role === 'ADMIN'} />;
     if (showAddLocation) return <AddLocationPage onBack={() => setShowAddLocation(false)} />;
     if (checkoutPlan) {
       return (
@@ -157,6 +163,7 @@ export default function App() {
           <ProfilePage
             onShowSubscription={() => setShowSubscription(true)}
             onAddLocation={() => setShowAddLocation(true)}
+            onManage={() => { navigate('home'); setShowManage(true); }}
             onSelectLocation={handleSelectLocation}
             onSignOut={() => { authApi.logout().catch(() => {}); authApi.setSession(null); setAuthed(false); setCurrentPage('home'); }}
             plan={plan}
@@ -173,7 +180,7 @@ export default function App() {
     }
   };
 
-  const activeTab = selectedLocation || showSubscription || showAddLocation || checkoutPlan ? '' : currentPage;
+  const activeTab = selectedLocation || showSubscription || showAddLocation || showManage || checkoutPlan ? '' : currentPage;
 
   const titles: Record<string, { t: string; e?: string }> = {
     home: { t: t('nav.home'), e: '😋' },

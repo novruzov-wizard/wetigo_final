@@ -11,10 +11,11 @@ interface ProfilePageProps {
   onAddLocation: () => void;
   onSignOut: () => void;
   onSelectLocation?: (id: number) => void;
+  onManage?: () => void;
   plan?: string;
 }
 
-export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSelectLocation, plan = 'free' }: ProfilePageProps) {
+export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSelectLocation, onManage, plan = 'free' }: ProfilePageProps) {
   const { user, updateUser, favorites, lang, setLang, t, country, setCountry } = useStore();
   const [notifications, setNotifications] = useState(false);
   const [emailUpdates, setEmailUpdates] = useState(false);
@@ -148,6 +149,20 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
           <div className="text-left">
             <p className="font-semibold text-slate-900 text-sm mb-1">{t('settings.addBusiness')}</p>
             <p className="text-xs text-slate-600">{t('settings.listLocation')}</p>
+          </div>
+        </motion.button>
+
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          onClick={() => onManage?.()}
+          className="bg-white rounded-3xl p-4 shadow-md hover:shadow-xl transition-all duration-300 border border-slate-200"
+        >
+          <div className="w-12 h-12 bg-gradient-to-br from-slate-700 to-slate-900 rounded-2xl flex items-center justify-center mb-3 shadow-lg">
+            <MapPin size={24} className="text-white" />
+          </div>
+          <div className="text-left">
+            <p className="font-semibold text-slate-900 text-sm mb-1">Manage my businesses</p>
+            <p className="text-xs text-slate-600">Edit info, hours, photos · approvals</p>
           </div>
         </motion.button>
 

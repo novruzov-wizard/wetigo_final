@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PLACES } from '../data/places';
 import { useStore } from '../store';
-import { reviews as reviewsApi, auth as authApi } from '../lib/api';
+import { reviews as reviewsApi, auth as authApi, places as placesApi } from '../lib/api';
 
 declare const L: any;
 
@@ -341,6 +341,16 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                   <p className="text-[#6200FF] font-medium group-hover:underline">Open in Google Maps</p>
                 </div>
               </a>
+              <button
+                onClick={() => {
+                  if (!authApi.getToken()) { flash('Sign in to claim this business'); return; }
+                  placesApi.claim(locationId)
+                    .then(() => flash('Claim submitted — our team will verify and approve it'))
+                    .catch((e: any) => flash(e?.message || 'Could not submit claim'));
+                }}
+                className="w-full mt-1 flex items-center justify-center gap-2 py-3 rounded-2xl border border-[#6200FF]/30 bg-[#f7f3ff] text-[#6200FF] text-sm font-semibold hover:bg-[#efe6ff] transition-colors">
+                <CheckCircle size={16} /> Own this business? Claim it
+              </button>
             </div>
 
             {/* Photo Gallery — real photos only (place + community photos) */}

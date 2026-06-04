@@ -100,6 +100,8 @@ export const places = {
   get: (id: number) => get<unknown>(`/places/${id}`),
   create: (data: unknown) => post<{ id: number }>('/places', data),
   update: (id: number, data: Record<string, unknown>) => patch<unknown>(`/places/${id}`, data),
+  mine: () => get<any[]>('/places/mine'),
+  claim: (id: number) => post<{ ok: boolean; status: string }>(`/places/${id}/claim`),
   uploadPhoto: (placeId: number, file: File) => {
     const fd = new FormData();
     fd.append('file', file);
@@ -173,10 +175,13 @@ export const card = {
 
 // ---------------- Admin moderation ----------------
 export const admin = {
-  reports: () => get<unknown[]>('/admin/reports'),
+  reports: () => get<any[]>('/admin/reports'),
   hideReview: (id: number) => post<void>(`/admin/reviews/${id}/hide`),
   restoreReview: (id: number) => post<void>(`/admin/reviews/${id}/restore`),
   deleteReview: (id: number) => del<void>(`/admin/reviews/${id}`),
+  pendingPlaces: () => get<any[]>('/admin/places/pending'),
+  approvePlace: (id: number) => post<void>(`/admin/places/${id}/approve`),
+  rejectPlace: (id: number) => post<void>(`/admin/places/${id}/reject`),
 };
 
 // ---------------- Profile ----------------
