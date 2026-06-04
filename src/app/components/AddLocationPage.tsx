@@ -1,4 +1,4 @@
-import { ArrowLeft, MapPin, Upload, Plus, X, Building2, Phone, Clock, Globe, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, Plus, X, Building2, Phone, Clock, Globe, Image as ImageIcon, AlertCircle, Check } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { places as placesApi, auth as authApi } from '../lib/api';
@@ -89,6 +89,9 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
       city: `${formData.city.trim()}, ${formData.country.trim()}`,
       country: formData.country.trim().toLowerCase().slice(0, 2),
       price: '$$',
+      phone: formData.phone.trim(),
+      website: formData.website.trim(),
+      openingHours: formData.hours.trim(),
     };
     try {
       if (authApi.getToken()) {
@@ -102,7 +105,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
         }
       }
       setDone(true);
-      setTimeout(onBack, 1600);
+      setTimeout(onBack, 3200);
     } catch (err: any) {
       setSubmitError(err?.message || 'Could not submit. Please try again.');
       setSubmitting(false);
@@ -423,7 +426,6 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
             </div>
 
             {submitError && <p className="flex items-center gap-1.5 text-sm text-rose-600 mb-2"><AlertCircle size={15} /> {submitError}</p>}
-            {done && <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl px-4 py-3 text-sm font-medium mb-2">✓ Submitted! Our team will review it within 24 hours.</div>}
             <div className="flex gap-3">
               <motion.button
                 whileTap={{ scale: 0.98 }}
@@ -440,6 +442,32 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
               >
                 {submitting ? 'Submitting…' : done ? 'Submitted ✓' : 'Submit for Review'}
               </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Success toast — animated, dismissible, auto-hides */}
+      <AnimatePresence>
+        {done && (
+          <motion.div
+            initial={{ opacity: 0, y: -24, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -24, scale: 0.96 }}
+            transition={{ type: 'spring', bounce: 0.35 }}
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-[2000] w-[92%] max-w-md"
+          >
+            <div className="relative flex items-start gap-3 bg-white rounded-2xl shadow-2xl border border-emerald-100 px-5 py-4 overflow-hidden">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/30">
+                <Check size={22} className="text-white" strokeWidth={3} />
+              </div>
+              <div className="flex-1 pr-5">
+                <p className="font-semibold text-slate-900 text-sm">Submitted for review 🎉</p>
+                <p className="text-xs text-slate-500 mt-0.5">Thanks! Our team will review your business within 24 hours.</p>
+              </div>
+              <button onClick={onBack} className="absolute top-3 right-3 text-slate-400 hover:text-slate-700 transition-colors"><X size={16} /></button>
+              <motion.div initial={{ width: '100%' }} animate={{ width: 0 }} transition={{ duration: 3.2, ease: 'linear' }}
+                className="absolute bottom-0 left-0 h-1 bg-emerald-400" />
             </div>
           </motion.div>
         )}

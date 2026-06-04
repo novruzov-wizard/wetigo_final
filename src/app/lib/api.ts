@@ -99,6 +99,7 @@ export const places = {
     get<unknown[]>(`/places${params ? `?${new URLSearchParams(Object.entries(params).filter(([, v]) => v != null).map(([k, v]) => [k, String(v)]))}` : ''}`),
   get: (id: number) => get<unknown>(`/places/${id}`),
   create: (data: unknown) => post<{ id: number }>('/places', data),
+  update: (id: number, data: Record<string, unknown>) => patch<unknown>(`/places/${id}`, data),
   uploadPhoto: (placeId: number, file: File) => {
     const fd = new FormData();
     fd.append('file', file);
@@ -163,6 +164,19 @@ export const notifications = {
   list: () => get<unknown[]>('/notifications'),
   markRead: (id: number) => post<void>(`/notifications/${id}/read`),
   markAllRead: () => post<void>('/notifications/read-all'),
+};
+
+// ---------------- Wetigo membership card ----------------
+export const card = {
+  get: () => get<{ number: string; holder: string; tier: string; points: number }>('/card'),
+};
+
+// ---------------- Admin moderation ----------------
+export const admin = {
+  reports: () => get<unknown[]>('/admin/reports'),
+  hideReview: (id: number) => post<void>(`/admin/reviews/${id}/hide`),
+  restoreReview: (id: number) => post<void>(`/admin/reviews/${id}/restore`),
+  deleteReview: (id: number) => del<void>(`/admin/reviews/${id}`),
 };
 
 // ---------------- Profile ----------------

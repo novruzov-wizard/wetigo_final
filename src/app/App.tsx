@@ -157,6 +157,7 @@ export default function App() {
           <ProfilePage
             onShowSubscription={() => setShowSubscription(true)}
             onAddLocation={() => setShowAddLocation(true)}
+            onSelectLocation={handleSelectLocation}
             onSignOut={() => { authApi.logout().catch(() => {}); authApi.setSession(null); setAuthed(false); setCurrentPage('home'); }}
             plan={plan}
           />

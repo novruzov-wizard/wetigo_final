@@ -2,6 +2,7 @@ import { ShoppingCart, Heart, Plus, Star, MapPin, ArrowUpRight, Pizza, Coffee, C
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
+import { card as cardApi, auth as authApi } from '../lib/api';
 import { distanceKm } from '../data/places';
 import { useRef } from 'react';
 
@@ -48,11 +49,11 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
     .sort((a, b) => (Number(b.premium) - Number(a.premium)) || (b.rating - a.rating) || ((b.reviews ?? 0) - (a.reviews ?? 0)))
     .slice(0, 3)
     .map((p, i) => ({ ...p, tint: tints[i % tints.length] }));
-  // Recent = most-reviewed real places (proxy for recent community activity)
+  // "Explore picks" — verified/promoted first; honest city label (no fake review counts)
   const recentReviews = [...PLACES]
-    .sort((a, b) => (b.reviews ?? 0) - (a.reviews ?? 0))
+    .sort((a, b) => (Number(b.premium) - Number(a.premium)) || (Number(b.verified) - Number(a.verified)))
     .slice(0, 3)
-    .map((p) => ({ id: p.id, name: p.name, rating: p.rating, when: `${(p.reviews ?? 0).toLocaleString()} reviews`, img: `${p.image}` }));
+    .map((p) => ({ id: p.id, name: p.name, rating: p.rating, when: p.city, img: `${p.image}` }));
 
   // nearest real place to the user
   const ranked = userLoc ? [...PLACES].map((p) => ({ p, d: distanceKm(userLoc.lat, userLoc.lng, p.lat, p.lng) })).sort((a, b) => a.d - b.d) : [];
@@ -69,6 +70,15 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
     return `${grp(seed)} ${grp(seed >> 3)} ${grp(seed >> 6)} ${grp(seed >> 9)}`;
   })();
   const cardExpiry = (() => { const d = new Date(); return `${String((d.getMonth() % 12) + 1).padStart(2, '0')}/${String((d.getFullYear() + 4) % 100)}`; })();
+
+  // Real Wetigo membership card from the backend (issued on register).
+  const [realCard, setRealCard] = useState<{ number: string; holder: string } | null>(null);
+  useEffect(() => {
+    if (!authApi.getToken()) return;
+    cardApi.get().then((c) => { if (c?.number) setRealCard({ number: c.number, holder: c.holder }); }).catch(() => {});
+  }, []);
+  const shownCardNumber = realCard?.number || cardNumber;
+  const shownCardHolder = (realCard?.holder || user.name || 'Wetigo Member').toUpperCase();
 
   // real mini-map of nearby places
   const nbEl = useRef<HTMLDivElement | null>(null);
@@ -198,7 +208,9 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
                     <img src={p.image} alt={p.name} className="w-full h-36 object-cover rounded-2xl mb-3" />
                     <div className="flex items-center justify-between mb-1">
                       <h4 className="font-display font-semibold text-[#2b2521] line-clamp-1 text-left">{p.name}</h4>
-                      <span className="flex items-center gap-0.5 text-xs font-bold text-amber-600 shrink-0"><Star size={12} className="fill-amber-500 text-amber-500" />{p.rating}</span>
+                      {p.rating > 0
+                        ? <span className="flex items-center gap-0.5 text-xs font-bold text-amber-600 shrink-0"><Star size={12} className="fill-amber-500 text-amber-500" />{p.rating}</span>
+                        : <span className="text-[10px] font-bold text-[#6200FF] bg-white/70 px-2 py-0.5 rounded-full shrink-0">New</span>}
                     </div>
                     <p className="text-xs text-[#8a8175] line-clamp-2 text-left mb-3 leading-relaxed">{p.category} · {p.city}</p>
                   </button>
@@ -299,11 +311,11 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
               <span className="font-semibold">Wetigo Card</span>
               <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-xs">◎</span>
             </div>
-            <p className="font-display text-xl tracking-widest mb-6">{cardNumber}</p>
+            <p className="font-display text-xl tracking-widest mb-6">{shownCardNumber}</p>
             <div className="flex items-end justify-between text-xs">
               <div>
                 <p className="text-white/60 mb-0.5">Card Holder</p>
-                <p className="font-semibold tracking-wide">{(user.name || 'Wetigo Member').toUpperCase()}</p>
+                <p className="font-semibold tracking-wide">{shownCardHolder}</p>
               </div>
               <div>
                 <p className="text-white/60 mb-0.5">Expires</p>
@@ -330,7 +342,9 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
                     <p className="text-sm font-medium text-[#2b2521] line-clamp-1">{o.name}</p>
                     <p className="text-xs text-[#a89a8b]">{o.when}</p>
                   </div>
-                  <span className="flex items-center gap-0.5 text-sm font-semibold text-amber-600"><Star size={12} className="fill-amber-500 text-amber-500" />{o.rating}</span>
+                  {o.rating > 0
+                    ? <span className="flex items-center gap-0.5 text-sm font-semibold text-amber-600"><Star size={12} className="fill-amber-500 text-amber-500" />{o.rating}</span>
+                    : <span className="text-[11px] font-bold text-[#6200FF] bg-[#f1ebff] px-2 py-0.5 rounded-full">New</span>}
                 </button>
               ))}
             </div>
@@ -357,11 +371,15 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
                   <div className="relative h-28 rounded-2xl overflow-hidden mb-3">
                     <img src={nearest.p.image} alt={nearest.p.name} className="w-full h-full object-cover" />
                     <span className="absolute top-2 left-2 text-[10px] font-bold text-white px-2 py-0.5 rounded-full" style={{ backgroundColor: '#6200FF' }}>{fmtDist(nearest.d)}</span>
-                    <span className="absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full" style={nearest.p.open ? { background: '#dff0e6', color: '#2f9461' } : { background: '#fdecec', color: '#c2603f' }}>{nearest.p.open ? t('common.open') : t('common.closed')}</span>
+                    {nearest.p.openingHours && (
+                      <span className="absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full" style={nearest.p.open ? { background: '#dff0e6', color: '#2f9461' } : { background: '#fdecec', color: '#c2603f' }}>{nearest.p.open ? t('common.open') : t('common.closed')}</span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between mb-0.5">
                     <p className="font-semibold text-[#2b2521] text-sm line-clamp-1">{nearest.p.name}</p>
-                    <span className="flex items-center gap-0.5 text-xs font-bold text-amber-600"><Star size={12} className="fill-amber-500 text-amber-500" />{nearest.p.rating}</span>
+                    {nearest.p.rating > 0
+                      ? <span className="flex items-center gap-0.5 text-xs font-bold text-amber-600"><Star size={12} className="fill-amber-500 text-amber-500" />{nearest.p.rating}</span>
+                      : <span className="text-[10px] font-bold text-[#6200FF] bg-[#f1ebff] px-2 py-0.5 rounded-full">New</span>}
                   </div>
                   <p className="text-xs text-[#a89a8b] flex items-center gap-1 mb-3"><MapPin size={12} className="text-[#6200FF]" />{nearest.p.city}</p>
                 </button>

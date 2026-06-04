@@ -187,7 +187,9 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
               <div className="flex items-center gap-2 mb-3 flex-wrap">
                 <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur text-white text-xs font-semibold border border-white/25">{location.category}</span>
                 <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur text-white text-xs font-semibold border border-white/25">{location.price}</span>
-                <span className="px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg" style={location.open ? { background: '#16a34a', color: '#fff' } : { background: '#e11d48', color: '#fff' }}>{location.open ? 'Open now' : 'Closed'}</span>
+                {location.hours && (
+                  <span className="px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg" style={location.open ? { background: '#16a34a', color: '#fff' } : { background: '#e11d48', color: '#fff' }}>{location.open ? 'Open now' : 'Closed'}</span>
+                )}
                 {location.verified && (
                   <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#6200FF] text-white text-xs font-semibold shadow-lg">
                     <CheckCircle size={13} className="fill-white text-[#6200FF]" /> Verified
@@ -197,8 +199,14 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
               <h1 className="font-display text-4xl sm:text-5xl font-bold text-white leading-tight drop-shadow-sm">{location.name}</h1>
             </div>
             <div className="bg-white px-4 py-2.5 rounded-2xl flex items-center gap-2 shadow-xl shrink-0">
-              <Star size={20} className="text-amber-500 fill-amber-500" />
-              <span className="font-display text-xl text-slate-900 font-bold">{location.rating}</span>
+              {location.rating > 0 ? (
+                <>
+                  <Star size={20} className="text-amber-500 fill-amber-500" />
+                  <span className="font-display text-xl text-slate-900 font-bold">{location.rating.toFixed(1)}</span>
+                </>
+              ) : (
+                <span className="font-display text-sm text-[#6200FF] font-bold">New</span>
+              )}
             </div>
           </div>
         </div>
@@ -294,7 +302,7 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                 </div>
                 <div className="flex-1">
                   <p className="text-xs text-slate-500 mb-0.5">Rating</p>
-                  <p className="text-slate-900 font-medium">{location.rating.toFixed(1)} · {location.reviewCount.toLocaleString()} reviews</p>
+                  <p className="text-slate-900 font-medium">{location.rating > 0 ? `${location.rating.toFixed(1)} · ${location.reviewCount.toLocaleString()} reviews` : 'New · Be the first to review'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">

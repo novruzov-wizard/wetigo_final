@@ -10,10 +10,11 @@ interface ProfilePageProps {
   onShowSubscription: () => void;
   onAddLocation: () => void;
   onSignOut: () => void;
+  onSelectLocation?: (id: number) => void;
   plan?: string;
 }
 
-export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan = 'free' }: ProfilePageProps) {
+export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSelectLocation, plan = 'free' }: ProfilePageProps) {
   const { user, updateUser, favorites, lang, setLang, t, country, setCountry } = useStore();
   const [notifications, setNotifications] = useState(false);
   const [emailUpdates, setEmailUpdates] = useState(false);
@@ -23,14 +24,15 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan
   const changeCountry = (c: string) => { setCountry(c); flash(t('toast.country')); };
   const changeLang = (l: Lang) => { setLang(l); flash(t('toast.langChanged')); };
 
+  const persistNotif = (v: boolean) => { if (authApi.getToken()) profileApi.updateSettings({ notifications: v }).catch(() => {}); };
   const togglePush = async () => {
-    if (notifications) { setNotifications(false); flash(t('toast.pushOff')); return; }
-    if (typeof Notification === 'undefined') { setNotifications(true); flash(t('toast.pushOn')); return; }
+    if (notifications) { setNotifications(false); persistNotif(false); flash(t('toast.pushOff')); return; }
+    if (typeof Notification === 'undefined') { setNotifications(true); persistNotif(true); flash(t('toast.pushOn')); return; }
     try {
       const perm = await Notification.requestPermission();
-      if (perm === 'granted') { setNotifications(true); flash(t('toast.pushOn')); new Notification('Wetigo', { body: 'Notifications are on 🎉' }); }
+      if (perm === 'granted') { setNotifications(true); persistNotif(true); flash(t('toast.pushOn')); new Notification('Wetigo', { body: 'Notifications are on 🎉' }); }
       else { flash(t('toast.pushBlocked')); }
-    } catch { setNotifications(true); flash(t('toast.pushOn')); }
+    } catch { setNotifications(true); persistNotif(true); flash(t('toast.pushOn')); }
   };
 
   // edit-profile modal
@@ -50,7 +52,11 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan
   useEffect(() => {
     if (!authApi.getToken()) return;
     authApi.me().then((u: any) => {
-      if (u) updateUser({ name: u.name ?? draft.name, email: u.email ?? draft.email, bio: u.bio ?? '', avatar: u.avatar ?? draft.avatar });
+      if (u) {
+        updateUser({ name: u.name ?? draft.name, email: u.email ?? draft.email, bio: u.bio ?? '', avatar: u.avatar ?? draft.avatar });
+        if (typeof u.notifications === 'boolean') setNotifications(u.notifications);
+        if (typeof u.emailUpdates === 'boolean') setEmailUpdates(u.emailUpdates);
+      }
     }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -173,12 +179,13 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan
           {recentActivity.map((activity, idx) => {
             const Icon = activityIcon(activity.type);
             return (
-              <motion.div
+              <motion.button
                 key={activity.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className="bg-white rounded-3xl p-4 shadow-md border border-slate-200"
+                onClick={() => { const pid = (activity as any).placeId; if (pid && onSelectLocation) onSelectLocation(pid); }}
+                className="w-full text-left bg-white rounded-3xl p-4 shadow-md border border-slate-200 hover:border-[#6200FF]/40 hover:shadow-lg transition-all"
               >
                 <div className="flex items-start gap-3">
                   <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${activityColor(activity.type)} flex items-center justify-center shrink-0 shadow-lg`}>
@@ -191,7 +198,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan
                     <p className="text-xs text-slate-500">{activity.time}</p>
                   </div>
                 </div>
-              </motion.div>
+              </motion.button>
             );
           })}
         </div>
@@ -225,7 +232,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, plan
                 <span className="text-xs text-slate-500">{t('settings.emailDesc')}</span>
               </div>
             </div>
-            <button onClick={() => setEmailUpdates(!emailUpdates)} className="relative inline-block w-12 h-6 shrink-0" aria-label="toggle email">
+            <button onClick={() => { const v = !emailUpdates; setEmailUpdates(v); if (authApi.getToken()) profileApi.updateSettings({ emailUpdates: v }).catch(() => {}); }} className="relative inline-block w-12 h-6 shrink-0" aria-label="toggle email">
               <div className="w-12 h-6 rounded-full transition-all duration-300" style={{ background: emailUpdates ? '#6200FF' : '#e2e8f0' }}></div>
               <div className="absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-md" style={{ left: emailUpdates ? 28 : 4 }}></div>
             </button>
