@@ -58,7 +58,7 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
   };
   const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]; if (!f || !edit) return;
-    try { await placesApi.uploadPhoto(edit.id, f); flash(t('mng.tPhoto')); loadMine(); } catch { flash(t('mng.tPhotoFail')); }
+    try { await placesApi.uploadPhoto(edit.id, f); flash(t('mng.tPhoto')); loadMine(); refreshPlaces(); } catch { flash(t('mng.tPhotoFail')); }
     e.target.value = '';
   };
 

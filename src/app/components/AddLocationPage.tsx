@@ -9,7 +9,7 @@ interface AddLocationPageProps {
 }
 
 export function AddLocationPage({ onBack }: AddLocationPageProps) {
-  const { t } = useStore();
+  const { t, refreshPlaces } = useStore();
   const [formData, setFormData] = useState({
     businessName: '',
     category: '',
@@ -106,6 +106,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
           }
         }
       }
+      refreshPlaces();
       setDone(true);
       setTimeout(onBack, 3200);
     } catch (err: any) {

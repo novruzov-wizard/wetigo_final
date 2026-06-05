@@ -28,7 +28,7 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
   const [reviewSort, setReviewSort] = useState<'recent' | 'high' | 'low' | 'liked'>('recent');
   const fileRef = useRef<HTMLInputElement | null>(null);
 
-  const { places: storePlaces, t } = useStore();
+  const { places: storePlaces, t, refreshPlaces } = useStore();
   const place = storePlaces.find((p) => p.id === locationId) ?? PLACES.find((p) => p.id === locationId) ?? PLACES[0];
 
   const heroImg = place.image || 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&h=600&fit=crop';
@@ -133,6 +133,7 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
         }
         const view = mapReview(saved); view.photos = urls;
         setReviews((rs) => [view, ...rs]);
+        refreshPlaces();   // update rating/count on cards across the app
         return;
       } catch { /* fall through to offline */ }
     }
