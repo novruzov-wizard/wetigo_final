@@ -46,10 +46,14 @@ async function doRefresh(): Promise<boolean> {
 }
 
 async function request<T>(path: string, options: RequestInit = {}, _retry = false): Promise<T> {
+  // For multipart/FormData uploads we MUST NOT set Content-Type — the browser
+  // sets it with the correct multipart boundary. Setting application/json here
+  // corrupts the body and the server can't read the file.
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
   const res = await fetch(`${BASE}${path}`, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {}),
       ...(options.headers ?? {}),
     },
