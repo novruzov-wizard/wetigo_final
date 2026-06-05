@@ -60,6 +60,7 @@ export default function App() {
       updateUser({ name: p.get('name') || 'Wetigo User', email: p.get('email') || '' });
       setAuthed(true);
       refreshFavorites();
+      authApi.me().then((u: any) => { if (u?.role) setRole(u.role); }).catch(() => {});
     }
     history.replaceState(null, '', window.location.pathname); // clean the hash
   }, []);
@@ -196,7 +197,12 @@ export default function App() {
   const heading = checkoutPlan ? { t: t('title.checkout') } : selectedLocation ? { t: t('title.place') } : showSubscription ? { t: t('title.premium') } : showAddLocation ? { t: t('title.addplace') } : (titles[currentPage] || { t: 'Wetigo' });
 
   if (!authed) {
-    return <AuthPage onAuth={() => { setAuthed(true); refreshFavorites(); }} />;
+    return <AuthPage onAuth={() => {
+      setAuthed(true);
+      refreshFavorites();
+      // fetch the freshly-logged-in user's role so admin gets the Admin panel immediately
+      authApi.me().then((u: any) => { if (u?.role) setRole(u.role); }).catch(() => {});
+    }} />;
   }
 
   return (
