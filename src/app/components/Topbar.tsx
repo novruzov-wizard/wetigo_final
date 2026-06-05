@@ -14,9 +14,22 @@ interface TopbarProps {
   onNavigate: (page: string) => void;
 }
 
-interface Notif { id?: number; icon: any; color: string; text: string; time: string; read?: boolean; }
+interface Notif { id?: number; icon: any; color: string; title?: string; text: string; time: string; read?: boolean; link?: string; }
 
-const ICONS: Record<string, any> = { review: Star, message: MessageCircle, place: MapPin };
+const ICONS: Record<string, any> = { review: Star, star: Star, message: MessageCircle, place: MapPin, check: MapPin, info: Bell, bell: Bell };
+
+function relTime(iso?: string): string {
+  if (!iso) return '';
+  const d = new Date(iso).getTime();
+  if (isNaN(d)) return '';
+  const diff = Math.round((d - Date.now()) / 1000);
+  const abs = Math.abs(diff);
+  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+  if (abs < 60) return rtf.format(Math.round(diff), 'second');
+  if (abs < 3600) return rtf.format(Math.round(diff / 60), 'minute');
+  if (abs < 86400) return rtf.format(Math.round(diff / 3600), 'hour');
+  return rtf.format(Math.round(diff / 86400), 'day');
+}
 
 export function Topbar({ title, emoji, query, onQuery, onSubmit, onMenu, onNavigate }: TopbarProps) {
   const { user, t } = useStore();
@@ -24,34 +37,41 @@ export function Topbar({ title, emoji, query, onQuery, onSubmit, onMenu, onNavig
   const [toast, setToast] = useState<string | null>(null);
   const flash = (m: string) => { setToast(m); window.clearTimeout((flash as any)._t); (flash as any)._t = window.setTimeout(() => setToast(null), 2000); };
 
-  const demo: Notif[] = [
-    { icon: Star, color: '#f59e0b', text: 'New 5★ review near you', time: '2m' },
-    { icon: MapPin, color: '#10b981', text: 'A new place opened nearby', time: '3h' },
-  ];
-  const [notifs, setNotifs] = useState<Notif[]>(demo);
+  const [notifs, setNotifs] = useState<Notif[]>([]);
 
-  // load real notifications when logged in
-  useEffect(() => {
+  const load = () => {
     if (!authApi.getToken()) return;
     notifApi.list().then((data: any) => {
-      if (Array.isArray(data) && data.length) {
+      if (Array.isArray(data)) {
         setNotifs(data.map((n: any) => ({
           id: n.id,
           icon: ICONS[n.icon] ?? Bell,
           color: '#6200FF',
+          title: n.title,
           text: n.text,
-          time: n.createdAt ? new Date(n.createdAt).toLocaleDateString() : '',
+          time: relTime(n.createdAt),
           read: n.read,
+          link: n.link,
         })));
       }
-    }).catch(() => { /* keep demo */ });
+    }).catch(() => { /* ignore */ });
+  };
+
+  // load real notifications when logged in, and poll periodically
+  useEffect(() => {
+    load();
+    const id = window.setInterval(load, 60000);
+    return () => window.clearInterval(id);
   }, []);
 
-  const unread = notifs.filter((n) => !n.read).length || notifs.length;
+  const unread = notifs.filter((n) => !n.read).length;
 
   const openNotifs = () => {
     setNotifOpen((o) => !o);
-    if (!notifOpen && authApi.getToken()) notifApi.markAllRead().catch(() => {});
+    if (!notifOpen && authApi.getToken() && unread > 0) {
+      notifApi.markAllRead().catch(() => {});
+      setNotifs((prev) => prev.map((n) => ({ ...n, read: true })));
+    }
   };
 
   return (
@@ -100,16 +120,17 @@ export function Topbar({ title, emoji, query, onQuery, onSubmit, onMenu, onNavig
                     className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden">
                     <div className="px-4 py-3 border-b border-slate-100 font-display font-bold text-[#2b2521]">{t('nav.notification')}</div>
                     <div className="divide-y divide-slate-50 max-h-80 overflow-y-auto">
-                      {notifs.length === 0 && <div className="px-4 py-6 text-sm text-slate-400 text-center">No notifications</div>}
+                      {notifs.length === 0 && <div className="px-4 py-8 text-sm text-slate-400 text-center">{t('notif.empty')}</div>}
                       {notifs.map((n, i) => {
                         const Icon = n.icon;
                         return (
-                          <button key={n.id ?? i} onClick={() => { setNotifOpen(false); }} className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 text-left">
+                          <button key={n.id ?? i} onClick={() => { setNotifOpen(false); if (n.link) window.location.href = n.link; }} className={`w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 text-left ${n.read ? '' : 'bg-[#6200FF]/[0.04]'}`}>
                             <span className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${n.color}1a` }}>
                               <Icon size={15} style={{ color: n.color }} />
                             </span>
-                            <div className="min-w-0">
-                              <p className="text-sm text-[#2b2521] leading-snug">{n.text}</p>
+                            <div className="min-w-0 flex-1">
+                              {n.title && <p className="text-sm font-semibold text-[#2b2521] leading-snug">{n.title}</p>}
+                              <p className="text-sm text-slate-600 leading-snug">{n.text}</p>
                               <p className="text-xs text-slate-400 mt-0.5">{n.time}</p>
                             </div>
                           </button>

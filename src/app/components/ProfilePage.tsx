@@ -2,7 +2,8 @@ import { Crown, MapPin, Star, Heart, Bell, LogOut, Plus, Globe, Languages, Penci
 import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
-import { profile as profileApi, auth as authApi } from '../lib/api';
+import { profile as profileApi, auth as authApi, push as pushApi } from '../lib/api';
+import { enablePush, disablePush, pushSupported } from '../lib/push';
 import { LANGUAGES, type Lang } from '../i18n';
 import { COUNTRIES } from '../data/places';
 
@@ -28,13 +29,21 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
 
   const persistNotif = (v: boolean) => { if (authApi.getToken()) profileApi.updateSettings({ notifications: v }).catch(() => {}); };
   const togglePush = async () => {
-    if (notifications) { setNotifications(false); persistNotif(false); flash(t('toast.pushOff')); return; }
-    if (typeof Notification === 'undefined') { setNotifications(true); persistNotif(true); flash(t('toast.pushOn')); return; }
+    if (notifications) {
+      setNotifications(false); persistNotif(false); flash(t('toast.pushOff'));
+      try { await disablePush(); } catch { /* ignore */ }
+      return;
+    }
+    if (!pushSupported()) { setNotifications(true); persistNotif(true); flash(t('toast.pushOn')); return; }
     try {
-      const perm = await Notification.requestPermission();
-      if (perm === 'granted') { setNotifications(true); persistNotif(true); flash(t('toast.pushOn')); try { new Notification(t('notif.enabledTitle'), { body: t('notif.enabledBody'), icon: '/icons/icon-192.png', badge: '/icons/icon-192.png' }); } catch { /* ignore */ } }
-      else { flash(t('toast.pushBlocked')); }
-    } catch { setNotifications(true); persistNotif(true); flash(t('toast.pushOn')); }
+      const res = await enablePush();
+      if (res.ok) {
+        setNotifications(true); persistNotif(true); flash(t('toast.pushOn'));
+        // Real server-sent confirmation push (branded, professional text via backend).
+        try { await pushApi.test(); } catch { /* ignore */ }
+      } else if (res.reason === 'denied') { flash(t('toast.pushBlocked')); }
+      else { setNotifications(true); persistNotif(true); flash(t('toast.pushOn')); }
+    } catch { flash(t('toast.pushBlocked')); }
   };
 
   // edit-profile modal

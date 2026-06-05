@@ -166,10 +166,21 @@ export const billing = {
 };
 
 // ---------------- Notifications ----------------
+export type NotificationItem = {
+  id: number; title?: string; text: string; icon?: string; link?: string; read: boolean; createdAt: string;
+};
 export const notifications = {
-  list: () => get<unknown[]>('/notifications'),
+  list: () => get<NotificationItem[]>('/notifications'),
   markRead: (id: number) => post<void>(`/notifications/${id}/read`),
   markAllRead: () => post<void>('/notifications/read-all'),
+};
+
+// ---------------- Web Push (PWA notifications) ----------------
+export const push = {
+  key: () => get<{ publicKey: string }>('/push/key'),
+  subscribe: (sub: unknown) => post<void>('/push/subscribe', sub),
+  unsubscribe: (endpoint: string) => post<void>('/push/unsubscribe', { endpoint }),
+  test: () => post<void>('/push/test'),
 };
 
 // ---------------- Wetigo membership card ----------------
