@@ -3,6 +3,7 @@ import { Eye, EyeOff, Star, MapPin, ArrowRight, Check, ShieldCheck, ArrowLeft, L
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 import { auth as authApi } from '../lib/api';
+import wetigoLogo from './figma/logo.png';
 
 interface AuthPageProps {
   onAuth: () => void;
@@ -132,7 +133,9 @@ export function AuthPage({ onAuth }: AuthPageProps) {
             style={{ background: 'linear-gradient(150deg,#4a00cc 0%,#6200FF 55%,#7c10ff 100%)' }}>
             <div className="pointer-events-none absolute -top-10 -right-8 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
             <div className="relative flex items-center justify-between">
-              <span className="text-white text-2xl font-extrabold tracking-tight">Wetigo</span>
+              <span className="bg-white rounded-2xl px-3 py-2 inline-flex items-center shadow-lg shadow-black/10">
+                <img src={wetigoLogo} alt="Wetigo" className="h-8 w-auto object-contain" />
+              </span>
               <span className="text-white/90 text-xs font-medium bg-white/15 backdrop-blur px-3 py-1.5 rounded-full">Where to go?</span>
             </div>
             <p className="relative text-white/85 text-sm mt-3 max-w-xs">{t('auth.discover')}</p>
