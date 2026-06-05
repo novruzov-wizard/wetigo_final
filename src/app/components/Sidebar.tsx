@@ -76,6 +76,14 @@ export function Sidebar({ active, onNavigate, onAddLocation, onGoPremium, open, 
           <button onClick={() => { onAddLocation(); onClose(); }} className="w-full mt-2 py-2 rounded-xl bg-white/15 text-white text-xs font-semibold hover:bg-white/25 transition-colors">{t('premium.addFree')}</button>
         </div>
       </div>
+
+      {/* Legal footer */}
+      <div className="mt-3 px-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
+        <button onClick={() => go('privacy')} className="hover:text-[#6200FF] transition-colors">{t('legal.privacy')}</button>
+        <span className="text-slate-200">·</span>
+        <button onClick={() => go('terms')} className="hover:text-[#6200FF] transition-colors">{t('legal.terms')}</button>
+        <span className="w-full text-slate-300">© {new Date().getFullYear()} Wetigo</span>
+      </div>
     </>
   );
 

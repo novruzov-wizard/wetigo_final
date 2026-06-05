@@ -10,6 +10,7 @@ import { FavoritesPage } from './components/FavoritesPage';
 import { ChatPage } from './components/ChatPage';
 import { ProfilePage } from './components/ProfilePage';
 import { LocationDetail } from './components/LocationDetail';
+import { LegalPage } from './components/LegalPage';
 import { SubscriptionPage } from './components/SubscriptionPage';
 import { PaymentPage } from './components/PaymentPage';
 import { AddLocationPage } from './components/AddLocationPage';
@@ -161,6 +162,10 @@ export default function App() {
         );
       case 'favorites':
         return <FavoritesPage onSelectLocation={handleSelectLocation} />;
+      case 'privacy':
+        return <LegalPage section="privacy" onBack={() => navigate('home')} />;
+      case 'terms':
+        return <LegalPage section="terms" onBack={() => navigate('home')} />;
       case 'chat':
         return <ChatPage onBack={() => navigate('home')} />;
       case 'profile':
@@ -194,6 +199,8 @@ export default function App() {
     favorites: { t: t('nav.favorites'), e: '❤️' },
     chat: { t: t('nav.messages'), e: '💬' },
     profile: { t: t('nav.settings'), e: '⚙️' },
+    privacy: { t: t('legal.privacy') },
+    terms: { t: t('legal.terms') },
   };
   const heading = checkoutPlan ? { t: t('title.checkout') } : selectedLocation ? { t: t('title.place') } : showSubscription ? { t: t('title.premium') } : showAddLocation ? { t: t('title.addplace') } : (titles[currentPage] || { t: 'Wetigo' });
 

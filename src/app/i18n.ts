@@ -116,6 +116,7 @@ const en: Dict = {
   'app.title': 'Get the Wetigo mobile app',
   'app.desc': 'Discover places, write reviews and plan visits on the go. Install it on iOS & Android.',
   'app.soon': 'Coming soon', 'notif.enabledTitle': "You're all set 🎉", 'notif.enabledBody': "We'll tell you about new places and reviews near you.", 'notif.empty': 'No notifications yet',
+  'legal.privacy': 'Privacy Policy', 'legal.terms': 'Terms of Service', 'legal.back': 'Back', 'legal.updated': 'Last updated', 'legal.contact': 'Questions about this page? Contact us at',
   'explore.noResults': 'No results found', 'explore.adjust': 'Try adjusting your filters.', 'explore.reviews': 'reviews', 'explore.saved': 'saved',
   'det.join': 'Join Community', 'det.message': 'Message', 'det.share': 'Share', 'det.report': 'Report', 'det.about': 'About', 'det.reviewsTab': 'Reviews',
   'det.description': 'Description', 'det.details': 'Details', 'det.location': 'Location', 'det.rating': 'Rating', 'det.beFirst': 'New · Be the first to review',

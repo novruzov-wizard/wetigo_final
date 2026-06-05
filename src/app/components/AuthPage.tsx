@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 import { auth as authApi } from '../lib/api';
 import wetigoLogo from './figma/logo.png';
+import { LegalPage } from './LegalPage';
 
 interface AuthPageProps {
   onAuth: () => void;
@@ -18,6 +19,7 @@ export function AuthPage({ onAuth }: AuthPageProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', password: '', birthDate: '' });
   const [remember, setRemember] = useState(true);
+  const [legal, setLegal] = useState<'privacy' | 'terms' | null>(null);
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [resent, setResent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -122,6 +124,14 @@ export function AuthPage({ onAuth }: AuthPageProps) {
     const base = (import.meta as any).env?.VITE_API_URL || '';
     window.location.href = `${base}/auth/oauth/${provider}/start`;
   };
+
+  if (legal) {
+    return (
+      <div className="min-h-screen w-full bg-[#f5f6f4] overflow-y-auto py-6">
+        <LegalPage section={legal} onBack={() => setLegal(null)} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full flex items-stretch bg-[#f5f6f4] p-3 sm:p-5">
@@ -303,6 +313,14 @@ export function AuthPage({ onAuth }: AuthPageProps) {
               </motion.div>
             )}
           </AnimatePresence>
+
+          <div className="mt-8 pt-5 border-t border-slate-100 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-slate-400">
+            <button onClick={() => setLegal('privacy')} className="hover:text-[#6200FF] transition-colors">{t('legal.privacy')}</button>
+            <span className="text-slate-200">·</span>
+            <button onClick={() => setLegal('terms')} className="hover:text-[#6200FF] transition-colors">{t('legal.terms')}</button>
+            <span className="text-slate-200">·</span>
+            <span>© {new Date().getFullYear()} Wetigo</span>
+          </div>
         </div>
 
         {/* ===== Right: brand showcase (Wetigo purple) ===== */}
