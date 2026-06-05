@@ -198,6 +198,7 @@ export const admin = {
   hideReview: (id: number) => post<void>(`/admin/reviews/${id}/hide`),
   restoreReview: (id: number) => post<void>(`/admin/reviews/${id}/restore`),
   deleteReview: (id: number) => del<void>(`/admin/reviews/${id}`),
+  dismissReport: (id: number) => del<void>(`/admin/reports/${id}`),
   pendingPlaces: () => get<any[]>('/admin/places/pending'),
   approvePlace: (id: number) => post<void>(`/admin/places/${id}/approve`),
   rejectPlace: (id: number) => post<void>(`/admin/places/${id}/reject`),

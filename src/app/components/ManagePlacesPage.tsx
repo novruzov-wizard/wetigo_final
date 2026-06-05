@@ -36,12 +36,18 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
   const [report, setReport] = useState<any | null>(null);
   const [racting, setRacting] = useState(false);
   const rid = (r: any) => r?.reviewId ?? r?.review_id;
-  const moderate = async (kind: 'hide' | 'delete') => {
+  // split reports into review reports vs place reports
+  const reviewReports = reports.filter((r: any) => (r.type ?? 'review') !== 'place');
+  const placeReports = reports.filter((r: any) => r.type === 'place');
+  const moderate = async (kind: 'hide' | 'unhide' | 'delete' | 'dismiss' | 'rejectPlace') => {
     if (!report) return; setRacting(true);
     try {
-      if (kind === 'hide') { await adminApi.hideReview(rid(report)); flash(t('mng.tHidden')); }
-      else { await adminApi.deleteReview(rid(report)); flash(t('mng.tDeleted')); }
-      setReport(null); loadAdmin();
+      if (kind === 'hide') { await adminApi.hideReview(rid(report)); setReport({ ...report, hidden: true }); flash(t('mng.tHidden')); }
+      else if (kind === 'unhide') { await adminApi.restoreReview(rid(report)); setReport({ ...report, hidden: false }); flash(t('mng.tRestored')); }
+      else if (kind === 'delete') { await adminApi.deleteReview(rid(report)); setReport(null); flash(t('mng.tDeleted')); }
+      else if (kind === 'dismiss') { await adminApi.dismissReport(report.id); setReport(null); flash(t('mng.tDismissed')); }
+      else if (kind === 'rejectPlace') { await adminApi.rejectPlace(report.placeId); await adminApi.dismissReport(report.id); setReport(null); refreshPlaces(); flash(t('mng.tRejected')); }
+      loadAdmin();
     } catch (e: any) { flash(e?.message || 'Error'); } finally { setRacting(false); }
   };
 
@@ -53,7 +59,7 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
   const openEdit = (p: any) => { setEdit(p); setForm({ phone: p.phone || '', website: p.website || '', openingHours: p.openingHours || '', price: p.price || '$$', city: p.city || '' }); };
   const saveEdit = async () => {
     if (!edit) return; setSaving(true);
-    try { await placesApi.update(edit.id, form); flash(t('mng.tSaved')); setEdit(null); loadMine(); }
+    try { await placesApi.update(edit.id, form); flash(t('mng.tSaved')); setEdit(null); loadMine(); refreshPlaces(); }
     catch (e: any) { flash(e?.message || t('mng.tSaveFail')); } finally { setSaving(false); }
   };
   const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,15 +137,34 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
               ))}
             </div>
           </div>
+          {/* Reported reviews */}
           <div>
-            <h3 className="font-semibold text-slate-900 mb-3">{t('mng.reports')} ({reports.length})</h3>
+            <h3 className="font-semibold text-slate-900 mb-3">{t('mng.reportedReviews')} ({reviewReports.length})</h3>
             <div className="space-y-2">
-              {reports.length === 0 && <p className="text-sm text-slate-400">{t('mng.noReports')}</p>}
-              {reports.map((r: any) => (
+              {reviewReports.length === 0 && <p className="text-sm text-slate-400">{t('mng.noReports')}</p>}
+              {reviewReports.map((r: any) => (
                 <button key={r.id} onClick={() => setReport(r)} className="w-full text-left bg-white rounded-2xl p-3 border border-slate-200 hover:border-[#6200FF] transition-colors flex items-start gap-3">
                   <div className="flex-1 min-w-0">
-                    {r.comment ? <p className="text-sm text-[#2b2521] line-clamp-2">“{r.comment}”</p> : <p className="text-sm text-slate-400">Review #{r.reviewId}</p>}
-                    <p className="text-xs text-slate-500 mt-0.5">{r.author ? `${r.author} · ` : ''}{r.rating ? `★${r.rating} · ` : ''}<span className="text-rose-500">{r.reason || 'reported'}</span>{r.hidden ? ' · hidden' : ''}</p>
+                    {r.comment ? <p className="text-sm text-[#2b2521] line-clamp-2">“{r.comment}”</p> : <p className="text-sm text-slate-400">{t('mng.reviewRemoved')}</p>}
+                    <p className="text-xs text-slate-500 mt-0.5">{r.author ? `${r.author} · ` : ''}{r.rating ? `★${r.rating} · ` : ''}<span className="text-rose-500">{r.reason || 'reported'}</span>{r.hidden ? ` · ${t('mng.hidden')}` : ''}</p>
+                  </div>
+                  <span className="px-3 py-1.5 rounded-lg bg-[#f1ebff] text-[#6200FF] text-xs font-semibold shrink-0 flex items-center gap-1"><Eye size={13} /> {t('mng.review')}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Reported places */}
+          <div>
+            <h3 className="font-semibold text-slate-900 mb-3">{t('mng.reportedPlaces')} ({placeReports.length})</h3>
+            <div className="space-y-2">
+              {placeReports.length === 0 && <p className="text-sm text-slate-400">{t('mng.noReports')}</p>}
+              {placeReports.map((r: any) => (
+                <button key={r.id} onClick={() => setReport(r)} className="w-full text-left bg-white rounded-2xl p-3 border border-slate-200 hover:border-[#6200FF] transition-colors flex items-center gap-3">
+                  <img src={r.image || ''} alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden'; }} className="w-12 h-12 rounded-xl object-cover bg-slate-100 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-[#2b2521] line-clamp-1">{r.placeName || t('mng.placeRemoved')}</p>
+                    <p className="text-xs text-slate-500 line-clamp-1">{[r.category, r.city].filter(Boolean).join(' · ')}</p>
                   </div>
                   <span className="px-3 py-1.5 rounded-lg bg-[#f1ebff] text-[#6200FF] text-xs font-semibold shrink-0 flex items-center gap-1"><Eye size={13} /> {t('mng.review')}</span>
                 </button>
@@ -226,24 +251,51 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
             <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }} onClick={(e) => e.stopPropagation()}
               className="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl overflow-hidden max-h-[90vh] flex flex-col">
               <div className="flex items-center justify-between p-6 pb-3 border-b border-slate-100">
-                <h3 className="font-display text-lg font-bold text-[#2b2521]">{t('mng.reportedReview')}</h3>
+                <h3 className="font-display text-lg font-bold text-[#2b2521]">{report.type === 'place' ? t('mng.reportedPlace') : t('mng.reportedReview')}</h3>
                 <button onClick={() => setReport(null)} className="text-slate-400 hover:text-slate-700"><X size={20} /></button>
               </div>
-              <div className="p-6 overflow-y-auto space-y-3">
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  {report.comment ? <p className="text-[#2b2521] leading-relaxed">“{report.comment}”</p> : <p className="text-slate-400">Review #{report.reviewId}</p>}
-                </div>
-                <div className="space-y-1.5 text-sm text-slate-600">
-                  {report.author && <p><span className="text-slate-400">{t('mng.author')}: </span>{report.author}</p>}
-                  {report.rating ? <p><span className="text-slate-400">{t('mng.ratingL')}: </span>★ {report.rating}</p> : null}
-                  <p><span className="text-slate-400">{t('mng.reasonL')}: </span><span className="text-rose-500 font-medium">{report.reason || 'reported'}</span></p>
-                  <p><span className="text-slate-400">{t('mng.statusL')}: </span>{report.hidden ? t('mng.hidden') : t('mng.visible')}</p>
-                </div>
-              </div>
-              <div className="flex gap-3 p-6 pt-2 border-t border-slate-100">
-                <button onClick={() => moderate('hide')} disabled={racting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 disabled:opacity-60"><EyeOff size={16} /> {t('mng.hide')}</button>
-                <button onClick={() => moderate('delete')} disabled={racting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-50 text-rose-600 font-semibold hover:bg-rose-100 disabled:opacity-60">{racting ? <Loader2 size={16} className="animate-spin" /> : <><Trash2 size={16} /> {t('mng.delete')}</>}</button>
-              </div>
+
+              {report.type === 'place' ? (
+                <>
+                  {report.image ? <img src={report.image} alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} className="w-full h-40 object-cover bg-slate-100" /> : null}
+                  <div className="p-6 overflow-y-auto space-y-3">
+                    <h4 className="font-display text-xl font-bold text-[#2b2521]">{report.placeName || t('mng.placeRemoved')}</h4>
+                    <div className="space-y-1.5 text-sm text-slate-600">
+                      {(report.category || report.city) && <p>{[report.category, report.city, report.country].filter(Boolean).join(' · ')}</p>}
+                      {report.phone && <p className="flex items-center gap-2"><Phone size={15} className="text-slate-400" /> {report.phone}</p>}
+                      {report.website && <p className="flex items-center gap-2 break-all"><Globe size={15} className="text-slate-400 shrink-0" /> {report.website}</p>}
+                      <p><span className="text-slate-400">{t('mng.reasonL')}: </span><span className="text-rose-500 font-medium">{t('mng.placeReported')}</span></p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 p-6 pt-2 border-t border-slate-100">
+                    <button onClick={() => moderate('dismiss')} disabled={racting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 disabled:opacity-60"><Check size={16} /> {t('mng.dismiss')}</button>
+                    <button onClick={() => moderate('rejectPlace')} disabled={racting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-50 text-rose-600 font-semibold hover:bg-rose-100 disabled:opacity-60">{racting ? <Loader2 size={16} className="animate-spin" /> : <><Trash2 size={16} /> {t('mng.removePlace')}</>}</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="p-6 overflow-y-auto space-y-3">
+                    <div className={`rounded-2xl p-4 ${report.hidden ? 'bg-amber-50' : 'bg-slate-50'}`}>
+                      {report.comment ? <p className="text-[#2b2521] leading-relaxed">“{report.comment}”</p> : <p className="text-slate-400">{t('mng.reviewRemoved')}</p>}
+                      {report.hidden && <p className="text-xs text-amber-600 font-semibold mt-2 flex items-center gap-1"><EyeOff size={12} /> {t('mng.hiddenNote')}</p>}
+                    </div>
+                    <div className="space-y-1.5 text-sm text-slate-600">
+                      {report.author && <p><span className="text-slate-400">{t('mng.author')}: </span>{report.author}</p>}
+                      {report.rating ? <p><span className="text-slate-400">{t('mng.ratingL')}: </span>★ {report.rating}</p> : null}
+                      <p><span className="text-slate-400">{t('mng.reasonL')}: </span><span className="text-rose-500 font-medium">{report.reason || 'reported'}</span></p>
+                      <p><span className="text-slate-400">{t('mng.statusL')}: </span>{report.hidden ? t('mng.hidden') : t('mng.visible')}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 p-6 pt-2 border-t border-slate-100">
+                    {report.hidden ? (
+                      <button onClick={() => moderate('unhide')} disabled={racting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-50 text-emerald-600 font-semibold hover:bg-emerald-100 disabled:opacity-60"><Eye size={16} /> {t('mng.unhide')}</button>
+                    ) : (
+                      <button onClick={() => moderate('hide')} disabled={racting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 disabled:opacity-60"><EyeOff size={16} /> {t('mng.hide')}</button>
+                    )}
+                    <button onClick={() => moderate('delete')} disabled={racting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-50 text-rose-600 font-semibold hover:bg-rose-100 disabled:opacity-60">{racting ? <Loader2 size={16} className="animate-spin" /> : <><Trash2 size={16} /> {t('mng.delete')}</>}</button>
+                  </div>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}
