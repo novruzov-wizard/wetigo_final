@@ -133,8 +133,17 @@
       <script>
         // Register the PWA service worker (enables install on Android & iOS)
         if ('serviceWorker' in navigator) {
-          window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js').catch(() => {});
+          // When a new service worker takes control, reload once so users stuck on a
+          // stale cache (e.g. the old image-breaking SW) immediately get a clean page.
+          var swReloaded = false;
+          navigator.serviceWorker.addEventListener('controllerchange', function () {
+            if (swReloaded) return; swReloaded = true; window.location.reload();
+          });
+          window.addEventListener('load', function () {
+            navigator.serviceWorker.register('/sw.js').then(function (reg) {
+              // proactively check for an updated SW on each load
+              reg.update && reg.update();
+            }).catch(function () {});
           });
         }
       </script>
