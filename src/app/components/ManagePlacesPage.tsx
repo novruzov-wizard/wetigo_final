@@ -93,13 +93,22 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
             <div className="space-y-2">
               {pending.length === 0 && <p className="text-sm text-slate-400">{t('mng.nothingPending')}</p>}
               {pending.map((p) => (
-                <div key={p.id} className="bg-white rounded-2xl p-3 border border-slate-200 flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-[#2b2521] line-clamp-1">{p.name} {p.claimedBy ? <span className="text-xs text-amber-600">(claim)</span> : null}</p>
-                    <p className="text-xs text-slate-500 line-clamp-1">{p.category} · {p.city}</p>
+                <div key={p.id} className="bg-white rounded-2xl p-3 border border-slate-200">
+                  <div className="flex items-center gap-3">
+                    <img src={p.image} alt="" className="w-14 h-14 rounded-xl object-cover bg-slate-100 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-[#2b2521] line-clamp-1">{p.name} {p.claimedBy ? <span className="text-xs text-amber-600">(claim)</span> : null}</p>
+                      <p className="text-xs text-slate-500 line-clamp-1">{p.category} · {p.city}</p>
+                    </div>
+                    <button onClick={() => adminApi.approvePlace(p.id).then(() => { flash(t('mng.tApproved')); loadAdmin(); })} className="w-9 h-9 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0"><Check size={16} /></button>
+                    <button onClick={() => adminApi.rejectPlace(p.id).then(() => { flash(t('mng.tRejected')); loadAdmin(); })} className="w-9 h-9 rounded-lg bg-rose-500 text-white flex items-center justify-center shrink-0"><X size={16} /></button>
                   </div>
-                  <button onClick={() => adminApi.approvePlace(p.id).then(() => { flash(t('mng.tApproved')); loadAdmin(); })} className="w-9 h-9 rounded-lg bg-emerald-500 text-white flex items-center justify-center"><Check size={16} /></button>
-                  <button onClick={() => adminApi.rejectPlace(p.id).then(() => { flash(t('mng.tRejected')); loadAdmin(); })} className="w-9 h-9 rounded-lg bg-rose-500 text-white flex items-center justify-center"><X size={16} /></button>
+                  {/* submitted details to review before approving */}
+                  <div className="mt-2 pl-[68px] space-y-0.5 text-xs text-slate-600">
+                    {p.phone && <p className="flex items-center gap-1.5"><Phone size={12} className="text-slate-400" /> {p.phone}</p>}
+                    {p.website && <p className="flex items-center gap-1.5"><Globe size={12} className="text-slate-400" /> {p.website}</p>}
+                    {p.openingHours && <p className="flex items-center gap-1.5"><Clock size={12} className="text-slate-400" /> {p.openingHours}</p>}
+                  </div>
                 </div>
               ))}
             </div>
@@ -109,8 +118,11 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
             <div className="space-y-2">
               {reports.length === 0 && <p className="text-sm text-slate-400">{t('mng.noReports')}</p>}
               {reports.map((r: any) => (
-                <div key={r.id} className="bg-white rounded-2xl p-3 border border-slate-200 flex items-center gap-3">
-                  <div className="flex-1 min-w-0"><p className="text-sm text-[#2b2521]">Review #{r.reviewId ?? r.review_id ?? r.id}</p><p className="text-xs text-slate-500">{r.reason || 'reported'}</p></div>
+                <div key={r.id} className="bg-white rounded-2xl p-3 border border-slate-200 flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    {r.comment ? <p className="text-sm text-[#2b2521]">“{r.comment}”</p> : <p className="text-sm text-slate-400">Review #{r.reviewId}</p>}
+                    <p className="text-xs text-slate-500 mt-0.5">{r.author ? `${r.author} · ` : ''}{r.rating ? `★${r.rating} · ` : ''}<span className="text-rose-500">{r.reason || 'reported'}</span>{r.hidden ? ' · hidden' : ''}</p>
+                  </div>
                   <button onClick={() => adminApi.hideReview(r.reviewId ?? r.review_id).then(() => flash(t('mng.tHidden')))} className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1"><EyeOff size={13} /> {t('mng.hide')}</button>
                   <button onClick={() => adminApi.deleteReview(r.reviewId ?? r.review_id).then(() => flash(t('mng.tDeleted')))} className="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-semibold flex items-center gap-1"><Trash2 size={13} /> {t('mng.delete')}</button>
                 </div>

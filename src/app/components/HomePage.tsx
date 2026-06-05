@@ -15,7 +15,7 @@ interface HomePageProps {
   onAddLocation: () => void;
 }
 
-export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: HomePageProps) {
+export function HomePage({ onSelectLocation, onCategorySelect, onSearch, onAddLocation }: HomePageProps) {
   const [activeCat, setActiveCat] = useState('all');
   const [toast, setToast] = useState<string | null>(null);
   const { isFavorite, toggleFavorite, t, places: PLACES, user } = useStore();

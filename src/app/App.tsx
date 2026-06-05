@@ -169,6 +169,7 @@ export default function App() {
             onShowSubscription={() => setShowSubscription(true)}
             onAddLocation={() => setShowAddLocation(true)}
             onManage={() => { navigate('home'); setShowManage(true); }}
+            onOpenFavorites={() => navigate('favorites')}
             onSelectLocation={handleSelectLocation}
             onSignOut={() => { authApi.logout().catch(() => {}); authApi.setSession(null); setAuthed(false); setCurrentPage('home'); }}
             plan={plan}

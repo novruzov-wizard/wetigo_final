@@ -12,10 +12,11 @@ interface ProfilePageProps {
   onSignOut: () => void;
   onSelectLocation?: (id: number) => void;
   onManage?: () => void;
+  onOpenFavorites?: () => void;
   plan?: string;
 }
 
-export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSelectLocation, onManage, plan = 'free' }: ProfilePageProps) {
+export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSelectLocation, onManage, onOpenFavorites, plan = 'free' }: ProfilePageProps) {
   const { user, updateUser, favorites, lang, setLang, t, country, setCountry } = useStore();
   const [notifications, setNotifications] = useState(false);
   const [emailUpdates, setEmailUpdates] = useState(false);
@@ -31,7 +32,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
     if (typeof Notification === 'undefined') { setNotifications(true); persistNotif(true); flash(t('toast.pushOn')); return; }
     try {
       const perm = await Notification.requestPermission();
-      if (perm === 'granted') { setNotifications(true); persistNotif(true); flash(t('toast.pushOn')); new Notification('Wetigo', { body: 'Notifications are on 🎉' }); }
+      if (perm === 'granted') { setNotifications(true); persistNotif(true); flash(t('toast.pushOn')); try { new Notification(t('notif.enabledTitle'), { body: t('notif.enabledBody'), icon: '/icons/icon-192.png', badge: '/icons/icon-192.png' }); } catch { /* ignore */ } }
       else { flash(t('toast.pushBlocked')); }
     } catch { setNotifications(true); persistNotif(true); flash(t('toast.pushOn')); }
   };
@@ -127,9 +128,9 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: t('prof.reviews'), value: stats.reviews, icon: Star },
-              { label: t('prof.saved'), value: stats.favorites, icon: Heart },
-              { label: t('prof.plans'), value: stats.plans, icon: MapPin },
+              { label: t('prof.reviews'), value: stats.reviews, icon: Star, onClick: undefined as undefined | (() => void) },
+              { label: t('prof.saved'), value: stats.favorites, icon: Heart, onClick: onOpenFavorites },
+              { label: t('prof.plans'), value: stats.plans, icon: MapPin, onClick: undefined as undefined | (() => void) },
             ].map((stat, idx) => {
               const Icon = stat.icon;
               return (
@@ -138,7 +139,8 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: idx * 0.1 }}
-                  className="bg-white/20 backdrop-blur-xl rounded-2xl p-4 text-center border border-white/30 shadow-lg"
+                  onClick={stat.onClick}
+                  className={`bg-white/20 backdrop-blur-xl rounded-2xl p-4 text-center border border-white/30 shadow-lg ${stat.onClick ? 'cursor-pointer hover:bg-white/30 transition-colors' : ''}`}
                 >
                   <Icon size={18} className="text-white mx-auto mb-1" />
                   <div className="text-2xl text-white mb-1">{stat.value}</div>
