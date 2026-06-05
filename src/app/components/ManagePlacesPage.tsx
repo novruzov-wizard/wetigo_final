@@ -20,6 +20,18 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
   const loadAdmin = () => { adminApi.pendingPlaces().then(setPending).catch(() => setPending([])); adminApi.reports().then(setReports).catch(() => setReports([])); };
   useEffect(() => { Promise.all([loadMine(), isAdmin ? loadAdmin() : null]).finally(() => setLoading(false)); /* eslint-disable-next-line */ }, []);
 
+  // ---- admin: review-before-decision modal ----
+  const [detail, setDetail] = useState<any | null>(null);
+  const [acting, setActing] = useState(false);
+  const decide = async (approve: boolean) => {
+    if (!detail) return; setActing(true);
+    try {
+      if (approve) { await adminApi.approvePlace(detail.id); flash(t('mng.tApproved')); }
+      else { await adminApi.rejectPlace(detail.id); flash(t('mng.tRejected')); }
+      setDetail(null); loadAdmin();
+    } catch (e: any) { flash(e?.message || 'Error'); } finally { setActing(false); }
+  };
+
   // ---- owner edit modal ----
   const [edit, setEdit] = useState<any | null>(null);
   const [form, setForm] = useState<any>({});
@@ -93,23 +105,16 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
             <div className="space-y-2">
               {pending.length === 0 && <p className="text-sm text-slate-400">{t('mng.nothingPending')}</p>}
               {pending.map((p) => (
-                <div key={p.id} className="bg-white rounded-2xl p-3 border border-slate-200">
+                <button key={p.id} onClick={() => setDetail(p)} className="w-full text-left bg-white rounded-2xl p-3 border border-slate-200 hover:border-[#6200FF] transition-colors">
                   <div className="flex items-center gap-3">
-                    <img src={p.image} alt="" className="w-14 h-14 rounded-xl object-cover bg-slate-100 shrink-0" />
+                    <img src={p.hasPhoto ? `/api/places/${p.id}/photo` : p.image} alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).src = p.image; }} className="w-14 h-14 rounded-xl object-cover bg-slate-100 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-[#2b2521] line-clamp-1">{p.name} {p.claimedBy ? <span className="text-xs text-amber-600">(claim)</span> : null}</p>
                       <p className="text-xs text-slate-500 line-clamp-1">{p.category} · {p.city}</p>
                     </div>
-                    <button onClick={() => adminApi.approvePlace(p.id).then(() => { flash(t('mng.tApproved')); loadAdmin(); })} className="w-9 h-9 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0"><Check size={16} /></button>
-                    <button onClick={() => adminApi.rejectPlace(p.id).then(() => { flash(t('mng.tRejected')); loadAdmin(); })} className="w-9 h-9 rounded-lg bg-rose-500 text-white flex items-center justify-center shrink-0"><X size={16} /></button>
+                    <span className="px-3 py-1.5 rounded-lg bg-[#f1ebff] text-[#6200FF] text-xs font-semibold shrink-0 flex items-center gap-1"><Eye size={13} /> {t('mng.review')}</span>
                   </div>
-                  {/* submitted details to review before approving */}
-                  <div className="mt-2 pl-[68px] space-y-0.5 text-xs text-slate-600">
-                    {p.phone && <p className="flex items-center gap-1.5"><Phone size={12} className="text-slate-400" /> {p.phone}</p>}
-                    {p.website && <p className="flex items-center gap-1.5"><Globe size={12} className="text-slate-400" /> {p.website}</p>}
-                    {p.openingHours && <p className="flex items-center gap-1.5"><Clock size={12} className="text-slate-400" /> {p.openingHours}</p>}
-                  </div>
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -160,6 +165,41 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
               <div className="flex gap-3 p-6 pt-2">
                 <button onClick={() => setEdit(null)} className="flex-1 py-3 rounded-xl border border-slate-200 font-semibold text-slate-600 hover:bg-slate-50">{t('mng.cancel')}</button>
                 <button onClick={saveEdit} disabled={saving} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#6200FF] text-white font-semibold hover:bg-[#5400dd] disabled:opacity-60">{saving ? <Loader2 size={17} className="animate-spin" /> : <><Check size={17} /> {t('mng.save')}</>}</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Admin: review-before-decision detail modal */}
+      <AnimatePresence>
+        {detail && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => !acting && setDetail(null)}
+            className="fixed inset-0 z-[1050] bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }} onClick={(e) => e.stopPropagation()}
+              className="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl overflow-hidden max-h-[90vh] flex flex-col">
+              <img src={detail.hasPhoto ? `/api/places/${detail.id}/photo` : detail.image} alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).src = detail.image; }} className="w-full h-44 object-cover bg-slate-100" />
+              <div className="p-6 overflow-y-auto space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-display text-xl font-bold text-[#2b2521]">{detail.name}</h3>
+                    <p className="text-sm text-slate-500">{detail.category} · {detail.city}{detail.country ? `, ${detail.country}` : ''}</p>
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold shrink-0 ${detail.claimedBy ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'}`}>{detail.claimedBy ? t('mng.claimReq') : t('mng.newPlace')}</span>
+                </div>
+                <div className="space-y-1.5 text-sm text-slate-600">
+                  {detail.phone && <p className="flex items-center gap-2"><Phone size={15} className="text-slate-400" /> {detail.phone}</p>}
+                  {detail.website && <p className="flex items-center gap-2 break-all"><Globe size={15} className="text-slate-400 shrink-0" /> {detail.website}</p>}
+                  {detail.openingHours && <p className="flex items-center gap-2"><Clock size={15} className="text-slate-400" /> {detail.openingHours}</p>}
+                  {detail.price && <p className="flex items-center gap-2"><Store size={15} className="text-slate-400" /> {detail.price}</p>}
+                  {(detail.lat || detail.lng) ? (
+                    <a href={`https://www.google.com/maps?q=${detail.lat},${detail.lng}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#6200FF] hover:underline"><MapPin size={15} /> {detail.lat?.toFixed?.(5)}, {detail.lng?.toFixed?.(5)}</a>
+                  ) : null}
+                </div>
+              </div>
+              <div className="flex gap-3 p-6 pt-2 border-t border-slate-100">
+                <button onClick={() => decide(false)} disabled={acting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-50 text-rose-600 font-semibold hover:bg-rose-100 disabled:opacity-60">{acting ? <Loader2 size={17} className="animate-spin" /> : <><X size={17} /> {t('mng.reject')}</>}</button>
+                <button onClick={() => decide(true)} disabled={acting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-500 text-white font-semibold hover:bg-emerald-600 disabled:opacity-60">{acting ? <Loader2 size={17} className="animate-spin" /> : <><Check size={17} /> {t('mng.approve')}</>}</button>
               </div>
             </motion.div>
           </motion.div>

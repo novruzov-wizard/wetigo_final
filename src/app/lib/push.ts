@@ -34,6 +34,24 @@ export async function enablePush(): Promise<{ ok: boolean; reason?: string }> {
   return { ok: true };
 }
 
+/** Show a branded notification immediately on this device (works even before any server push). */
+export async function showLocalNotification(title: string, body: string): Promise<void> {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const opts: NotificationOptions = {
+    body,
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+  };
+  try {
+    if ('serviceWorker' in navigator) {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.showNotification(title, opts);
+      return;
+    }
+  } catch { /* fall through */ }
+  try { new Notification(title, opts); } catch { /* ignore */ }
+}
+
 export async function disablePush(): Promise<void> {
   if (!pushSupported()) return;
   const reg = await navigator.serviceWorker.ready;

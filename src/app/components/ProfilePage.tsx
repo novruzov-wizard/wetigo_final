@@ -3,7 +3,7 @@ import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 import { profile as profileApi, auth as authApi, push as pushApi } from '../lib/api';
-import { enablePush, disablePush, pushSupported } from '../lib/push';
+import { enablePush, disablePush, pushSupported, showLocalNotification } from '../lib/push';
 import { LANGUAGES, type Lang } from '../i18n';
 import { COUNTRIES } from '../data/places';
 
@@ -39,7 +39,9 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
       const res = await enablePush();
       if (res.ok) {
         setNotifications(true); persistNotif(true); flash(t('toast.pushOn'));
-        // Real server-sent confirmation push (branded, professional text via backend).
+        // Immediate branded confirmation on this device.
+        try { await showLocalNotification(t('notif.enabledTitle'), t('notif.enabledBody')); } catch { /* ignore */ }
+        // Also ask the server to send a real web-push (works once VAPID is configured).
         try { await pushApi.test(); } catch { /* ignore */ }
       } else if (res.reason === 'denied') { flash(t('toast.pushBlocked')); }
       else { setNotifications(true); persistNotif(true); flash(t('toast.pushOn')); }
