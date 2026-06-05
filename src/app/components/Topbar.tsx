@@ -1,4 +1,4 @@
-import { Search, Bell, Mail, Menu, Star, MessageCircle, MapPin } from 'lucide-react';
+import { Search, Bell, Mail, Menu, Star, MessageCircle, MapPin, ThumbsUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
@@ -16,7 +16,7 @@ interface TopbarProps {
 
 interface Notif { id?: number; icon: any; color: string; title?: string; text: string; time: string; read?: boolean; link?: string; }
 
-const ICONS: Record<string, any> = { review: Star, star: Star, message: MessageCircle, place: MapPin, check: MapPin, info: Bell, bell: Bell };
+const ICONS: Record<string, any> = { review: Star, star: Star, message: MessageCircle, like: ThumbsUp, place: MapPin, check: MapPin, info: Bell, bell: Bell };
 
 function relTime(iso?: string): string {
   if (!iso) return '';
@@ -34,6 +34,7 @@ function relTime(iso?: string): string {
 export function Topbar({ title, emoji, query, onQuery, onSubmit, onMenu, onNavigate }: TopbarProps) {
   const { user, t } = useStore();
   const [notifOpen, setNotifOpen] = useState(false);
+  const [showAllNotifs, setShowAllNotifs] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const flash = (m: string) => { setToast(m); window.clearTimeout((flash as any)._t); (flash as any)._t = window.setTimeout(() => setToast(null), 2000); };
 
@@ -122,7 +123,7 @@ export function Topbar({ title, emoji, query, onQuery, onSubmit, onMenu, onNavig
                     <div className="px-4 py-3 border-b border-slate-100 font-display font-bold text-[#2b2521]">{t('nav.notification')}</div>
                     <div className="divide-y divide-slate-50 max-h-80 overflow-y-auto">
                       {notifs.length === 0 && <div className="px-4 py-8 text-sm text-slate-400 text-center">{t('notif.empty')}</div>}
-                      {notifs.map((n, i) => {
+                      {(showAllNotifs ? notifs : notifs.slice(0, 6)).map((n, i) => {
                         const Icon = n.icon;
                         return (
                           <button key={n.id ?? i} onClick={() => { setNotifOpen(false); if (n.link) window.location.href = n.link; }} className={`w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 text-left ${n.read ? '' : 'bg-[#6200FF]/[0.04]'}`}>
@@ -137,6 +138,11 @@ export function Topbar({ title, emoji, query, onQuery, onSubmit, onMenu, onNavig
                           </button>
                         );
                       })}
+                      {notifs.length > 6 && (
+                        <button onClick={() => setShowAllNotifs((v) => !v)} className="w-full px-4 py-2.5 text-center text-xs font-semibold text-[#6200FF] hover:bg-slate-50">
+                          {showAllNotifs ? t('common.showLess') : `${t('common.showAll')} (${notifs.length})`}
+                        </button>
+                      )}
                     </div>
                   </motion.div>
                 </>

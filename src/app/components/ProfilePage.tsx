@@ -100,6 +100,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
   const [stats, setStats] = useState({ reviews: 0, favorites: favorites.length, plans: 0 });
   const [recentActivity, setRecentActivity] = useState<{ id: number; type: string; place: string; action: string; time: string; rating?: number; createdAt?: number; placeId?: number }[]>([]);
   const [activityLoaded, setActivityLoaded] = useState(false);
+  const [showAllActivity, setShowAllActivity] = useState(false);
   useEffect(() => {
     setStats((s) => ({ ...s, favorites: favorites.length }));
   }, [favorites.length]);
@@ -234,7 +235,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
               <p className="text-xs text-slate-500">{t('prof.noActivityDesc')}</p>
             </div>
           )}
-          {recentActivity.map((activity, idx) => {
+          {(showAllActivity ? recentActivity : recentActivity.slice(0, 5)).map((activity, idx) => {
             const Icon = activityIcon(activity.type);
             return (
               <motion.button
@@ -259,6 +260,11 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
               </motion.button>
             );
           })}
+          {recentActivity.length > 5 && (
+            <button onClick={() => setShowAllActivity((v) => !v)} className="w-full py-3 rounded-2xl bg-white border border-slate-200 text-sm font-semibold text-[#6200FF] hover:bg-[#f6f4ff]">
+              {showAllActivity ? t('common.showLess') : `${t('common.showMore')} (${recentActivity.length - 5})`}
+            </button>
+          )}
         </div>
       </div>
 

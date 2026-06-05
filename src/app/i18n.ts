@@ -23,7 +23,7 @@ const en: Dict = {
   'nav.restaurant': 'Restaurant',
   'nav.drivers': 'Drivers',
   'nav.settings': 'Setting',
-  'common.soon': 'Soon',
+  'common.soon': 'Soon', 'common.showMore': 'Show more', 'common.showLess': 'Show less', 'common.showAll': 'Show all',
   'premium.q': 'Own a business?',
   'premium.desc': 'Get promoted to the top of search & categories and reach more customers.',
   'premium.go': 'Go Premium',

@@ -187,6 +187,7 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
     if (authApi.getToken()) reviewsApi.like(id).catch(() => {});
   };
 
+  const [showAllReviews, setShowAllReviews] = useState(false);
   // search + sort comments
   const shownReviews = reviews
     .filter((r) => {
@@ -607,7 +608,7 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                   <p className="text-sm text-slate-500">No comments match “{reviewSearch}”.</p>
                 </div>
               )}
-              {shownReviews.map((review, idx) => (
+              {(showAllReviews ? shownReviews : shownReviews.slice(0, 5)).map((review, idx) => (
                 <motion.div key={review.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}
                   className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm">
                   <div className="flex items-start gap-3">
@@ -680,6 +681,11 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                   </div>
                 </motion.div>
               ))}
+              {shownReviews.length > 5 && (
+                <button onClick={() => setShowAllReviews((v) => !v)} className="w-full py-3 rounded-2xl bg-white border border-slate-200 text-sm font-semibold text-[#6200FF] hover:bg-[#f6f4ff]">
+                  {showAllReviews ? t('common.showLess') : `${t('common.showMore')} (${shownReviews.length - 5})`}
+                </button>
+              )}
             </div>
           </motion.div>
         )}
