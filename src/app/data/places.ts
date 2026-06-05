@@ -17,6 +17,8 @@ export interface Place {
   phone?: string;
   website?: string;
   openingHours?: string;
+  tier?: string;          // free | plus | pro
+  promotedUntil?: string; // ISO timestamp; while in the future → "Promoted"
 }
 
 // Category → stock image fallback (when a place has no image). Single source: data/categories.ts

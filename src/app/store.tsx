@@ -65,6 +65,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             price: p.price ?? '$$', verified: !!p.verified, premium: !!p.premium,
             open: p.open ?? true, lat: p.lat ?? 0, lng: p.lng ?? 0,
             phone: p.phone ?? undefined, website: p.website ?? undefined, openingHours: p.openingHours ?? undefined,
+            tier: p.tier ?? undefined, promotedUntil: p.promotedUntil ?? undefined,
           }));
           setPlaces(norm);
         }

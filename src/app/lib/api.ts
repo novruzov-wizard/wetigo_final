@@ -204,6 +204,7 @@ export const admin = {
   pendingPlaces: () => get<any[]>('/admin/places/pending'),
   approvePlace: (id: number) => post<void>(`/admin/places/${id}/approve`),
   rejectPlace: (id: number) => post<void>(`/admin/places/${id}/reject`),
+  setTier: (id: number, tier: 'free' | 'plus' | 'pro', days: number) => post<{ tier: string; promotedUntil: string }>(`/admin/places/${id}/tier`, { tier, days }),
 };
 
 // ---------------- Profile ----------------

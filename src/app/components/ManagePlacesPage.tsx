@@ -59,7 +59,7 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [editHours, setEditHours] = useState(defaultWeek());
-  const openEdit = (p: any) => { setEdit(p); setForm({ phone: p.phone || '', website: p.website || '', price: p.price || '$$', city: p.city || '' }); setEditHours(parseHours(p.openingHours) ?? defaultWeek()); };
+  const openEdit = (p: any) => { setEdit(p); setForm({ phone: p.phone || '', website: p.website || '', price: p.price || '$$', city: p.city || '' }); setEditHours(parseHours(p.openingHours) ?? defaultWeek()); setTierForm({ tier: (p.tier || 'free'), days: 30 }); };
   const saveEdit = async () => {
     if (!edit) return;
     const hErr = validateWeek(editHours);
@@ -78,6 +78,25 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
     const map: Record<string, string> = { approved: 'bg-emerald-50 text-emerald-600', pending: 'bg-amber-50 text-amber-600', rejected: 'bg-rose-50 text-rose-600' };
     const lbl: Record<string,string> = { approved: t('mng.approved'), pending: t('mng.pendingS'), rejected: t('mng.rejected') };
     return <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${map[s] || 'bg-slate-100 text-slate-500'}`}>{lbl[s] || s}</span>;
+  };
+
+  const daysLeft = (iso?: string) => {
+    if (!iso) return 0;
+    const ms = new Date(iso).getTime() - Date.now();
+    return ms > 0 ? Math.ceil(ms / 86400000) : 0;
+  };
+  const tierBadge = (tier: string) => {
+    if (!tier || tier === 'free') return null;
+    const c = tier === 'pro' ? 'bg-gradient-to-r from-[#6200FF] to-[#8b3bff] text-white' : 'bg-amber-100 text-amber-700';
+    return <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide ${c}`}>{tier}</span>;
+  };
+
+  // Admin: change a place's tier/promotion (subscription-ready)
+  const [tierForm, setTierForm] = useState<{ tier: 'free' | 'plus' | 'pro'; days: number }>({ tier: 'free', days: 30 });
+  const applyTier = async () => {
+    if (!edit) return; setSaving(true);
+    try { await adminApi.setTier(edit.id, tierForm.tier, tierForm.days); flash(t('mng.tTierSet')); setEdit(null); loadMine(); refreshPlaces(); }
+    catch (e: any) { flash(e?.message || t('mng.tSaveFail')); } finally { setSaving(false); }
   };
 
   return (
@@ -109,16 +128,34 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
               <p className="text-xs text-slate-500">{t('mng.emptyDesc')}</p>
             </div>
           )}
-          {mine.map((p) => (
-            <div key={p.id} className="bg-white rounded-3xl p-4 border border-slate-200 shadow-sm flex items-center gap-3">
-              <img src={p.hasPhoto ? p.image : (p.image || '')} alt="" className="w-16 h-16 rounded-2xl object-cover bg-slate-100 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2"><p className="font-semibold text-[#2b2521] line-clamp-1">{p.name}</p>{statusChip(p.status)}</div>
-                <p className="text-xs text-slate-500 line-clamp-1">{p.category} · {p.city}</p>
+          {mine.map((p) => {
+            const days = daysLeft(p.promotedUntil);
+            const tier = (p.tier || 'free') as string;
+            return (
+            <div key={p.id} className="bg-white rounded-3xl p-4 border border-slate-200 shadow-sm">
+              <div className="flex items-center gap-3">
+                <img src={p.hasPhoto ? p.image : (p.image || '')} alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden'; }} className="w-16 h-16 rounded-2xl object-cover bg-slate-100 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap"><p className="font-semibold text-[#2b2521] line-clamp-1">{p.name}</p>{statusChip(p.status)}{tierBadge(tier)}{days > 0 && <span className="px-2 py-0.5 rounded-md bg-[#6200FF]/10 text-[#6200FF] text-[10px] font-bold uppercase tracking-wide">{t('mng.promoted')}</span>}</div>
+                  <p className="text-xs text-slate-500 line-clamp-1">{p.category} · {p.city}</p>
+                </div>
+                <button onClick={() => openEdit(p)} className="px-3 py-2 rounded-xl bg-[#f1ebff] text-[#6200FF] text-sm font-semibold hover:bg-[#e3d6ff] shrink-0">{t('mng.edit')}</button>
               </div>
-              <button onClick={() => openEdit(p)} className="px-3 py-2 rounded-xl bg-[#f1ebff] text-[#6200FF] text-sm font-semibold hover:bg-[#e3d6ff] shrink-0">{t('mng.edit')}</button>
+              {/* Plan / promotion status — owner sees what they have + countdown */}
+              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+                <div className="text-xs">
+                  <span className="text-slate-500">{t('mng.plan')}: </span>
+                  <span className="font-semibold text-[#2b2521] capitalize">{tier}</span>
+                  {days > 0
+                    ? <span className="text-slate-500"> · {t('mng.promotedLeft').replace('{n}', String(days))}</span>
+                    : tier !== 'free' ? <span className="text-amber-600"> · {t('mng.notPromoted')}</span> : null}
+                </div>
+                {tier === 'free'
+                  ? <span className="text-[11px] font-semibold text-[#6200FF]">{t('mng.upgradeHint')}</span>
+                  : <span className="text-[11px] text-slate-400">{days > 0 ? `${days} ${t('mng.daysLeft')}` : ''}</span>}
+              </div>
             </div>
-          ))}
+          );})}
         </div>
       )}
 
@@ -207,6 +244,26 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
                 </div>
                 <button onClick={() => fileRef.current?.click()} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-slate-300 text-slate-500 hover:border-[#6200FF] hover:text-[#6200FF] text-sm font-semibold"><ImagePlus size={17} /> {t('mng.uploadPhoto')}</button>
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPhoto} />
+
+                {/* Admin: subscription tier & promotion (billing-ready) */}
+                {isAdmin && (
+                  <div className="rounded-2xl bg-[#f6f4ff] border border-[#e3d9ff] p-4 space-y-3">
+                    <p className="text-xs font-bold uppercase tracking-wide text-[#6200FF]">{t('mng.tierAdmin')}</p>
+                    <div className="flex gap-2">
+                      {(['free', 'plus', 'pro'] as const).map((tr) => (
+                        <button key={tr} onClick={() => setTierForm({ ...tierForm, tier: tr })} className={`flex-1 py-2 rounded-xl text-sm font-semibold capitalize border ${tierForm.tier === tr ? 'bg-[#6200FF] text-white border-[#6200FF]' : 'bg-white text-slate-600 border-slate-200'}`}>{tr}</button>
+                      ))}
+                    </div>
+                    {tierForm.tier !== 'free' && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-slate-600">{t('mng.promoteDays')}</span>
+                        <input type="number" min={0} value={tierForm.days} onChange={(e) => setTierForm({ ...tierForm, days: Math.max(0, parseInt(e.target.value || '0')) })}
+                          className="w-20 px-2 py-1.5 rounded-lg bg-white border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#6200FF]" />
+                      </div>
+                    )}
+                    <button onClick={applyTier} disabled={saving} className="w-full py-2.5 rounded-xl bg-[#6200FF] text-white text-sm font-semibold hover:bg-[#5400dd] disabled:opacity-60">{t('mng.applyTier')}</button>
+                  </div>
+                )}
               </div>
               <div className="flex gap-3 p-6 pt-2">
                 <button onClick={() => setEdit(null)} className="flex-1 py-3 rounded-xl border border-slate-200 font-semibold text-slate-600 hover:bg-slate-50">{t('mng.cancel')}</button>
