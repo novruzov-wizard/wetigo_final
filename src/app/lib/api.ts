@@ -124,6 +124,10 @@ export const reviews = {
   list: (placeId: number, sort?: string) => get<unknown[]>(`/places/${placeId}/reviews${sort ? `?sort=${sort}` : ''}`),
   create: (placeId: number, data: { rating: number; comment: string; photos?: string[] }) => post<unknown>(`/places/${placeId}/reviews`, data),
   like: (reviewId: number) => post<{ likes: number; liked: boolean }>(`/reviews/${reviewId}/like`),
+  uploadReviewPhoto: (reviewId: number, file: File) => {
+    const fd = new FormData(); fd.append('file', file);
+    return request<{ url: string; photoId: number }>(`/reviews/${reviewId}/photos`, { method: 'POST', body: fd, headers: TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {} });
+  },
   reply: (reviewId: number, text: string) => post<unknown>(`/reviews/${reviewId}/replies`, { text }),
   report: (reviewId: number, reason?: string) => post<void>(`/reviews/${reviewId}/report`, { reason }),
   uploadPhoto: (file: File) => {
@@ -188,6 +192,10 @@ export const admin = {
 export const profile = {
   update: (data: { name?: string; email?: string; bio?: string; avatar?: string }) => patch<unknown>('/profile', data),
   updateSettings: (data: { notifications?: boolean; emailUpdates?: boolean; country?: string; language?: string }) => patch<void>('/profile/settings', data),
+  uploadAvatar: (file: File) => {
+    const fd = new FormData(); fd.append('file', file);
+    return request<{ avatar: string }>('/profile/avatar', { method: 'POST', body: fd, headers: TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {} });
+  },
   stats: () => get<{ reviews: number; favorites: number; plans: number; card?: { number: string; expires: string } }>('/profile/stats'),
   activity: () => get<{ id: number; type: string; place: string; action: string; time: string }[]>('/profile/activity'),
 };

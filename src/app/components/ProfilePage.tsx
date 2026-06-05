@@ -40,14 +40,22 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
   // edit-profile modal
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(user);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [savingProfile, setSavingProfile] = useState(false);
   const avatarRef = useRef<HTMLInputElement | null>(null);
-  const openEdit = () => { setDraft(user); setEditing(true); };
-  const saveEdit = () => {
-    updateUser(draft);                 // optimistic local update
-    setEditing(false);
-    if (authApi.getToken()) {
-      profileApi.update({ name: draft.name, email: draft.email, bio: draft.bio, avatar: draft.avatar }).catch(() => {});
-    }
+  const openEdit = () => { setDraft(user); setAvatarFile(null); setEditing(true); };
+  const saveEdit = async () => {
+    setSavingProfile(true);
+    let avatarUrl = draft.avatar;
+    try {
+      if (avatarFile && authApi.getToken()) {
+        const res = await profileApi.uploadAvatar(avatarFile);   // stored as bytes, returns served URL
+        if (res?.avatar) avatarUrl = res.avatar;
+      }
+      updateUser({ ...draft, avatar: avatarUrl });
+      if (authApi.getToken()) await profileApi.update({ name: draft.name, email: draft.email, bio: draft.bio, avatar: avatarUrl });
+    } catch { /* keep optimistic */ }
+    setSavingProfile(false); setAvatarFile(null); setEditing(false);
   };
 
   // On mount, if logged in, refresh profile from the server so edits survive reloads.
@@ -64,7 +72,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
   }, []);
   const onAvatar = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
-    if (f) setDraft((d) => ({ ...d, avatar: URL.createObjectURL(f) }));
+    if (f) { setAvatarFile(f); setDraft((d) => ({ ...d, avatar: URL.createObjectURL(f) })); }
   };
 
   const isPremium = plan !== 'free';
@@ -340,7 +348,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
                 </div>
                 <div className="flex gap-3 pt-1">
                   <button onClick={() => setEditing(false)} className="flex-1 py-3 rounded-xl border border-slate-200 font-semibold text-slate-600 hover:bg-slate-50">{t('prof.cancel')}</button>
-                  <button onClick={saveEdit} disabled={!draft.name.trim() || !draft.email.trim()} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#6200FF] text-white font-semibold hover:bg-[#5400dd] disabled:bg-slate-200 disabled:cursor-not-allowed transition-colors"><Check size={17} /> {t('prof.save')}</button>
+                  <button onClick={saveEdit} disabled={!draft.name.trim() || !draft.email.trim() || savingProfile} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#6200FF] text-white font-semibold hover:bg-[#5400dd] disabled:bg-slate-200 disabled:cursor-not-allowed transition-colors"><Check size={17} /> {t('prof.save')}</button>
                 </div>
               </div>
             </motion.div>

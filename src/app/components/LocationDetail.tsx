@@ -20,6 +20,7 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
   const [userRating, setUserRating] = useState(0);
   const [comment, setComment] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [replyOpen, setReplyOpen] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
   const [activeTab, setActiveTab] = useState<'about' | 'reviews'>('about');
@@ -91,9 +92,9 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
   }, [locationId, reviewSort]);
 
   const onFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    const urls = files.slice(0, 4 - photos.length).map((f) => URL.createObjectURL(f));
-    setPhotos([...photos, ...urls]);
+    const picked = Array.from(e.target.files ?? []).slice(0, 4 - photos.length);
+    setPhotos([...photos, ...picked.map((f) => URL.createObjectURL(f))]);
+    setPhotoFiles([...photoFiles, ...picked]);
     e.target.value = '';
   };
 
@@ -116,13 +117,24 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
 
   const handleSubmitReview = async () => {
     if (userRating === 0 || !comment.trim()) return;
-    const body = { rating: userRating, comment: comment.trim(), photos };
-    setUserRating(0); setComment(''); setPhotos([]);
+    const body = { rating: userRating, comment: comment.trim() };
+    const localPhotos = photos; const files = photoFiles;
+    setUserRating(0); setComment(''); setPhotos([]); setPhotoFiles([]);
     if (authApi.getToken()) {
-      try { const saved = await reviewsApi.create(locationId, body); setReviews((rs) => [mapReview(saved), ...rs]); return; } catch { /* fall through */ }
+      try {
+        const saved: any = await reviewsApi.create(locationId, body);
+        // upload each photo as bytes; collect served URLs
+        const urls: string[] = [];
+        for (const f of files) {
+          try { const r = await reviewsApi.uploadReviewPhoto(saved.id, f); if (r?.url) urls.push(r.url); } catch { /* skip */ }
+        }
+        const view = mapReview(saved); view.photos = urls;
+        setReviews((rs) => [view, ...rs]);
+        return;
+      } catch { /* fall through to offline */ }
     }
-    // optimistic / offline fallback
-    setReviews((rs) => [{ id: Date.now(), user: 'You', avatar: 'https://i.pravatar.cc/64?img=12', rating: body.rating, comment: body.comment, date: 'Just now', photos: body.photos, likes: 0, liked: false, replies: [] }, ...rs]);
+    // optimistic / offline fallback (object URLs, not persisted)
+    setReviews((rs) => [{ id: Date.now(), user: 'You', avatar: 'https://i.pravatar.cc/64?img=12', rating: body.rating, comment: body.comment, date: 'Just now', photos: localPhotos, likes: 0, liked: false, replies: [] }, ...rs]);
   };
 
   const toggleLike = (id: number) => {
@@ -470,7 +482,7 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                 {photos.map((p, i) => (
                   <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden">
                     <img src={p} alt="" className="w-full h-full object-cover" />
-                    <button onClick={() => setPhotos(photos.filter((_, j) => j !== i))} className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center"><X size={11} /></button>
+                    <button onClick={() => { setPhotos(photos.filter((_, j) => j !== i)); setPhotoFiles(photoFiles.filter((_, j) => j !== i)); }} className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center"><X size={11} /></button>
                   </div>
                 ))}
                 {photos.length < 4 && (
