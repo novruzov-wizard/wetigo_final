@@ -121,7 +121,9 @@ export function AuthPage({ onAuth }: AuthPageProps) {
   const oauth = (provider: 'google' | 'facebook') => {
     // Redirect to the backend's OAuth start; it bounces to Google/Facebook,
     // then back to {APP_URL}/auth/callback#token=... (handled in App).
-    const base = (import.meta as any).env?.VITE_API_URL || '';
+    // Always go through the wetigo.online proxy (/api) so the whole OAuth flow
+    // stays on our domain — never exposes the backend host (avoids Safe Browsing flags).
+    const base = (import.meta as any).env?.VITE_API_URL || '/api';
     window.location.href = `${base}/auth/oauth/${provider}/start`;
   };
 
