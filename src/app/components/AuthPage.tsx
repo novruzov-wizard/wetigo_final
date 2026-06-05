@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import { Eye, EyeOff, Star, MapPin, ArrowRight, Check, ShieldCheck, ArrowLeft, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import wetigoLogo from './figma/logo.png';
 import { useStore } from '../store';
 import { auth as authApi } from '../lib/api';
 
@@ -138,7 +137,9 @@ export function AuthPage({ onAuth }: AuthPageProps) {
             </div>
             <p className="relative text-white/85 text-sm mt-3 max-w-xs">{t('auth.discover')}</p>
           </div>
-          <img src={wetigoLogo} alt="Wetigo" className="hidden lg:block h-20 w-auto object-contain -ml-2 mb-8" />
+          <div className="hidden lg:block mb-8">
+            <span className="font-display text-4xl font-extrabold tracking-tight text-[#6200FF]">Wetigo</span>
+          </div>
 
           <AnimatePresence mode="wait">
             {step === 'forgot' ? (
