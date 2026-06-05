@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { PLACES } from '../data/places';
 import { useStore } from '../store';
 import { reviews as reviewsApi, auth as authApi, places as placesApi } from '../lib/api';
+import { isOpenNow, parseHours, todayHours, DAY_KEYS, DAY_SHORT } from '../lib/hours';
 
 declare const L: any;
 
@@ -118,6 +119,11 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
   // Live header rating: prefer freshly-loaded reviews, fall back to the place's stored rating.
   const liveRating = reviews.length ? avg : location.rating;
   const liveCount = reviews.length ? reviews.length : location.reviewCount;
+  // Dynamic open/closed from structured hours (falls back to the stored flag).
+  const openNow = isOpenNow(location.hours);
+  const isOpen = openNow === null ? location.open : openNow;
+  const week = parseHours(location.hours);
+  const todayStr = todayHours(location.hours);
 
   // The current user's own review (one per place) and whether we're editing it.
   const myReview = reviews.find((r) => r.mine);
@@ -239,7 +245,7 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                 <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur text-white text-xs font-semibold border border-white/25">{location.category}</span>
                 <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur text-white text-xs font-semibold border border-white/25">{location.price}</span>
                 {location.hours && (
-                  <span className="px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg" style={location.open ? { background: '#16a34a', color: '#fff' } : { background: '#e11d48', color: '#fff' }}>{location.open ? 'Open now' : 'Closed'}</span>
+                  <span className="px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg" style={isOpen ? { background: '#16a34a', color: '#fff' } : { background: '#e11d48', color: '#fff' }}>{isOpen ? 'Open now' : 'Closed'}</span>
                 )}
                 {location.verified && (
                   <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#6200FF] text-white text-xs font-semibold shadow-lg">
@@ -362,13 +368,30 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                 </div>
                 <div className="flex-1">
                   <p className="text-xs text-slate-500 mb-0.5">{t('det.status')}</p>
-                  <p className="font-medium" style={{ color: location.open ? '#16a34a' : '#e11d48' }}>{location.open ? 'Open now' : 'Closed'} <span className="text-slate-400">·</span> <span className="text-slate-900">{location.price}</span></p>
+                  <p className="font-medium" style={{ color: isOpen ? '#16a34a' : '#e11d48' }}>{isOpen ? 'Open now' : 'Closed'}{todayStr ? <span className="text-slate-500 font-normal"> · {todayStr}</span> : null} <span className="text-slate-400">·</span> <span className="text-slate-900">{location.price}</span></p>
                 </div>
               </div>
               {location.hours && (
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center"><Clock size={18} className="text-blue-600" /></div>
-                  <div className="flex-1"><p className="text-xs text-slate-500 mb-0.5">{t('det.hours')}</p><p className="text-slate-900 font-medium">{location.hours}</p></div>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center shrink-0"><Clock size={18} className="text-blue-600" /></div>
+                  <div className="flex-1">
+                    <p className="text-xs text-slate-500 mb-1">{t('det.hours')}</p>
+                    {week ? (
+                      <div className="space-y-0.5">
+                        {DAY_KEYS.map((d) => {
+                          const isToday = DAY_KEYS[(new Date().getDay() + 6) % 7] === d;
+                          return (
+                            <div key={d} className={`flex items-center justify-between text-sm ${isToday ? 'font-semibold text-[#2b2521]' : 'text-slate-600'}`}>
+                              <span className="w-12">{DAY_SHORT[d]}</span>
+                              <span>{week[d].closed ? 'Closed' : `${week[d].open} – ${week[d].close}`}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-slate-900 font-medium">{location.hours}</p>
+                    )}
+                  </div>
                 </div>
               )}
               {location.phone && (

@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { places as placesApi, admin as adminApi, auth as authApi } from '../lib/api';
 import { useStore } from '../store';
+import { OpeningHoursEditor } from './OpeningHoursEditor';
+import { defaultWeek, parseHours, serializeHours, validateWeek, todayHours } from '../lib/hours';
 
 interface ManagePlacesPageProps { onBack: () => void; isAdmin?: boolean; }
 
@@ -56,10 +58,14 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
   const [form, setForm] = useState<any>({});
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const openEdit = (p: any) => { setEdit(p); setForm({ phone: p.phone || '', website: p.website || '', openingHours: p.openingHours || '', price: p.price || '$$', city: p.city || '' }); };
+  const [editHours, setEditHours] = useState(defaultWeek());
+  const openEdit = (p: any) => { setEdit(p); setForm({ phone: p.phone || '', website: p.website || '', price: p.price || '$$', city: p.city || '' }); setEditHours(parseHours(p.openingHours) ?? defaultWeek()); };
   const saveEdit = async () => {
-    if (!edit) return; setSaving(true);
-    try { await placesApi.update(edit.id, form); flash(t('mng.tSaved')); setEdit(null); loadMine(); refreshPlaces(); }
+    if (!edit) return;
+    const hErr = validateWeek(editHours);
+    if (hErr) { flash(hErr); return; }
+    setSaving(true);
+    try { await placesApi.update(edit.id, { ...form, openingHours: serializeHours(editHours) }); flash(t('mng.tSaved')); setEdit(null); loadMine(); refreshPlaces(); }
     catch (e: any) { flash(e?.message || t('mng.tSaveFail')); } finally { setSaving(false); }
   };
   const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -188,7 +194,10 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
               <div className="p-6 space-y-3 max-h-[70vh] overflow-y-auto">
                 <Field icon={<Phone size={16} />} label={t('det.phone')} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="+994 ..." />
                 <Field icon={<Globe size={16} />} label={t('det.website')} value={form.website} onChange={(v) => setForm({ ...form, website: v })} placeholder="https://" />
-                <Field icon={<Clock size={16} />} label={t('det.hours')} value={form.openingHours} onChange={(v) => setForm({ ...form, openingHours: v })} placeholder="Mo-Su 09:00-23:00" />
+                <div>
+                  <label className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2"><Clock size={14} /> {t('det.hours')}</label>
+                  <OpeningHoursEditor value={editHours} onChange={setEditHours} />
+                </div>
                 <Field icon={<MapPin size={16} />} label={t('mng.address')} value={form.city} onChange={(v) => setForm({ ...form, city: v })} />
                 <div>
                   <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('mng.price')}</label>
@@ -227,7 +236,7 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
                 <div className="space-y-1.5 text-sm text-slate-600">
                   {detail.phone && <p className="flex items-center gap-2"><Phone size={15} className="text-slate-400" /> {detail.phone}</p>}
                   {detail.website && <p className="flex items-center gap-2 break-all"><Globe size={15} className="text-slate-400 shrink-0" /> {detail.website}</p>}
-                  {detail.openingHours && <p className="flex items-center gap-2"><Clock size={15} className="text-slate-400" /> {detail.openingHours}</p>}
+                  {detail.openingHours && <p className="flex items-center gap-2"><Clock size={15} className="text-slate-400" /> {todayHours(detail.openingHours) ?? detail.openingHours}</p>}
                   {detail.price && <p className="flex items-center gap-2"><Store size={15} className="text-slate-400" /> {detail.price}</p>}
                   {(detail.lat || detail.lng) ? (
                     <a href={`https://www.google.com/maps?q=${detail.lat},${detail.lng}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#6200FF] hover:underline"><MapPin size={15} /> {detail.lat?.toFixed?.(5)}, {detail.lng?.toFixed?.(5)}</a>

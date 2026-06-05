@@ -3,6 +3,9 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { places as placesApi, auth as authApi } from '../lib/api';
 import { useStore } from '../store';
+import { CATEGORIES } from '../data/categories';
+import { OpeningHoursEditor } from './OpeningHoursEditor';
+import { defaultWeek, serializeHours, validateWeek } from '../lib/hours';
 
 interface AddLocationPageProps {
   onBack: () => void;
@@ -23,6 +26,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
     hours: '',
   });
 
+  const [hoursWeek, setHoursWeek] = useState(defaultWeek());
   const [images, setImages] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
@@ -49,7 +53,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
       if (!phoneRe.test(formData.phone.trim())) e.phone = t('addp.vPhone');
       if (formData.email.trim() && !emailRe.test(formData.email.trim())) e.email = t('addp.vEmail');
       if (formData.website.trim() && !urlRe.test(formData.website.trim())) e.website = t('addp.vWebsite');
-      if (!formData.hours.trim()) e.hours = t('addp.vHours');
+      { const hErr = validateWeek(hoursWeek); if (hErr) e.hours = hErr; }
     }
     if (step === 3) {
       if (images.length < 3) e.images = t('addp.vPhotos');
@@ -64,20 +68,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
     setCurrentStep(target);
   };
 
-  const categories = [
-    { id: 'wedding', name: 'Wedding Venues', icon: '💒' },
-    { id: 'restaurant', name: 'Restaurants & Dining', icon: '🍽️' },
-    { id: 'fashion', name: 'Fashion & Apparel', icon: '👔' },
-    { id: 'footwear', name: 'Footwear & Accessories', icon: '👟' },
-    { id: 'fitness', name: 'Fitness & Wellness', icon: '💪' },
-    { id: 'cafe', name: 'Cafes & Bakeries', icon: '☕' },
-    { id: 'beauty', name: 'Beauty & Spa', icon: '💄' },
-    { id: 'entertainment', name: 'Entertainment', icon: '🎭' },
-    { id: 'automotive', name: 'Automotive', icon: '🚗' },
-    { id: 'hotel', name: 'Hotels & Lodging', icon: '🏨' },
-    { id: 'healthcare', name: 'Healthcare', icon: '🏥' },
-    { id: 'education', name: 'Education', icon: '📚' },
-  ];
+  const categories = CATEGORIES.map((c) => ({ id: c.id, name: c.longName, icon: c.emoji }));
 
   const [done, setDone] = useState(false);
   const handleSubmit = async () => {
@@ -93,7 +84,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
       price: '$$',
       phone: formData.phone.trim(),
       website: formData.website.trim(),
-      openingHours: formData.hours.trim(),
+      openingHours: serializeHours(hoursWeek),
     };
     try {
       if (authApi.getToken()) {
@@ -334,16 +325,9 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-slate-700 mb-2">{t('addp.hours')} *</label>
-                  <div className="relative">
-                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input
-                      type="text"
-                      placeholder="Mon-Fri: 9:00 AM - 6:00 PM"
-                      value={formData.hours}
-                      onChange={(e) => setFormData({ ...formData, hours: e.target.value })}
-                      className={`w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm ${errors.hours ? 'border-rose-400' : 'border-slate-200'}`}
-                    />
+                  <label className="flex items-center gap-2 text-sm text-slate-700 mb-2"><Clock size={16} className="text-slate-400" /> {t('addp.hours')} *</label>
+                  <div className="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
+                    <OpeningHoursEditor value={hoursWeek} onChange={setHoursWeek} />
                   </div>
                   {errors.hours && <p className="flex items-center gap-1 text-xs text-rose-500 mt-1.5"><AlertCircle size={13} /> {errors.hours}</p>}
                 </div>

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { distanceKm, COUNTRIES, type Place } from '../data/places';
 import { useStore } from '../store';
+import { CATEGORIES_WITH_ALL } from '../data/categories';
 
 declare const L: any;
 
@@ -27,10 +28,7 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
   useEffect(() => setSearchQuery(initialQuery), [initialQuery]);
   useEffect(() => setSelectedCategory(initialCategory), [initialCategory]);
 
-  const categories = [
-    { id: 'all', name: 'All' }, { id: 'wedding', name: 'Wedding' }, { id: 'restaurant', name: 'Dining' },
-    { id: 'fashion', name: 'Fashion' }, { id: 'footwear', name: 'Footwear' }, { id: 'fitness', name: 'Fitness' }, { id: 'beauty', name: 'Beauty' },
-  ];
+  const categories = CATEGORIES_WITH_ALL.map((c) => ({ id: c.id, name: c.name, emoji: c.emoji }));
 
   // ---- filter + premium-first sort ----
   let results: Place[] = PLACES.filter((p) => {
