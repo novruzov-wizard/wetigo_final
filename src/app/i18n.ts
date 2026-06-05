@@ -137,6 +137,7 @@ const en: Dict = {
   'mng.title': 'Manage', 'mng.mine': 'My businesses', 'mng.admin': 'Admin', 'mng.empty': 'No businesses yet', 'mng.emptyDesc': 'Add your business or claim an existing listing to manage it here.',
   'mng.edit': 'Edit', 'mng.pending': 'Pending approvals', 'mng.nothingPending': 'Nothing pending.', 'mng.reports': 'Reported reviews', 'mng.noReports': 'No reports.', 'mng.hide': 'Hide', 'mng.delete': 'Delete',
   'mng.review': 'Review', 'mng.claimReq': 'Ownership claim', 'mng.newPlace': 'New place', 'mng.reject': 'Reject', 'mng.approve': 'Approve',
+  'mng.reportedReview': 'Reported review', 'mng.author': 'Author', 'mng.ratingL': 'Rating', 'mng.reasonL': 'Reason', 'mng.statusL': 'Status', 'mng.hidden': 'Hidden', 'mng.visible': 'Visible',
   'mng.address': 'Address / city', 'mng.price': 'Price', 'mng.uploadPhoto': 'Upload a real photo', 'mng.cancel': 'Cancel', 'mng.save': 'Save',
   'mng.approved': 'approved', 'mng.pendingS': 'pending', 'mng.rejected': 'rejected',
   'mng.tSaved': 'Saved ✓', 'mng.tSaveFail': 'Could not save', 'mng.tPhoto': 'Photo uploaded ✓', 'mng.tPhotoFail': 'Upload failed', 'mng.tApproved': 'Approved', 'mng.tRejected': 'Rejected', 'mng.tHidden': 'Hidden', 'mng.tDeleted': 'Deleted',

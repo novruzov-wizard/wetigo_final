@@ -61,7 +61,8 @@ export function Topbar({ title, emoji, query, onQuery, onSubmit, onMenu, onNavig
   useEffect(() => {
     load();
     const id = window.setInterval(load, 60000);
-    return () => window.clearInterval(id);
+    window.addEventListener('wetigo:notifications', load);
+    return () => { window.clearInterval(id); window.removeEventListener('wetigo:notifications', load); };
   }, []);
 
   const unread = notifs.filter((n) => !n.read).length;

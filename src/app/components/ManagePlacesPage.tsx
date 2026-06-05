@@ -7,7 +7,7 @@ import { useStore } from '../store';
 interface ManagePlacesPageProps { onBack: () => void; isAdmin?: boolean; }
 
 export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
-  const { t } = useStore();
+  const { t, refreshPlaces } = useStore();
   const [tab, setTab] = useState<'mine' | 'admin'>(isAdmin ? 'admin' : 'mine');
   const [mine, setMine] = useState<any[]>([]);
   const [pending, setPending] = useState<any[]>([]);
@@ -28,8 +28,21 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
     try {
       if (approve) { await adminApi.approvePlace(detail.id); flash(t('mng.tApproved')); }
       else { await adminApi.rejectPlace(detail.id); flash(t('mng.tRejected')); }
-      setDetail(null); loadAdmin();
+      setDetail(null); loadAdmin(); loadMine(); refreshPlaces();
     } catch (e: any) { flash(e?.message || 'Error'); } finally { setActing(false); }
+  };
+
+  // ---- admin: report preview modal ----
+  const [report, setReport] = useState<any | null>(null);
+  const [racting, setRacting] = useState(false);
+  const rid = (r: any) => r?.reviewId ?? r?.review_id;
+  const moderate = async (kind: 'hide' | 'delete') => {
+    if (!report) return; setRacting(true);
+    try {
+      if (kind === 'hide') { await adminApi.hideReview(rid(report)); flash(t('mng.tHidden')); }
+      else { await adminApi.deleteReview(rid(report)); flash(t('mng.tDeleted')); }
+      setReport(null); loadAdmin();
+    } catch (e: any) { flash(e?.message || 'Error'); } finally { setRacting(false); }
   };
 
   // ---- owner edit modal ----
@@ -123,14 +136,13 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
             <div className="space-y-2">
               {reports.length === 0 && <p className="text-sm text-slate-400">{t('mng.noReports')}</p>}
               {reports.map((r: any) => (
-                <div key={r.id} className="bg-white rounded-2xl p-3 border border-slate-200 flex items-start gap-3">
+                <button key={r.id} onClick={() => setReport(r)} className="w-full text-left bg-white rounded-2xl p-3 border border-slate-200 hover:border-[#6200FF] transition-colors flex items-start gap-3">
                   <div className="flex-1 min-w-0">
-                    {r.comment ? <p className="text-sm text-[#2b2521]">“{r.comment}”</p> : <p className="text-sm text-slate-400">Review #{r.reviewId}</p>}
+                    {r.comment ? <p className="text-sm text-[#2b2521] line-clamp-2">“{r.comment}”</p> : <p className="text-sm text-slate-400">Review #{r.reviewId}</p>}
                     <p className="text-xs text-slate-500 mt-0.5">{r.author ? `${r.author} · ` : ''}{r.rating ? `★${r.rating} · ` : ''}<span className="text-rose-500">{r.reason || 'reported'}</span>{r.hidden ? ' · hidden' : ''}</p>
                   </div>
-                  <button onClick={() => adminApi.hideReview(r.reviewId ?? r.review_id).then(() => flash(t('mng.tHidden')))} className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1"><EyeOff size={13} /> {t('mng.hide')}</button>
-                  <button onClick={() => adminApi.deleteReview(r.reviewId ?? r.review_id).then(() => flash(t('mng.tDeleted')))} className="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-semibold flex items-center gap-1"><Trash2 size={13} /> {t('mng.delete')}</button>
-                </div>
+                  <span className="px-3 py-1.5 rounded-lg bg-[#f1ebff] text-[#6200FF] text-xs font-semibold shrink-0 flex items-center gap-1"><Eye size={13} /> {t('mng.review')}</span>
+                </button>
               ))}
             </div>
           </div>
@@ -200,6 +212,37 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
               <div className="flex gap-3 p-6 pt-2 border-t border-slate-100">
                 <button onClick={() => decide(false)} disabled={acting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-50 text-rose-600 font-semibold hover:bg-rose-100 disabled:opacity-60">{acting ? <Loader2 size={17} className="animate-spin" /> : <><X size={17} /> {t('mng.reject')}</>}</button>
                 <button onClick={() => decide(true)} disabled={acting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-500 text-white font-semibold hover:bg-emerald-600 disabled:opacity-60">{acting ? <Loader2 size={17} className="animate-spin" /> : <><Check size={17} /> {t('mng.approve')}</>}</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Admin: report preview modal */}
+      <AnimatePresence>
+        {report && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => !racting && setReport(null)}
+            className="fixed inset-0 z-[1050] bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }} onClick={(e) => e.stopPropagation()}
+              className="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl overflow-hidden max-h-[90vh] flex flex-col">
+              <div className="flex items-center justify-between p-6 pb-3 border-b border-slate-100">
+                <h3 className="font-display text-lg font-bold text-[#2b2521]">{t('mng.reportedReview')}</h3>
+                <button onClick={() => setReport(null)} className="text-slate-400 hover:text-slate-700"><X size={20} /></button>
+              </div>
+              <div className="p-6 overflow-y-auto space-y-3">
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  {report.comment ? <p className="text-[#2b2521] leading-relaxed">“{report.comment}”</p> : <p className="text-slate-400">Review #{report.reviewId}</p>}
+                </div>
+                <div className="space-y-1.5 text-sm text-slate-600">
+                  {report.author && <p><span className="text-slate-400">{t('mng.author')}: </span>{report.author}</p>}
+                  {report.rating ? <p><span className="text-slate-400">{t('mng.ratingL')}: </span>★ {report.rating}</p> : null}
+                  <p><span className="text-slate-400">{t('mng.reasonL')}: </span><span className="text-rose-500 font-medium">{report.reason || 'reported'}</span></p>
+                  <p><span className="text-slate-400">{t('mng.statusL')}: </span>{report.hidden ? t('mng.hidden') : t('mng.visible')}</p>
+                </div>
+              </div>
+              <div className="flex gap-3 p-6 pt-2 border-t border-slate-100">
+                <button onClick={() => moderate('hide')} disabled={racting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 disabled:opacity-60"><EyeOff size={16} /> {t('mng.hide')}</button>
+                <button onClick={() => moderate('delete')} disabled={racting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-50 text-rose-600 font-semibold hover:bg-rose-100 disabled:opacity-60">{racting ? <Loader2 size={16} className="animate-spin" /> : <><Trash2 size={16} /> {t('mng.delete')}</>}</button>
               </div>
             </motion.div>
           </motion.div>

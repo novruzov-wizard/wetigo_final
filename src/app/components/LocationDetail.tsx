@@ -114,6 +114,9 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
 
   const avg = reviews.reduce((s, r) => s + r.rating, 0) / (reviews.length || 1);
   const dist = [5, 4, 3, 2, 1].map((star) => ({ star, count: reviews.filter((r) => r.rating === star).length }));
+  // Live header rating: prefer freshly-loaded reviews, fall back to the place's stored rating.
+  const liveRating = reviews.length ? avg : location.rating;
+  const liveCount = reviews.length ? reviews.length : location.reviewCount;
 
   const handleSubmitReview = async () => {
     if (userRating === 0 || !comment.trim()) return;
@@ -211,10 +214,10 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
               <h1 className="font-display text-4xl sm:text-5xl font-bold text-white leading-tight drop-shadow-sm">{location.name}</h1>
             </div>
             <div className="bg-white px-4 py-2.5 rounded-2xl flex items-center gap-2 shadow-xl shrink-0">
-              {location.rating > 0 ? (
+              {liveRating > 0 ? (
                 <>
                   <Star size={20} className="text-amber-500 fill-amber-500" />
-                  <span className="font-display text-xl text-slate-900 font-bold">{location.rating.toFixed(1)}</span>
+                  <span className="font-display text-xl text-slate-900 font-bold">{liveRating.toFixed(1)}</span>
                 </>
               ) : (
                 <span className="font-display text-sm text-[#6200FF] font-bold">New</span>
@@ -314,7 +317,7 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                 </div>
                 <div className="flex-1">
                   <p className="text-xs text-slate-500 mb-0.5">{t('det.rating')}</p>
-                  <p className="text-slate-900 font-medium">{location.rating > 0 ? `${location.rating.toFixed(1)} · ${location.reviewCount.toLocaleString()} reviews` : t('det.beFirst')}</p>
+                  <p className="text-slate-900 font-medium">{liveRating > 0 ? `${liveRating.toFixed(1)} · ${liveCount.toLocaleString()} reviews` : t('det.beFirst')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">

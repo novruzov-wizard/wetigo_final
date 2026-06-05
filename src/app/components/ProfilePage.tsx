@@ -42,7 +42,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
         // Immediate branded confirmation on this device.
         try { await showLocalNotification(t('notif.enabledTitle'), t('notif.enabledBody')); } catch { /* ignore */ }
         // Also ask the server to send a real web-push (works once VAPID is configured).
-        try { await pushApi.test(); } catch { /* ignore */ }
+        try { await pushApi.test(); window.dispatchEvent(new Event('wetigo:notifications')); } catch { /* ignore */ }
       } else if (res.reason === 'denied') { flash(t('toast.pushBlocked')); }
       else { setNotifications(true); persistNotif(true); flash(t('toast.pushOn')); }
     } catch { flash(t('toast.pushBlocked')); }

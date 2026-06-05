@@ -24,6 +24,7 @@ interface Store {
   places: Place[];
   placesLoading: boolean;
   refreshFavorites: () => void;
+  refreshPlaces: () => void;
 }
 
 const StoreContext = createContext<Store | null>(null);
@@ -52,11 +53,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => { localStorage.setItem('wetigo:lang', JSON.stringify(lang)); document.documentElement.lang = lang; }, [lang]);
 
   // Load real places from the backend (falls back to seed data on failure).
-  useEffect(() => {
-    let alive = true;
+  const refreshPlaces = () => {
     placesApi.list()
       .then((data: any) => {
-        if (alive && Array.isArray(data) && data.length) {
+        if (Array.isArray(data) && data.length) {
           // normalize backend rows: reviewsCount -> reviews, image fallback
           const norm: Place[] = data.map((p: any) => ({
             id: p.id, name: p.name, category: p.category, categoryId: p.categoryId ?? 'all',
@@ -70,9 +70,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }
       })
       .catch(() => { /* keep seed */ })
-      .finally(() => { if (alive) setPlacesLoading(false); });
-    return () => { alive = false; };
-  }, []);
+      .finally(() => setPlacesLoading(false));
+  };
+  useEffect(() => { refreshPlaces(); /* eslint-disable-next-line */ }, []);
 
   // If logged in, load favorites from the backend.
   const refreshFavorites = () => {
@@ -101,7 +101,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => { localStorage.setItem('wetigo:country', JSON.stringify(country)); }, [country]);
 
   return (
-    <StoreContext.Provider value={{ favorites, isFavorite, toggleFavorite, user, updateUser, lang, setLang, t, country, setCountry, places, placesLoading, refreshFavorites }}>
+    <StoreContext.Provider value={{ favorites, isFavorite, toggleFavorite, user, updateUser, lang, setLang, t, country, setCountry, places, placesLoading, refreshFavorites, refreshPlaces }}>
       {children}
     </StoreContext.Provider>
   );
