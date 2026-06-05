@@ -139,7 +139,7 @@ const en: Dict = {
   'mng.address': 'Address / city', 'mng.price': 'Price', 'mng.uploadPhoto': 'Upload a real photo', 'mng.cancel': 'Cancel', 'mng.save': 'Save',
   'mng.approved': 'approved', 'mng.pendingS': 'pending', 'mng.rejected': 'rejected',
   'mng.tSaved': 'Saved ✓', 'mng.tSaveFail': 'Could not save', 'mng.tPhoto': 'Photo uploaded ✓', 'mng.tPhotoFail': 'Upload failed', 'mng.tApproved': 'Approved', 'mng.tRejected': 'Rejected', 'mng.tHidden': 'Hidden', 'mng.tDeleted': 'Deleted',
-  'prof.reviews': 'Reviews', 'prof.saved': 'Saved', 'prof.plans': 'Plans', 'prof.grow': 'Grow your business', 'prof.noActivity': 'No activity yet', 'prof.noActivityDesc': 'Leave a review or save a place and it will show up here.',
+  'prof.reviews': 'Reviews', 'prof.actReview': 'Left a {n}-star review', 'prof.saved': 'Saved', 'prof.plans': 'Plans', 'prof.grow': 'Grow your business', 'prof.noActivity': 'No activity yet', 'prof.noActivityDesc': 'Leave a review or save a place and it will show up here.',
   'prof.manage': 'Manage my businesses', 'prof.manageDesc': 'Edit info, hours, photos · approvals', 'prof.editProfile': 'Edit profile', 'prof.bio': 'Bio', 'prof.cancel': 'Cancel', 'prof.save': 'Save', 'prof.avatarHint': 'Tap the camera to upload a new photo.',
 };
 
@@ -270,7 +270,7 @@ const az: Dict = {
   'mng.address': 'Ünvan / şəhər', 'mng.price': 'Qiymət', 'mng.uploadPhoto': 'Real foto yüklə', 'mng.cancel': 'Ləğv et', 'mng.save': 'Yadda saxla',
   'mng.approved': 'təsdiqləndi', 'mng.pendingS': 'gözləyir', 'mng.rejected': 'rədd edildi',
   'mng.tSaved': 'Yadda saxlanıldı ✓', 'mng.tSaveFail': 'Saxlanmadı', 'mng.tPhoto': 'Foto yükləndi ✓', 'mng.tPhotoFail': 'Yükləmə alınmadı', 'mng.tApproved': 'Təsdiqləndi', 'mng.tRejected': 'Rədd edildi', 'mng.tHidden': 'Gizlədildi', 'mng.tDeleted': 'Silindi',
-  'prof.reviews': 'Rəylər', 'prof.saved': 'Saxlanılan', 'prof.plans': 'Planlar', 'prof.grow': 'Biznesini böyüt', 'prof.noActivity': 'Hələ fəaliyyət yoxdur', 'prof.noActivityDesc': 'Rəy yaz və ya məkan saxla — burada görünəcək.',
+  'prof.reviews': 'Rəylər', 'prof.actReview': '{n} ulduzlu rəy yazdın', 'prof.saved': 'Saxlanılan', 'prof.plans': 'Planlar', 'prof.grow': 'Biznesini böyüt', 'prof.noActivity': 'Hələ fəaliyyət yoxdur', 'prof.noActivityDesc': 'Rəy yaz və ya məkan saxla — burada görünəcək.',
   'prof.manage': 'Bizneslərimi idarə et', 'prof.manageDesc': 'Məlumat, saatlar, foto · təsdiqlər', 'prof.editProfile': 'Profili redaktə et', 'prof.bio': 'Bio', 'prof.cancel': 'Ləğv et', 'prof.save': 'Yadda saxla', 'prof.avatarHint': 'Yeni foto yükləmək üçün kameraya toxun.',
 };
 
@@ -329,7 +329,7 @@ const tr: Dict = {
   'mng.address': 'Adres / şehir', 'mng.price': 'Fiyat', 'mng.uploadPhoto': 'Gerçek fotoğraf yükle', 'mng.cancel': 'İptal', 'mng.save': 'Kaydet',
   'mng.approved': 'onaylandı', 'mng.pendingS': 'bekliyor', 'mng.rejected': 'reddedildi',
   'mng.tSaved': 'Kaydedildi ✓', 'mng.tSaveFail': 'Kaydedilemedi', 'mng.tPhoto': 'Fotoğraf yüklendi ✓', 'mng.tPhotoFail': 'Yükleme başarısız', 'mng.tApproved': 'Onaylandı', 'mng.tRejected': 'Reddedildi', 'mng.tHidden': 'Gizlendi', 'mng.tDeleted': 'Silindi',
-  'prof.reviews': 'Yorumlar', 'prof.saved': 'Kayıtlı', 'prof.plans': 'Planlar', 'prof.grow': 'İşletmeni büyüt', 'prof.noActivity': 'Henüz etkinlik yok', 'prof.noActivityDesc': 'Yorum yap veya bir yer kaydet — burada görünecek.',
+  'prof.reviews': 'Yorumlar', 'prof.actReview': '{n} yıldızlı yorum yaptın', 'prof.saved': 'Kayıtlı', 'prof.plans': 'Planlar', 'prof.grow': 'İşletmeni büyüt', 'prof.noActivity': 'Henüz etkinlik yok', 'prof.noActivityDesc': 'Yorum yap veya bir yer kaydet — burada görünecek.',
   'prof.manage': 'İşletmelerimi yönet', 'prof.manageDesc': 'Bilgi, saatler, fotoğraf · onaylar', 'prof.editProfile': 'Profili düzenle', 'prof.bio': 'Biyografi', 'prof.cancel': 'İptal', 'prof.save': 'Kaydet', 'prof.avatarHint': 'Yeni fotoğraf için kameraya dokun.',
 };
 
@@ -388,7 +388,7 @@ const ru: Dict = {
   'mng.address': 'Адрес / город', 'mng.price': 'Цена', 'mng.uploadPhoto': 'Загрузить реальное фото', 'mng.cancel': 'Отмена', 'mng.save': 'Сохранить',
   'mng.approved': 'одобрено', 'mng.pendingS': 'ожидает', 'mng.rejected': 'отклонено',
   'mng.tSaved': 'Сохранено ✓', 'mng.tSaveFail': 'Не сохранено', 'mng.tPhoto': 'Фото загружено ✓', 'mng.tPhotoFail': 'Ошибка загрузки', 'mng.tApproved': 'Одобрено', 'mng.tRejected': 'Отклонено', 'mng.tHidden': 'Скрыто', 'mng.tDeleted': 'Удалено',
-  'prof.reviews': 'Отзывы', 'prof.saved': 'Сохранено', 'prof.plans': 'Планы', 'prof.grow': 'Развивайте бизнес', 'prof.noActivity': 'Пока нет активности', 'prof.noActivityDesc': 'Оставьте отзыв или сохраните место — появится здесь.',
+  'prof.reviews': 'Отзывы', 'prof.actReview': 'Вы оставили отзыв на {n} звёзд', 'prof.saved': 'Сохранено', 'prof.plans': 'Планы', 'prof.grow': 'Развивайте бизнес', 'prof.noActivity': 'Пока нет активности', 'prof.noActivityDesc': 'Оставьте отзыв или сохраните место — появится здесь.',
   'prof.manage': 'Управлять бизнесами', 'prof.manageDesc': 'Инфо, часы, фото · одобрения', 'prof.editProfile': 'Редактировать профиль', 'prof.bio': 'О себе', 'prof.cancel': 'Отмена', 'prof.save': 'Сохранить', 'prof.avatarHint': 'Нажмите на камеру, чтобы загрузить фото.',
 };
 
@@ -447,7 +447,7 @@ const es: Dict = {
   'mng.address': 'Dirección / ciudad', 'mng.price': 'Precio', 'mng.uploadPhoto': 'Subir foto real', 'mng.cancel': 'Cancelar', 'mng.save': 'Guardar',
   'mng.approved': 'aprobado', 'mng.pendingS': 'pendiente', 'mng.rejected': 'rechazado',
   'mng.tSaved': 'Guardado ✓', 'mng.tSaveFail': 'No se pudo guardar', 'mng.tPhoto': 'Foto subida ✓', 'mng.tPhotoFail': 'Error al subir', 'mng.tApproved': 'Aprobado', 'mng.tRejected': 'Rechazado', 'mng.tHidden': 'Oculto', 'mng.tDeleted': 'Eliminado',
-  'prof.reviews': 'Reseñas', 'prof.saved': 'Guardado', 'prof.plans': 'Planes', 'prof.grow': 'Haz crecer tu negocio', 'prof.noActivity': 'Aún no hay actividad', 'prof.noActivityDesc': 'Deja una reseña o guarda un lugar y aparecerá aquí.',
+  'prof.reviews': 'Reseñas', 'prof.actReview': 'Dejaste una reseña de {n} estrellas', 'prof.saved': 'Guardado', 'prof.plans': 'Planes', 'prof.grow': 'Haz crecer tu negocio', 'prof.noActivity': 'Aún no hay actividad', 'prof.noActivityDesc': 'Deja una reseña o guarda un lugar y aparecerá aquí.',
   'prof.manage': 'Gestionar mis negocios', 'prof.manageDesc': 'Info, horarios, fotos · aprobaciones', 'prof.editProfile': 'Editar perfil', 'prof.bio': 'Biografía', 'prof.cancel': 'Cancelar', 'prof.save': 'Guardar', 'prof.avatarHint': 'Toca la cámara para subir una foto.',
 };
 
@@ -491,6 +491,23 @@ const fr: Dict = {
   'det.post': 'Publier l’avis', 'det.searchComments': 'Rechercher dans les avis…', 'det.sortRecent': 'Plus récents', 'det.sortHigh': 'Mieux notés', 'det.sortLow': 'Moins bien notés', 'det.sortLiked': 'Plus aimés', 'det.reply': 'Répondre',
   'det.tCommunity': 'Chat communautaire — bientôt', 'det.tMsg': 'Messagerie — bientôt', 'det.tReport': 'Signalement envoyé — merci', 'det.tCopied': 'Lien copié', 'det.tShareFail': 'Partage impossible',
   'det.tCommentReported': 'Avis signalé — notre équipe va vérifier', 'det.tSignIn': 'Connectez-vous pour revendiquer', 'det.tClaimSent': 'Demande envoyée — nous allons vérifier et approuver',
+  'addp.title': 'Ajoutez votre commerce', 'addp.step': 'Étape', 'addp.bizInfo': 'Informations', 'addp.name': 'Nom du commerce', 'addp.namePh': 'Saisissez le nom du commerce',
+  'addp.category': 'Catégorie', 'addp.description': 'Description', 'addp.descPh': 'Décrivez votre commerce, vos services et ce qui vous rend unique...',
+  'addp.toLocation': 'Continuer vers l’adresse', 'addp.locContact': 'Adresse et contact', 'addp.address': 'Adresse', 'addp.city': 'Ville', 'addp.country': 'Pays',
+  'addp.phone': 'Numéro de téléphone', 'addp.email': 'E-mail (facultatif)', 'addp.website': 'Site web (facultatif)', 'addp.hours': 'Horaires', 'addp.back': 'Retour',
+  'addp.toPhotos': 'Continuer vers les photos', 'addp.photos': 'Photos du commerce', 'addp.photosHint': 'Ajoutez au moins 3 photos de qualité (max 10)', 'addp.upload': 'Téléverser',
+  'addp.tips': 'Conseils photo', 'addp.tip1': 'Images haute résolution (min 1200x800px)', 'addp.tip2': 'Montrez l’extérieur, l’intérieur et les produits', 'addp.tip3': 'Bon éclairage et netteté',
+  'addp.submit': 'Envoyer pour vérification', 'addp.submitting': 'Envoi…', 'addp.submitted': 'Envoyé ✓', 'addp.error': 'Échec de l’envoi. Réessayez.',
+  'addp.successTitle': 'Envoyé pour vérification 🎉', 'addp.successDesc': 'Merci ! Notre équipe vérifiera votre commerce sous 24 h.',
+  'addp.vName': 'Saisissez au moins 2 caractères', 'addp.vCategory': 'Choisissez une catégorie', 'addp.vDesc': 'La description doit faire au moins 20 caractères', 'addp.vAddress': 'Saisissez une adresse valide',
+  'addp.vCity': 'Saisissez la ville', 'addp.vCountry': 'Saisissez le pays', 'addp.vPhone': 'Saisissez un téléphone valide', 'addp.vEmail': 'Saisissez un e-mail valide', 'addp.vWebsite': 'Saisissez un site valide', 'addp.vHours': 'Saisissez les horaires', 'addp.vPhotos': 'Ajoutez au moins 3 photos',
+  'mng.title': 'Gérer', 'mng.mine': 'Mes commerces', 'mng.admin': 'Admin', 'mng.empty': 'Aucun commerce', 'mng.emptyDesc': 'Ajoutez votre commerce ou revendiquez un lieu existant pour le gérer ici.',
+  'mng.edit': 'Modifier', 'mng.pending': 'En attente d’approbation', 'mng.nothingPending': 'Rien en attente.', 'mng.reports': 'Avis signalés', 'mng.noReports': 'Aucun signalement.', 'mng.hide': 'Masquer', 'mng.delete': 'Supprimer',
+  'mng.address': 'Adresse / ville', 'mng.price': 'Prix', 'mng.uploadPhoto': 'Téléverser une vraie photo', 'mng.cancel': 'Annuler', 'mng.save': 'Enregistrer',
+  'mng.approved': 'approuvé', 'mng.pendingS': 'en attente', 'mng.rejected': 'rejeté',
+  'mng.tSaved': 'Enregistré ✓', 'mng.tSaveFail': 'Échec de l’enregistrement', 'mng.tPhoto': 'Photo téléversée ✓', 'mng.tPhotoFail': 'Échec du téléversement', 'mng.tApproved': 'Approuvé', 'mng.tRejected': 'Rejeté', 'mng.tHidden': 'Masqué', 'mng.tDeleted': 'Supprimé',
+  'prof.reviews': 'Avis', 'prof.actReview': 'Avis {n} étoiles laissé', 'prof.saved': 'Enregistré', 'prof.plans': 'Plans', 'prof.grow': 'Développez votre activité', 'prof.noActivity': 'Aucune activité', 'prof.noActivityDesc': 'Laissez un avis ou enregistrez un lieu — il apparaîtra ici.',
+  'prof.manage': 'Gérer mes commerces', 'prof.manageDesc': 'Infos, horaires, photos · approbations', 'prof.editProfile': 'Modifier le profil', 'prof.bio': 'Bio', 'prof.cancel': 'Annuler', 'prof.save': 'Enregistrer', 'prof.avatarHint': 'Touchez l’appareil photo pour ajouter une photo.',
 };
 
 const de: Dict = {
@@ -548,7 +565,7 @@ const de: Dict = {
   'mng.address': 'Adresse / Stadt', 'mng.price': 'Preis', 'mng.uploadPhoto': 'Echtes Foto hochladen', 'mng.cancel': 'Abbrechen', 'mng.save': 'Speichern',
   'mng.approved': 'genehmigt', 'mng.pendingS': 'ausstehend', 'mng.rejected': 'abgelehnt',
   'mng.tSaved': 'Gespeichert ✓', 'mng.tSaveFail': 'Nicht gespeichert', 'mng.tPhoto': 'Foto hochgeladen ✓', 'mng.tPhotoFail': 'Upload fehlgeschlagen', 'mng.tApproved': 'Genehmigt', 'mng.tRejected': 'Abgelehnt', 'mng.tHidden': 'Ausgeblendet', 'mng.tDeleted': 'Gelöscht',
-  'prof.reviews': 'Bewertungen', 'prof.saved': 'Gespeichert', 'prof.plans': 'Pläne', 'prof.grow': 'Lass dein Geschäft wachsen', 'prof.noActivity': 'Noch keine Aktivität', 'prof.noActivityDesc': 'Schreibe eine Bewertung oder speichere einen Ort — erscheint hier.',
+  'prof.reviews': 'Bewertungen', 'prof.actReview': '{n}-Sterne-Bewertung abgegeben', 'prof.saved': 'Gespeichert', 'prof.plans': 'Pläne', 'prof.grow': 'Lass dein Geschäft wachsen', 'prof.noActivity': 'Noch keine Aktivität', 'prof.noActivityDesc': 'Schreibe eine Bewertung oder speichere einen Ort — erscheint hier.',
   'prof.manage': 'Meine Geschäfte verwalten', 'prof.manageDesc': 'Infos, Zeiten, Fotos · Freigaben', 'prof.editProfile': 'Profil bearbeiten', 'prof.bio': 'Bio', 'prof.cancel': 'Abbrechen', 'prof.save': 'Speichern', 'prof.avatarHint': 'Tippe auf die Kamera, um ein Foto hochzuladen.',
 };
 

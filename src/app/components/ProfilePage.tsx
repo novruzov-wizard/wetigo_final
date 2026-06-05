@@ -70,7 +70,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
 
   // Real stats + activity from the backend (fall back to what we know locally).
   const [stats, setStats] = useState({ reviews: 0, favorites: favorites.length, plans: 0 });
-  const [recentActivity, setRecentActivity] = useState<{ id: number; type: string; place: string; action: string; time: string }[]>([]);
+  const [recentActivity, setRecentActivity] = useState<{ id: number; type: string; place: string; action: string; time: string; rating?: number; createdAt?: number; placeId?: number }[]>([]);
   const [activityLoaded, setActivityLoaded] = useState(false);
   useEffect(() => {
     setStats((s) => ({ ...s, favorites: favorites.length }));
@@ -81,6 +81,20 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
     profileApi.activity().then((a: any) => { if (Array.isArray(a)) setRecentActivity(a); }).catch(() => {}).finally(() => setActivityLoaded(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // Localize the action text + relative time on the client (backend sends rating + createdAt).
+  const actText = (a: any) => (a.type === 'review' && a.rating != null) ? t('prof.actReview').replace('{n}', String(a.rating)) : (a.action || '');
+  const relTime = (a: any): string => {
+    const ms = a.createdAt; if (!ms) return a.time || '';
+    try {
+      const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' });
+      const diff = ms - Date.now(); const day = 86400000;
+      const days = Math.round(diff / day);
+      if (Math.abs(days) >= 1) return rtf.format(days, 'day');
+      const hours = Math.round(diff / 3600000);
+      if (Math.abs(hours) >= 1) return rtf.format(hours, 'hour');
+      return rtf.format(Math.round(diff / 60000), 'minute');
+    } catch { return a.time || ''; }
+  };
   const activityIcon = (type: string) => type === 'favorite' ? Heart : type === 'plan' ? MapPin : Star;
   const activityColor = (type: string) => type === 'favorite' ? 'from-rose-500 to-pink-600' : type === 'plan' ? 'from-[#6200FF] to-[#8b00ff]' : 'from-amber-500 to-yellow-600';
 
@@ -208,9 +222,9 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-slate-900 mb-1">
-                      {activity.action} at <span className="font-semibold">{activity.place}</span>
+                      {actText(activity)} · <span className="font-semibold">{activity.place}</span>
                     </p>
-                    <p className="text-xs text-slate-500">{activity.time}</p>
+                    <p className="text-xs text-slate-500">{relTime(activity)}</p>
                   </div>
                 </div>
               </motion.button>
