@@ -71,6 +71,28 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
   })();
   const cardExpiry = (() => { const d = new Date(); return `${String((d.getMonth() % 12) + 1).padStart(2, '0')}/${String((d.getFullYear() + 4) % 100)}`; })();
 
+  // ---- PWA install (Android: native prompt · iOS: Add to Home Screen guide) ----
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [iosHelp, setIosHelp] = useState(false);
+  const isIOS = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = typeof window !== 'undefined' && (window.matchMedia?.('(display-mode: standalone)').matches || (navigator as any).standalone);
+  useEffect(() => {
+    const onBip = (e: any) => { e.preventDefault(); setDeferredPrompt(e); };
+    window.addEventListener('beforeinstallprompt', onBip);
+    return () => window.removeEventListener('beforeinstallprompt', onBip);
+  }, []);
+  const installApp = async () => {
+    if (isStandalone) { flash('Wetigo is already installed ✓'); return; }
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      try { await deferredPrompt.userChoice; } catch { /* ignore */ }
+      setDeferredPrompt(null);
+      return;
+    }
+    if (isIOS) { setIosHelp(true); return; }
+    flash('Open your browser menu → “Install app” to add Wetigo');
+  };
+
   // Real Wetigo membership card from the backend (issued on register).
   const [realCard, setRealCard] = useState<{ number: string; holder: string } | null>(null);
   useEffect(() => {
@@ -243,16 +265,16 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
                   <span className="text-white/60 text-xs">·  1M+ explorers</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2.5">
-                  {/* App Store badge */}
-                  <span className="flex items-center gap-2.5 bg-black text-white pl-3 pr-4 py-2 rounded-xl cursor-pointer hover:opacity-90 transition-opacity">
+                  {/* App Store badge → installs the PWA */}
+                  <button onClick={installApp} className="flex items-center gap-2.5 bg-black text-white pl-3 pr-4 py-2 rounded-xl cursor-pointer hover:opacity-90 transition-opacity">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M16.5 1.6c0 1.1-.4 2.1-1.2 2.9-.9.9-2 1.5-3.1 1.4-.1-1.1.4-2.2 1.1-2.9.8-.9 2.1-1.5 3.2-1.4ZM20.3 17c-.5 1.2-.8 1.7-1.5 2.8-1 1.5-2.4 3.4-4.1 3.4-1.5 0-1.9-1-4-1-2 0-2.5 1-4 1-1.7 0-3-1.7-4-3.2-2.8-4.3-3.1-9.3-1.4-12 1.2-1.9 3.1-3 4.9-3 1.8 0 2.9 1 4.4 1 1.4 0 2.3-1 4.4-1 1.6 0 3.3.9 4.5 2.4-3.9 2.2-3.3 7.8.3 9.6Z"/></svg>
                     <span className="text-left leading-none"><span className="block text-[9px] text-white/70">Download on the</span><span className="block text-sm font-semibold">App Store</span></span>
-                  </span>
-                  {/* Google Play badge */}
-                  <span className="flex items-center gap-2.5 bg-black text-white pl-3 pr-4 py-2 rounded-xl cursor-pointer hover:opacity-90 transition-opacity">
+                  </button>
+                  {/* Google Play badge → installs the PWA */}
+                  <button onClick={installApp} className="flex items-center gap-2.5 bg-black text-white pl-3 pr-4 py-2 rounded-xl cursor-pointer hover:opacity-90 transition-opacity">
                     <svg width="18" height="20" viewBox="0 0 24 24"><path fill="#34A853" d="M3.6 2.3 13.4 12 3.6 21.7c-.4-.2-.6-.6-.6-1.1V3.4c0-.5.2-.9.6-1.1Z"/><path fill="#4285F4" d="M16.9 8.5 13.4 12 3.9 2.1c.1 0 .3 0 .5.1l12.5 6.3Z"/><path fill="#FBBC04" d="m16.9 15.5-3.5-3.5 3.5-3.5 3.2 1.6c.9.5.9 1.8 0 2.3l-3.2 1.6Z"/><path fill="#EA4335" d="M3.9 21.9 13.4 12l3.5 3.5-12.5 6.3c-.2.1-.4.1-.5.1Z"/></svg>
                     <span className="text-left leading-none"><span className="block text-[9px] text-white/70">GET IT ON</span><span className="block text-sm font-semibold">Google Play</span></span>
-                  </span>
+                  </button>
                 </div>
               </div>
               {/* Realistic phone */}
@@ -407,6 +429,29 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
           <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
             className="fixed top-24 left-1/2 -translate-x-1/2 z-[1000] bg-[#2b2521] text-white text-sm font-medium px-5 py-3 rounded-full shadow-2xl">
             {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* iOS install instructions */}
+      <AnimatePresence>
+        {iosHelp && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIosHelp(false)}
+            className="fixed inset-0 z-[1200] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+            <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }} onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden">
+              <div className="bg-gradient-to-br from-[#4a00cc] to-[#6200FF] p-5 text-center">
+                <img src="/icons/icon-192.png" alt="Wetigo" className="w-16 h-16 rounded-2xl mx-auto shadow-lg" />
+                <p className="text-white font-display font-bold text-lg mt-2">Install Wetigo</p>
+              </div>
+              <div className="p-5 space-y-3 text-sm text-[#2b2521]">
+                <p className="text-[#6b6258]">Add Wetigo to your home screen — it opens full-screen like a real app.</p>
+                <div className="flex items-center gap-3"><span className="w-7 h-7 rounded-full bg-[#f1ebff] text-[#6200FF] flex items-center justify-center font-bold shrink-0">1</span> Tap the <b>Share</b> button <span className="text-[#6200FF]">⬆️</span> in Safari</div>
+                <div className="flex items-center gap-3"><span className="w-7 h-7 rounded-full bg-[#f1ebff] text-[#6200FF] flex items-center justify-center font-bold shrink-0">2</span> Choose <b>“Add to Home Screen”</b></div>
+                <div className="flex items-center gap-3"><span className="w-7 h-7 rounded-full bg-[#f1ebff] text-[#6200FF] flex items-center justify-center font-bold shrink-0">3</span> Tap <b>Add</b> — done! 🎉</div>
+                <button onClick={() => setIosHelp(false)} className="w-full mt-2 py-3 rounded-2xl bg-[#6200FF] text-white font-semibold hover:bg-[#5400dd] transition-colors">Got it</button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

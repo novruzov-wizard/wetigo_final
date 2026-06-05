@@ -15,8 +15,15 @@
       <!-- Icons -->
       <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
       <link rel="icon" type="image/png" href="/favicon.png" />
-      <link rel="apple-touch-icon" href="/favicon.png" />
+      <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png" />
       <meta name="theme-color" content="#6200FF" />
+
+      <!-- PWA (installable on Android & iOS) -->
+      <link rel="manifest" href="/manifest.webmanifest" />
+      <meta name="mobile-web-app-capable" content="yes" />
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+      <meta name="apple-mobile-web-app-title" content="Wetigo" />
 
       <!-- Open Graph -->
       <meta property="og:type" content="website" />
@@ -101,6 +108,14 @@
     <body>
       <div id="root"></div>
       <script type="module" src="/src/main.tsx"></script>
+      <script>
+        // Register the PWA service worker (enables install on Android & iOS)
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+          });
+        }
+      </script>
     </body>
   </html>
   
