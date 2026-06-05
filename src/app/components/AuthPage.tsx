@@ -128,7 +128,17 @@ export function AuthPage({ onAuth }: AuthPageProps) {
       <div className="w-full grid lg:grid-cols-2 rounded-[2rem] overflow-hidden bg-white shadow-2xl shadow-[#2b2521]/10 max-w-6xl mx-auto my-auto">
         {/* ===== Left: form / verification ===== */}
         <div className="px-7 sm:px-12 lg:px-16 py-10 lg:py-14 flex flex-col">
-          <img src={wetigoLogo} alt="Wetigo" className="h-20 w-auto object-contain -ml-2 mb-8" />
+          {/* Mobile brand banner (the purple showcase is desktop-only) */}
+          <div className="lg:hidden -mx-7 sm:-mx-12 -mt-10 mb-8 px-7 sm:px-12 pt-8 pb-6 rounded-b-3xl relative overflow-hidden"
+            style={{ background: 'linear-gradient(150deg,#4a00cc 0%,#6200FF 55%,#7c10ff 100%)' }}>
+            <div className="pointer-events-none absolute -top-10 -right-8 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
+            <div className="relative flex items-center justify-between">
+              <img src={wetigoLogo} alt="Wetigo" className="h-12 w-auto object-contain brightness-0 invert" />
+              <span className="text-white/90 text-xs font-medium bg-white/15 backdrop-blur px-3 py-1.5 rounded-full">Where to go?</span>
+            </div>
+            <p className="relative text-white/85 text-sm mt-3 max-w-xs">{t('auth.discover')}</p>
+          </div>
+          <img src={wetigoLogo} alt="Wetigo" className="hidden lg:block h-20 w-auto object-contain -ml-2 mb-8" />
 
           <AnimatePresence mode="wait">
             {step === 'forgot' ? (

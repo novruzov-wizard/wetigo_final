@@ -8,3 +8,13 @@ createRoot(document.getElementById("root")!).render(
     <App />
   </StoreProvider>
 );
+
+// Fade out the branded splash once the app has painted (min display ~700ms).
+requestAnimationFrame(() => {
+  const splash = document.getElementById("wetigo-splash");
+  if (!splash) return;
+  setTimeout(() => {
+    splash.classList.add("ws-hide");
+    setTimeout(() => splash.remove(), 500);
+  }, 600);
+});
