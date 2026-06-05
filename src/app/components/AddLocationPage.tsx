@@ -2,12 +2,14 @@ import { ArrowLeft, MapPin, Plus, X, Building2, Phone, Clock, Globe, Image as Im
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { places as placesApi, auth as authApi } from '../lib/api';
+import { useStore } from '../store';
 
 interface AddLocationPageProps {
   onBack: () => void;
 }
 
 export function AddLocationPage({ onBack }: AddLocationPageProps) {
+  const { t } = useStore();
   const [formData, setFormData] = useState({
     businessName: '',
     category: '',
@@ -36,21 +38,21 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
   const validateStep = (step: number): boolean => {
     const e: Record<string, string> = {};
     if (step === 1) {
-      if (formData.businessName.trim().length < 2) e.businessName = 'Enter at least 2 characters';
-      if (!formData.category) e.category = 'Please choose a category';
-      if (formData.description.trim().length < 20) e.description = 'Description must be at least 20 characters';
+      if (formData.businessName.trim().length < 2) e.businessName = t('addp.vName');
+      if (!formData.category) e.category = t('addp.vCategory');
+      if (formData.description.trim().length < 20) e.description = t('addp.vDesc');
     }
     if (step === 2) {
-      if (formData.address.trim().length < 4) e.address = 'Enter a valid street address';
-      if (formData.city.trim().length < 2) e.city = 'Enter the city';
-      if (!formData.country.trim()) e.country = 'Enter the country';
-      if (!phoneRe.test(formData.phone.trim())) e.phone = 'Enter a valid phone number';
-      if (formData.email.trim() && !emailRe.test(formData.email.trim())) e.email = 'Enter a valid email';
-      if (formData.website.trim() && !urlRe.test(formData.website.trim())) e.website = 'Enter a valid website URL';
-      if (!formData.hours.trim()) e.hours = 'Enter opening hours';
+      if (formData.address.trim().length < 4) e.address = t('addp.vAddress');
+      if (formData.city.trim().length < 2) e.city = t('addp.vCity');
+      if (!formData.country.trim()) e.country = t('addp.vCountry');
+      if (!phoneRe.test(formData.phone.trim())) e.phone = t('addp.vPhone');
+      if (formData.email.trim() && !emailRe.test(formData.email.trim())) e.email = t('addp.vEmail');
+      if (formData.website.trim() && !urlRe.test(formData.website.trim())) e.website = t('addp.vWebsite');
+      if (!formData.hours.trim()) e.hours = t('addp.vHours');
     }
     if (step === 3) {
-      if (images.length < 3) e.images = 'Please add at least 3 photos';
+      if (images.length < 3) e.images = t('addp.vPhotos');
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -107,7 +109,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
       setDone(true);
       setTimeout(onBack, 3200);
     } catch (err: any) {
-      setSubmitError(err?.message || 'Could not submit. Please try again.');
+      setSubmitError(err?.message || t('addp.error'));
       setSubmitting(false);
     }
   };
@@ -153,8 +155,8 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
             <Building2 size={24} className="text-white" />
           </div>
           <div>
-            <h1 className="text-2xl text-slate-900">Add Your Business</h1>
-            <p className="text-slate-600 text-sm">Step {currentStep} of 3</p>
+            <h1 className="text-2xl text-slate-900">{t('addp.title')}</h1>
+            <p className="text-slate-600 text-sm">{t('addp.step')} {currentStep} / 3</p>
           </div>
         </div>
       </div>
@@ -169,14 +171,14 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
             className="py-6 space-y-4"
           >
             <div>
-              <h3 className="text-lg text-slate-900 mb-4">Business Information</h3>
+              <h3 className="text-lg text-slate-900 mb-4">{t('addp.bizInfo')}</h3>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm text-slate-700 mb-2">Business Name *</label>
+                  <label className="block text-sm text-slate-700 mb-2">{t('addp.name')} *</label>
                   <input
                     type="text"
-                    placeholder="Enter your business name"
+                    placeholder={t('addp.namePh')}
                     value={formData.businessName}
                     onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
                     className={`w-full px-4 py-3.5 rounded-2xl bg-white border text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm ${errors.businessName ? 'border-rose-400' : 'border-slate-200'}`}
@@ -185,7 +187,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-slate-700 mb-2">Category *</label>
+                  <label className="block text-sm text-slate-700 mb-2">{t('addp.category')} *</label>
                   <div className="grid grid-cols-2 gap-2">
                     {categories.map((cat) => (
                       <button
@@ -210,9 +212,9 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-slate-700 mb-2">Description *</label>
+                  <label className="block text-sm text-slate-700 mb-2">{t('addp.description')} *</label>
                   <textarea
-                    placeholder="Describe your business, services, and what makes you unique..."
+                    placeholder={t('addp.descPh')}
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     className={`w-full px-4 py-3.5 rounded-2xl bg-white border text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent transition-all shadow-sm resize-none ${errors.description ? 'border-rose-400' : 'border-slate-200'}`}
@@ -231,7 +233,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
               onClick={() => goToStep(2)}
               className="w-full bg-gradient-to-r from-[#4a00cc] to-[#6200FF] text-white py-4 rounded-2xl font-semibold hover:shadow-lg hover:shadow-purple-600/30 transition-all duration-300 shadow-md"
             >
-              Continue to Location
+              {t('addp.toLocation')}
             </motion.button>
           </motion.div>
         )}
@@ -245,11 +247,11 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
             className="py-6 space-y-4"
           >
             <div>
-              <h3 className="text-lg text-slate-900 mb-4">Location & Contact</h3>
+              <h3 className="text-lg text-slate-900 mb-4">{t('addp.locContact')}</h3>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm text-slate-700 mb-2">Street Address *</label>
+                  <label className="block text-sm text-slate-700 mb-2">{t('addp.address')} *</label>
                   <div className="relative">
                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input
@@ -265,7 +267,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm text-slate-700 mb-2">City *</label>
+                    <label className="block text-sm text-slate-700 mb-2">{t('addp.city')} *</label>
                     <input
                       type="text"
                       placeholder="New York"
@@ -276,7 +278,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                     {errors.city && <p className="flex items-center gap-1 text-xs text-rose-500 mt-1.5"><AlertCircle size={13} /> {errors.city}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm text-slate-700 mb-2">Country *</label>
+                    <label className="block text-sm text-slate-700 mb-2">{t('addp.country')} *</label>
                     <input
                       type="text"
                       placeholder="USA"
@@ -289,7 +291,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-slate-700 mb-2">Phone Number *</label>
+                  <label className="block text-sm text-slate-700 mb-2">{t('addp.phone')} *</label>
                   <div className="relative">
                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input
@@ -304,7 +306,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-slate-700 mb-2">Email (optional)</label>
+                  <label className="block text-sm text-slate-700 mb-2">{t('addp.email')}</label>
                   <input
                     type="email"
                     placeholder="hello@yourbusiness.com"
@@ -316,7 +318,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-slate-700 mb-2">Website (optional)</label>
+                  <label className="block text-sm text-slate-700 mb-2">{t('addp.website')}</label>
                   <div className="relative">
                     <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input
@@ -331,7 +333,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-slate-700 mb-2">Business Hours *</label>
+                  <label className="block text-sm text-slate-700 mb-2">{t('addp.hours')} *</label>
                   <div className="relative">
                     <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input
@@ -353,14 +355,14 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                 onClick={() => setCurrentStep(1)}
                 className="flex-1 bg-white border-2 border-slate-200 text-slate-700 py-4 rounded-2xl font-semibold hover:bg-slate-50 transition-all duration-300"
               >
-                Back
+                {t('addp.back')}
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.98 }}
                 onClick={() => goToStep(3)}
                 className="flex-1 bg-gradient-to-r from-[#4a00cc] to-[#6200FF] text-white py-4 rounded-2xl font-semibold hover:shadow-lg hover:shadow-purple-600/30 transition-all duration-300 shadow-md"
               >
-                Continue to Photos
+                {t('addp.toPhotos')}
               </motion.button>
             </div>
           </motion.div>
@@ -375,8 +377,8 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
             className="py-6 space-y-4"
           >
             <div>
-              <h3 className="text-lg text-slate-900 mb-2">Business Photos</h3>
-              <p className="text-sm text-slate-600 mb-4">Add at least 3 high-quality photos of your business (max 10)</p>
+              <h3 className="text-lg text-slate-900 mb-2">{t('addp.photos')}</h3>
+              <p className="text-sm text-slate-600 mb-4">{t('addp.photosHint')}</p>
 
               <div className="grid grid-cols-3 gap-3 mb-4">
                 {images.map((img, idx) => (
@@ -403,7 +405,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                     className="aspect-square rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:border-[#6200FF] hover:bg-[#f1ebff] transition-colors flex flex-col items-center justify-center gap-2"
                   >
                     <Plus size={24} className="text-slate-400" />
-                    <span className="text-xs text-slate-500">Upload</span>
+                    <span className="text-xs text-slate-500">{t('addp.upload')}</span>
                   </button>
                 )}
                 <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={onFiles} />
@@ -414,11 +416,11 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                 <div className="flex gap-3">
                   <ImageIcon size={20} className="text-[#6200FF] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm text-purple-900 mb-1 font-medium">Photo Tips</p>
+                    <p className="text-sm text-purple-900 mb-1 font-medium">{t('addp.tips')}</p>
                     <ul className="text-xs text-purple-700 space-y-1">
-                      <li>• Use high-resolution images (min 1200x800px)</li>
-                      <li>• Show your business exterior, interior, and products</li>
-                      <li>• Ensure good lighting and clear focus</li>
+                      <li>• {t('addp.tip1')}</li>
+                      <li>• {t('addp.tip2')}</li>
+                      <li>• {t('addp.tip3')}</li>
                     </ul>
                   </div>
                 </div>
@@ -432,7 +434,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                 onClick={() => setCurrentStep(2)}
                 className="flex-1 bg-white border-2 border-slate-200 text-slate-700 py-4 rounded-2xl font-semibold hover:bg-slate-50 transition-all duration-300"
               >
-                Back
+                {t('addp.back')}
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.98 }}
@@ -440,7 +442,7 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                 disabled={submitting || done}
                 className="flex-1 bg-gradient-to-r from-[#4a00cc] to-[#6200FF] text-white py-4 rounded-2xl font-semibold hover:shadow-lg hover:shadow-purple-600/30 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 shadow-md"
               >
-                {submitting ? 'Submitting…' : done ? 'Submitted ✓' : 'Submit for Review'}
+                {submitting ? t('addp.submitting') : done ? t('addp.submitted') : t('addp.submit')}
               </motion.button>
             </div>
           </motion.div>
@@ -462,8 +464,8 @@ export function AddLocationPage({ onBack }: AddLocationPageProps) {
                 <Check size={22} className="text-white" strokeWidth={3} />
               </div>
               <div className="flex-1 pr-5">
-                <p className="font-semibold text-slate-900 text-sm">Submitted for review 🎉</p>
-                <p className="text-xs text-slate-500 mt-0.5">Thanks! Our team will review your business within 24 hours.</p>
+                <p className="font-semibold text-slate-900 text-sm">{t('addp.successTitle')}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{t('addp.successDesc')}</p>
               </div>
               <button onClick={onBack} className="absolute top-3 right-3 text-slate-400 hover:text-slate-700 transition-colors"><X size={16} /></button>
               <motion.div initial={{ width: '100%' }} animate={{ width: 0 }} transition={{ duration: 3.2, ease: 'linear' }}

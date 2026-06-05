@@ -113,9 +113,9 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: 'Reviews', value: stats.reviews, icon: Star },
-              { label: 'Saved', value: stats.favorites, icon: Heart },
-              { label: 'Plans', value: stats.plans, icon: MapPin },
+              { label: t('prof.reviews'), value: stats.reviews, icon: Star },
+              { label: t('prof.saved'), value: stats.favorites, icon: Heart },
+              { label: t('prof.plans'), value: stats.plans, icon: MapPin },
             ].map((stat, idx) => {
               const Icon = stat.icon;
               return (
@@ -161,8 +161,8 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
             <MapPin size={24} className="text-white" />
           </div>
           <div className="text-left">
-            <p className="font-semibold text-slate-900 text-sm mb-1">Manage my businesses</p>
-            <p className="text-xs text-slate-600">Edit info, hours, photos · approvals</p>
+            <p className="font-semibold text-slate-900 text-sm mb-1">{t('prof.manage')}</p>
+            <p className="text-xs text-slate-600">{t('prof.manageDesc')}</p>
           </div>
         </motion.button>
 
@@ -174,8 +174,8 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
             <Crown size={24} className="text-white" />
           </div>
           <div className="text-left">
-            <p className="font-semibold text-white text-sm mb-1">Go Premium</p>
-            <p className="text-xs text-amber-100">Grow your business</p>
+            <p className="font-semibold text-white text-sm mb-1">{t('premium.go')}</p>
+            <p className="text-xs text-amber-100">{t('prof.grow')}</p>
           </div>
         </div>
       </div>
@@ -187,8 +187,8 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
           {recentActivity.length === 0 && activityLoaded && (
             <div className="bg-white rounded-3xl p-8 shadow-md border border-slate-200 text-center">
               <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3"><Star size={22} className="text-slate-300" /></div>
-              <p className="text-sm font-medium text-slate-700 mb-1">No activity yet</p>
-              <p className="text-xs text-slate-500">Leave a review or save a place and it will show up here.</p>
+              <p className="text-sm font-medium text-slate-700 mb-1">{t('prof.noActivity')}</p>
+              <p className="text-xs text-slate-500">{t('prof.noActivityDesc')}</p>
             </div>
           )}
           {recentActivity.map((activity, idx) => {
@@ -296,7 +296,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
             <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }} onClick={(e) => e.stopPropagation()}
               className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
               <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
-                <h3 className="font-display text-xl font-bold text-[#2b2521]">Edit profile</h3>
+                <h3 className="font-display text-xl font-bold text-[#2b2521]">{t('prof.editProfile')}</h3>
                 <button onClick={() => setEditing(false)} className="text-slate-400 hover:text-slate-700"><X size={20} /></button>
               </div>
               <div className="p-6 space-y-4">
@@ -308,23 +308,23 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
                     </button>
                     <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={onAvatar} />
                   </div>
-                  <p className="text-sm text-slate-500">Tap the camera to upload a new photo.</p>
+                  <p className="text-sm text-slate-500">{t('prof.avatarHint')}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1.5">Full name</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">{t('auth.fullname')}</label>
                   <input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-[#2b2521] focus:outline-none focus:ring-2 focus:ring-[#6200FF]" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1.5">Email</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">{t('auth.email')}</label>
                   <input type="email" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-[#2b2521] focus:outline-none focus:ring-2 focus:ring-[#6200FF]" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1.5">Bio</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">{t('prof.bio')}</label>
                   <textarea rows={2} value={draft.bio} onChange={(e) => setDraft({ ...draft, bio: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-[#2b2521] focus:outline-none focus:ring-2 focus:ring-[#6200FF] resize-none" />
                 </div>
                 <div className="flex gap-3 pt-1">
-                  <button onClick={() => setEditing(false)} className="flex-1 py-3 rounded-xl border border-slate-200 font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
-                  <button onClick={saveEdit} disabled={!draft.name.trim() || !draft.email.trim()} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#6200FF] text-white font-semibold hover:bg-[#5400dd] disabled:bg-slate-200 disabled:cursor-not-allowed transition-colors"><Check size={17} /> Save</button>
+                  <button onClick={() => setEditing(false)} className="flex-1 py-3 rounded-xl border border-slate-200 font-semibold text-slate-600 hover:bg-slate-50">{t('prof.cancel')}</button>
+                  <button onClick={saveEdit} disabled={!draft.name.trim() || !draft.email.trim()} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#6200FF] text-white font-semibold hover:bg-[#5400dd] disabled:bg-slate-200 disabled:cursor-not-allowed transition-colors"><Check size={17} /> {t('prof.save')}</button>
                 </div>
               </div>
             </motion.div>
