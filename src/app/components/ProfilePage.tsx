@@ -1,4 +1,4 @@
-import { Crown, MapPin, Star, Heart, Bell, LogOut, Plus, Globe, Languages, Pencil, Camera, X, Check } from 'lucide-react';
+import { Crown, MapPin, Star, Heart, Bell, LogOut, Plus, Globe, Languages, Pencil, Camera, X, Check, Trash2, Loader2 } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
@@ -21,8 +21,16 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
   const { user, updateUser, favorites, lang, setLang, t, country, setCountry } = useStore();
   const [notifications, setNotifications] = useState(false);
   const [emailUpdates, setEmailUpdates] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const flash = (m: string) => { setToast(m); window.clearTimeout((flash as any)._t); (flash as any)._t = window.setTimeout(() => setToast(null), 2200); };
+
+  const deleteAccount = async () => {
+    setDeleting(true);
+    try { await profileApi.deleteAccount(); onSignOut(); }
+    catch (e: any) { flash(e?.message || 'Error'); setDeleting(false); setConfirmDelete(false); }
+  };
 
   const changeCountry = (c: string) => { setCountry(c); flash(t('toast.country')); };
   const changeLang = (l: Lang) => { setLang(l); flash(t('toast.langChanged')); };
@@ -310,6 +318,23 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
           <button onClick={onSignOut} className="w-full flex items-center justify-between p-5 hover:bg-red-50 transition-colors">
             <div className="flex items-center gap-3"><LogOut size={20} className="text-red-600" /><span className="text-red-600 font-medium">{t('settings.signout')}</span></div>
           </button>
+        </div>
+
+        {/* Danger zone — delete account */}
+        <div className="mt-4 bg-white rounded-3xl border border-rose-100 overflow-hidden">
+          <div className="p-5">
+            <p className="font-semibold text-rose-600 mb-1">{t('settings.deleteAccount')}</p>
+            <p className="text-xs text-slate-500 mb-3">{t('settings.deleteDesc')}</p>
+            {!confirmDelete ? (
+              <button onClick={() => setConfirmDelete(true)} className="px-4 py-2.5 rounded-xl bg-rose-50 text-rose-600 text-sm font-semibold hover:bg-rose-100 flex items-center gap-2"><Trash2 size={15} /> {t('settings.deleteAccount')}</button>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-slate-700">{t('settings.deleteConfirm')}</span>
+                <button onClick={deleteAccount} disabled={deleting} className="px-4 py-2.5 rounded-xl bg-rose-600 text-white text-sm font-semibold hover:bg-rose-700 disabled:opacity-60 flex items-center gap-2">{deleting ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />} {t('settings.deleteYes')}</button>
+                <button onClick={() => setConfirmDelete(false)} disabled={deleting} className="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-sm font-semibold hover:bg-slate-200">{t('settings.deleteNo')}</button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

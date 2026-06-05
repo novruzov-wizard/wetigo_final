@@ -8,7 +8,7 @@ import { reviews as reviewsApi, auth as authApi, places as placesApi } from '../
 declare const L: any;
 
 interface Reply { id: number; user: string; avatar: string; text: string; date: string; }
-interface Review { id: number; user: string; avatar: string; rating: number; comment: string; date: string; photos: string[]; likes: number; liked: boolean; replies: Reply[]; }
+interface Review { id: number; user: string; avatar: string; rating: number; comment: string; date: string; photos: string[]; likes: number; liked: boolean; replies: Reply[]; mine?: boolean; editable?: boolean; }
 
 interface LocationDetailProps {
   locationId: number;
@@ -79,6 +79,7 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
     id: r.id, user: r.user ?? 'User', avatar: r.avatar ?? 'https://i.pravatar.cc/64?img=12',
     rating: r.rating, comment: r.comment, date: r.date ? new Date(r.date).toLocaleDateString() : 'Just now',
     photos: r.photos ?? [], likes: r.likes ?? 0, liked: r.liked ?? false,
+    mine: r.mine ?? false, editable: r.editable ?? false,
     replies: (r.replies ?? []).map((p: any) => ({ id: p.id, user: p.user ?? 'User', avatar: p.avatar ?? 'https://i.pravatar.cc/64?img=12', text: p.text, date: p.date ? new Date(p.date).toLocaleDateString() : 'Just now' })),
   });
 
@@ -118,27 +119,61 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
   const liveRating = reviews.length ? avg : location.rating;
   const liveCount = reviews.length ? reviews.length : location.reviewCount;
 
+  // The current user's own review (one per place) and whether we're editing it.
+  const myReview = reviews.find((r) => r.mine);
+  const [editingMine, setEditingMine] = useState(false);
+
+  const startEditMine = () => {
+    if (!myReview) return;
+    setEditingMine(true); setUserRating(myReview.rating); setComment(myReview.comment);
+    setPhotos([]); setPhotoFiles([]);
+  };
+  const cancelEditMine = () => { setEditingMine(false); setUserRating(0); setComment(''); };
+
+  const deleteMine = async () => {
+    if (!myReview) return;
+    const id = myReview.id;
+    setReviews((rs) => rs.filter((r) => r.id !== id));
+    try { await reviewsApi.removeMine(id); flash(t('det.tReviewDeleted')); refreshPlaces(); }
+    catch (e: any) { flash(e?.message || t('det.tShareFail')); }
+  };
+
   const handleSubmitReview = async () => {
     if (userRating === 0 || !comment.trim()) return;
     const body = { rating: userRating, comment: comment.trim() };
     const localPhotos = photos; const files = photoFiles;
-    setUserRating(0); setComment(''); setPhotos([]); setPhotoFiles([]);
-    if (authApi.getToken()) {
-      try {
-        const saved: any = await reviewsApi.create(locationId, body);
-        // upload each photo as bytes; collect served URLs
-        const urls: string[] = [];
-        for (const f of files) {
-          try { const r = await reviewsApi.uploadReviewPhoto(saved.id, f); if (r?.url) urls.push(r.url); } catch { /* skip */ }
-        }
-        const view = mapReview(saved); view.photos = urls;
-        setReviews((rs) => [view, ...rs]);
-        refreshPlaces();   // update rating/count on cards across the app
-        return;
-      } catch { /* fall through to offline */ }
+    if (!authApi.getToken()) {
+      // optimistic offline fallback (not persisted)
+      setReviews((rs) => [{ id: Date.now(), user: 'You', avatar: 'https://i.pravatar.cc/64?img=12', rating: body.rating, comment: body.comment, date: 'Just now', photos: localPhotos, likes: 0, liked: false, replies: [], mine: true, editable: true }, ...rs]);
+      setUserRating(0); setComment(''); setPhotos([]); setPhotoFiles([]);
+      return;
     }
-    // optimistic / offline fallback (object URLs, not persisted)
-    setReviews((rs) => [{ id: Date.now(), user: 'You', avatar: 'https://i.pravatar.cc/64?img=12', rating: body.rating, comment: body.comment, date: 'Just now', photos: localPhotos, likes: 0, liked: false, replies: [] }, ...rs]);
+    // EDIT existing review
+    if (editingMine && myReview) {
+      try {
+        const saved: any = await reviewsApi.updateMine(myReview.id, body);
+        const urls: string[] = [...(myReview.photos ?? [])];
+        for (const f of files) { try { const r = await reviewsApi.uploadReviewPhoto(myReview.id, f); if (r?.url) urls.push(r.url); } catch { /* skip */ } }
+        const view = mapReview(saved); view.photos = urls; view.mine = true;
+        setReviews((rs) => rs.map((r) => r.id === myReview.id ? view : r));
+        setEditingMine(false); setUserRating(0); setComment(''); setPhotos([]); setPhotoFiles([]);
+        flash(t('det.tReviewUpdated')); refreshPlaces();
+      } catch (e: any) { flash(e?.message || t('det.tShareFail')); }
+      return;
+    }
+    // CREATE new review
+    try {
+      const saved: any = await reviewsApi.create(locationId, body);
+      const urls: string[] = [];
+      for (const f of files) { try { const r = await reviewsApi.uploadReviewPhoto(saved.id, f); if (r?.url) urls.push(r.url); } catch { /* skip */ } }
+      const view = mapReview(saved); view.photos = urls; view.mine = true; view.editable = true;
+      setReviews((rs) => [view, ...rs]);
+      setUserRating(0); setComment(''); setPhotos([]); setPhotoFiles([]);
+      refreshPlaces();
+    } catch (e: any) {
+      // 409 = already reviewed this place
+      flash(e?.message || t('det.tShareFail'));
+    }
   };
 
   const toggleLike = (id: number) => {
@@ -461,9 +496,31 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
               </div>
             </div>
 
-            {/* Write a review */}
+            {/* Your existing review — one per place; edit (within 24h) or delete */}
+            {myReview && !editingMine && (
+              <div className="bg-[#f6f4ff] rounded-3xl p-5 border border-[#e3d9ff] shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-display font-bold text-[#2b2521]">{t('det.yourReview')}</h3>
+                  <div className="flex items-center gap-2">
+                    {myReview.editable && (
+                      <button onClick={startEditMine} className="px-3 py-1.5 rounded-lg bg-white text-[#6200FF] text-xs font-semibold border border-[#e3d9ff] hover:bg-[#f1ebff]">{t('det.edit')}</button>
+                    )}
+                    <button onClick={deleteMine} className="px-3 py-1.5 rounded-lg bg-white text-rose-600 text-xs font-semibold border border-rose-100 hover:bg-rose-50">{t('det.delete')}</button>
+                  </div>
+                </div>
+                <div className="flex gap-1 mb-1">{[1,2,3,4,5].map((s) => <Star key={s} size={16} className={s <= myReview.rating ? 'text-amber-500 fill-amber-500' : 'text-slate-300'} />)}</div>
+                <p className="text-sm text-slate-700">{myReview.comment}</p>
+                {!myReview.editable && <p className="text-xs text-slate-400 mt-2">{t('det.editWindow')}</p>}
+              </div>
+            )}
+
+            {/* Write / edit a review */}
+            {(!myReview || editingMine) && (
             <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm">
-              <h3 className="font-display font-bold text-[#2b2521] mb-3">{t('det.write')}</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-display font-bold text-[#2b2521]">{editingMine ? t('det.editReview') : t('det.write')}</h3>
+                {editingMine && <button onClick={cancelEditMine} className="text-xs font-semibold text-slate-500 hover:text-slate-700">{t('det.cancel')}</button>}
+              </div>
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-sm text-slate-600 font-medium">{t('det.yourRating')}</span>
                 <div className="flex gap-1">
@@ -499,9 +556,10 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
               </div>
               <motion.button whileTap={{ scale: 0.98 }} onClick={handleSubmitReview} disabled={userRating === 0 || !comment.trim()}
                 className="w-full bg-[#6200FF] text-white py-3.5 rounded-2xl hover:bg-[#5400dd] disabled:bg-slate-200 disabled:cursor-not-allowed transition-colors shadow-lg shadow-[#6200FF]/20 font-semibold">
-                Post Review
+                {editingMine ? t('det.saveReview') : t('det.post')}
               </motion.button>
             </div>
+            )}
 
             {/* Search + sort comments */}
             <div className="flex flex-col sm:flex-row gap-3">

@@ -50,6 +50,11 @@ export function AuthPage({ onAuth }: AuthPageProps) {
     setError(''); setLoading(true);
     try {
       if (isSignup) {
+        // Legal minimum age: 13+
+        if (form.birthDate) {
+          const age = Math.floor((Date.now() - new Date(form.birthDate).getTime()) / (365.25 * 24 * 3600 * 1000));
+          if (age < 13) { setError(t('auth.ageLimit')); setLoading(false); return; }
+        }
         await authApi.register(form);   // backend sends OTP (emails it / returns devCode)
         setStep('verify');
       } else {

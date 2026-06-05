@@ -127,6 +127,8 @@ export const places = {
 export const reviews = {
   list: (placeId: number, sort?: string) => get<unknown[]>(`/places/${placeId}/reviews${sort ? `?sort=${sort}` : ''}`),
   create: (placeId: number, data: { rating: number; comment: string; photos?: string[] }) => post<unknown>(`/places/${placeId}/reviews`, data),
+  updateMine: (reviewId: number, data: { rating: number; comment: string; photos?: string[] }) => patch<unknown>(`/reviews/${reviewId}`, data),
+  removeMine: (reviewId: number) => del<void>(`/reviews/${reviewId}`),
   like: (reviewId: number) => post<{ likes: number; liked: boolean }>(`/reviews/${reviewId}/like`),
   uploadReviewPhoto: (reviewId: number, file: File) => {
     const fd = new FormData(); fd.append('file', file);
@@ -214,6 +216,7 @@ export const profile = {
   },
   stats: () => get<{ reviews: number; favorites: number; plans: number; card?: { number: string; expires: string } }>('/profile/stats'),
   activity: () => get<{ id: number; type: string; place: string; action: string; time: string }[]>('/profile/activity'),
+  deleteAccount: () => del<void>('/profile'),
 };
 
 /** Reference list of endpoints the backend must expose. */
