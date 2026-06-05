@@ -93,6 +93,8 @@ export const auth = {
   oauth: (provider: 'google' | 'facebook') => post<{ url: string }>(`/auth/oauth/${provider}`),
   forgotPassword: (data: { email: string }) => post<{ devCode?: string }>('/auth/forgot-password', data),
   resetPassword: (data: { email: string; code: string; password: string }) => post<Partial<AuthResult>>('/auth/reset-password', data),
+  appealRequest: (data: { email: string }) => post<{ pendingVerification: boolean; devCode?: string }>('/auth/appeal/request', data),
+  appealVerify: (data: { email: string; code: string }) => post<AuthResult>('/auth/appeal/verify', data),
   me: () => get<unknown>('/auth/me'),
   logout: () => post<void>('/auth/logout', { refreshToken: REFRESH }),
 };
@@ -201,6 +203,7 @@ export const admin = {
   restoreReview: (id: number) => post<void>(`/admin/reviews/${id}/restore`),
   deleteReview: (id: number) => del<void>(`/admin/reviews/${id}`),
   dismissReport: (id: number) => del<void>(`/admin/reports/${id}`),
+  markInappropriate: (reviewId: number) => post<{ outcome: string; strikes: number; blocks: number }>(`/admin/reviews/${reviewId}/inappropriate`),
   pendingPlaces: () => get<any[]>('/admin/places/pending'),
   approvePlace: (id: number) => post<void>(`/admin/places/${id}/approve`),
   rejectPlace: (id: number) => post<void>(`/admin/places/${id}/reject`),

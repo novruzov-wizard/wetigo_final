@@ -1,4 +1,4 @@
-import { ArrowLeft, Store, ShieldCheck, Check, X, Trash2, Eye, EyeOff, Phone, Clock, Globe, ImagePlus, Loader2, MapPin } from 'lucide-react';
+import { ArrowLeft, Store, ShieldCheck, Check, X, Trash2, Eye, EyeOff, Phone, Clock, Globe, ImagePlus, Loader2, MapPin, AlertTriangle } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { places as placesApi, admin as adminApi, auth as authApi } from '../lib/api';
@@ -41,13 +41,14 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
   // split reports into review reports vs place reports
   const reviewReports = reports.filter((r: any) => (r.type ?? 'review') !== 'place');
   const placeReports = reports.filter((r: any) => r.type === 'place');
-  const moderate = async (kind: 'hide' | 'unhide' | 'delete' | 'dismiss' | 'rejectPlace') => {
+  const moderate = async (kind: 'hide' | 'unhide' | 'delete' | 'dismiss' | 'rejectPlace' | 'inappropriate') => {
     if (!report) return; setRacting(true);
     try {
       if (kind === 'hide') { await adminApi.hideReview(rid(report)); setReport({ ...report, hidden: true }); flash(t('mng.tHidden')); }
       else if (kind === 'unhide') { await adminApi.restoreReview(rid(report)); setReport({ ...report, hidden: false }); flash(t('mng.tRestored')); }
       else if (kind === 'delete') { await adminApi.deleteReview(rid(report)); setReport(null); flash(t('mng.tDeleted')); }
       else if (kind === 'dismiss') { await adminApi.dismissReport(report.id); setReport(null); flash(t('mng.tDismissed')); }
+      else if (kind === 'inappropriate') { const r = await adminApi.markInappropriate(rid(report)); await adminApi.dismissReport(report.id); setReport(null); flash(t('mng.tInappropriate').replace('{x}', r.outcome)); }
       else if (kind === 'rejectPlace') { await adminApi.rejectPlace(report.placeId); await adminApi.dismissReport(report.id); setReport(null); refreshPlaces(); flash(t('mng.tRejected')); }
       loadAdmin();
     } catch (e: any) { flash(e?.message || 'Error'); } finally { setRacting(false); }
@@ -352,13 +353,16 @@ export function ManagePlacesPage({ onBack, isAdmin }: ManagePlacesPageProps) {
                       <p><span className="text-slate-400">{t('mng.statusL')}: </span>{report.hidden ? t('mng.hidden') : t('mng.visible')}</p>
                     </div>
                   </div>
-                  <div className="flex gap-3 p-6 pt-2 border-t border-slate-100">
-                    {report.hidden ? (
-                      <button onClick={() => moderate('unhide')} disabled={racting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-50 text-emerald-600 font-semibold hover:bg-emerald-100 disabled:opacity-60"><Eye size={16} /> {t('mng.unhide')}</button>
-                    ) : (
-                      <button onClick={() => moderate('hide')} disabled={racting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 disabled:opacity-60"><EyeOff size={16} /> {t('mng.hide')}</button>
-                    )}
-                    <button onClick={() => moderate('delete')} disabled={racting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-50 text-rose-600 font-semibold hover:bg-rose-100 disabled:opacity-60">{racting ? <Loader2 size={16} className="animate-spin" /> : <><Trash2 size={16} /> {t('mng.delete')}</>}</button>
+                  <div className="p-6 pt-2 border-t border-slate-100 space-y-2">
+                    <button onClick={() => moderate('inappropriate')} disabled={racting} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-600 text-white font-semibold hover:bg-rose-700 disabled:opacity-60">{racting ? <Loader2 size={16} className="animate-spin" /> : <><AlertTriangle size={16} /> {t('mng.inappropriate')}</>}</button>
+                    <div className="flex gap-3">
+                      {report.hidden ? (
+                        <button onClick={() => moderate('unhide')} disabled={racting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-50 text-emerald-600 font-semibold hover:bg-emerald-100 disabled:opacity-60"><Eye size={16} /> {t('mng.unhide')}</button>
+                      ) : (
+                        <button onClick={() => moderate('hide')} disabled={racting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 disabled:opacity-60"><EyeOff size={16} /> {t('mng.hide')}</button>
+                      )}
+                      <button onClick={() => moderate('delete')} disabled={racting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-50 text-rose-600 font-semibold hover:bg-rose-100 disabled:opacity-60">{racting ? <Loader2 size={16} className="animate-spin" /> : <><Trash2 size={16} /> {t('mng.delete')}</>}</button>
+                    </div>
                   </div>
                 </>
               )}

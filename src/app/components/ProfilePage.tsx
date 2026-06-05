@@ -26,6 +26,24 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
   const [toast, setToast] = useState<string | null>(null);
   const flash = (m: string) => { setToast(m); window.clearTimeout((flash as any)._t); (flash as any)._t = window.setTimeout(() => setToast(null), 2200); };
 
+  const [appealStep, setAppealStep] = useState<'idle' | 'code'>('idle');
+  const [appealCode, setAppealCode] = useState('');
+  const [appealBusy, setAppealBusy] = useState(false);
+  const sendAppeal = async () => {
+    setAppealBusy(true);
+    try { await authApi.appealRequest({ email: user.email }); setAppealStep('code'); flash(t('settings.appealSent')); }
+    catch (e: any) { flash(e?.message || 'Error'); } finally { setAppealBusy(false); }
+  };
+  const verifyAppeal = async () => {
+    if (appealCode.trim().length < 4) return;
+    setAppealBusy(true);
+    try {
+      const res: any = await authApi.appealVerify({ email: user.email, code: appealCode.trim() });
+      if (res?.token) authApi.setSession(res);
+      setAppealStep('idle'); setAppealCode(''); flash(t('settings.appealOk'));
+    } catch (e: any) { flash(e?.message || 'Error'); } finally { setAppealBusy(false); }
+  };
+
   const deleteAccount = async () => {
     setDeleting(true);
     try { await profileApi.deleteAccount(); onSignOut(); }
@@ -324,6 +342,23 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
           <button onClick={onSignOut} className="w-full flex items-center justify-between p-5 hover:bg-red-50 transition-colors">
             <div className="flex items-center gap-3"><LogOut size={20} className="text-red-600" /><span className="text-red-600 font-medium">{t('settings.signout')}</span></div>
           </button>
+        </div>
+
+        {/* Appeal a review restriction (quarantine) */}
+        <div className="mt-4 bg-white rounded-3xl border border-slate-200 overflow-hidden">
+          <div className="p-5">
+            <p className="font-semibold text-slate-900 mb-1">{t('settings.appeal')}</p>
+            <p className="text-xs text-slate-500 mb-3">{t('settings.appealDesc')}</p>
+            {appealStep === 'idle' ? (
+              <button onClick={sendAppeal} disabled={appealBusy} className="px-4 py-2.5 rounded-xl bg-[#f1ebff] text-[#6200FF] text-sm font-semibold hover:bg-[#e3d6ff] disabled:opacity-60 flex items-center gap-2">{appealBusy ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} {t('settings.appealSend')}</button>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2">
+                <input value={appealCode} onChange={(e) => setAppealCode(e.target.value)} placeholder={t('settings.codePh')} inputMode="numeric"
+                  className="px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm w-40 focus:outline-none focus:ring-2 focus:ring-[#6200FF]" />
+                <button onClick={verifyAppeal} disabled={appealBusy} className="px-4 py-2.5 rounded-xl bg-[#6200FF] text-white text-sm font-semibold hover:bg-[#5400dd] disabled:opacity-60">{appealBusy ? '…' : t('settings.appealVerify')}</button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Danger zone — delete account */}
