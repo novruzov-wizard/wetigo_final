@@ -191,8 +191,8 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
 
       {view === 'map' ? (
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* LEFT: cards grid */}
-          <div className="grid sm:grid-cols-2 gap-4 content-start">
+          {/* LEFT: cards grid (below the map on small screens) */}
+          <div className="grid sm:grid-cols-2 gap-4 content-start order-2 lg:order-1">
             {results.map((p) => (
               <motion.div
                 key={p.id}
@@ -225,8 +225,8 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
             ))}
           </div>
 
-          {/* RIGHT: sticky map (preview shows as a popup anchored to the pin) */}
-          <div className="lg:sticky lg:top-4 h-[480px] lg:h-[640px] relative rounded-3xl overflow-hidden border border-slate-200 shadow-sm">
+          {/* RIGHT: sticky map (on top on small screens) */}
+          <div className="order-1 lg:order-2 lg:sticky lg:top-4 h-[420px] sm:h-[480px] lg:h-[640px] relative rounded-3xl overflow-hidden border border-slate-200 shadow-sm">
             <div ref={mapEl} className="absolute inset-0 z-0" />
           </div>
         </div>

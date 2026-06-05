@@ -10,7 +10,7 @@ interface AuthPageProps {
 }
 
 export function AuthPage({ onAuth }: AuthPageProps) {
-  const { t, updateUser } = useStore();
+  const { t, updateUser, setLang } = useStore();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [step, setStep] = useState<'form' | 'verify' | 'forgot' | 'reset'>('form');
   const [newPassword, setNewPassword] = useState('');
@@ -37,6 +37,7 @@ export function AuthPage({ onAuth }: AuthPageProps) {
         bio: res.user.bio ?? '',
         avatar: res.user.avatar ?? 'https://i.pravatar.cc/160?img=12',
       });
+      if (res.user.language) { try { setLang(res.user.language); } catch { /* ignore */ } }
     }
     onAuth();
   };

@@ -18,7 +18,7 @@ import { ManagePlacesPage } from './components/ManagePlacesPage';
 interface SelectedPlan { id: string; name: string; price: number; cycle: 'month' | 'year'; }
 
 export default function App() {
-  const { t, refreshFavorites, updateUser } = useStore();
+  const { t, refreshFavorites, updateUser, setLang } = useStore();
   const [authed, setAuthed] = useState(() => !!authApi.getToken());
   const [role, setRole] = useState<string>('USER');
   const [showManage, setShowManage] = useState(false);
@@ -40,6 +40,7 @@ export default function App() {
             avatar: u.avatar || 'https://i.pravatar.cc/160?img=12',
           });
           if (u.role) setRole(u.role);
+          if (u.language) { try { setLang(u.language); } catch { /* ignore */ } }
         }
       })
       .catch((e: any) => {

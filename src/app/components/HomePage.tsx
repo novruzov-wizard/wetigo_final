@@ -1,4 +1,4 @@
-import { ShoppingCart, Heart, Plus, Star, MapPin, ArrowUpRight, Pizza, Coffee, ChevronRight, Compass, Building2, Dumbbell, ShoppingBag, Footprints, Sparkles, Navigation } from 'lucide-react';
+import { Search, Heart, Plus, Star, MapPin, ArrowUpRight, Pizza, Coffee, ChevronRight, Compass, Building2, Dumbbell, ShoppingBag, Footprints, Sparkles, Navigation } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
@@ -152,7 +152,7 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
               <div className="flex flex-wrap gap-2.5">
                 <button onClick={() => onSearch('')}
                   className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#6200FF] text-white text-sm font-semibold shadow-lg shadow-[#6200FF]/25 hover:bg-[#5400dd] transition-colors">
-                  {t('home.exploreNow')} <ShoppingCart size={16} />
+                  <Search size={16} /> {t('home.exploreNow')}
                 </button>
                 <button onClick={onAddLocation}
                   className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white text-[#2b2521] text-sm font-semibold border border-[#e3d4ff] hover:bg-[#faf7ff] transition-colors">
@@ -253,7 +253,6 @@ export function HomePage({ onSelectLocation, onCategorySelect, onAddLocation }: 
             <div className="pointer-events-none absolute right-24 -top-12 w-32 h-32 rounded-full bg-fuchsia-400/20 blur-2xl" />
             <div className="relative flex items-center justify-between gap-6">
               <div className="max-w-md">
-                <span className="inline-flex items-center gap-1.5 bg-amber-400 text-amber-900 text-[11px] font-bold px-2.5 py-1 rounded-full mb-3">{t('app.soon')}</span>
                 <h3 className="font-display text-2xl sm:text-3xl font-bold text-white leading-tight mb-2">{t('app.title')}</h3>
                 <p className="text-white/70 text-sm mb-4">{t('app.desc')}</p>
                 {/* social proof */}

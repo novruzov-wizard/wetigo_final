@@ -46,7 +46,7 @@ const en: Dict = {
   'toast.pushOff': 'Notifications turned off',
   'toast.pushBlocked': 'Notifications blocked in your browser',
   // Home
-  'home.badge': '4.8★ · 50,000+ reviews you can trust',
+  'home.badge': '4.8 · 50,000+ reviews you can trust',
   'home.heroTitle': 'Find places people actually love',
   'home.heroDesc': 'Real reviews, real ratings — discover the best spots near you and never wonder “where to go” again.',
   'home.exploreNow': 'Explore now',
@@ -114,7 +114,7 @@ const en: Dict = {
   'title.addplace': 'Add a Place',
   'title.checkout': 'Checkout',
   'app.title': 'Get the Wetigo mobile app',
-  'app.desc': 'Discover places, write reviews and plan visits on the go. iOS & Android — coming soon.',
+  'app.desc': 'Discover places, write reviews and plan visits on the go. Install it on iOS & Android.',
   'app.soon': 'Coming soon',
 };
 
@@ -152,7 +152,7 @@ const az: Dict = {
   'toast.pushOff': 'Bildirişlər söndürüldü',
   'toast.pushBlocked': 'Brauzerdə bildirişlər bloklanıb',
   // Home
-  'home.badge': '4.8★ · 50,000+ etibarlı rəy',
+  'home.badge': '4.8 · 50,000+ etibarlı rəy',
   'home.heroTitle': 'İnsanların həqiqətən sevdiyi məkanları tap',
   'home.heroDesc': 'Real rəylər, real reytinqlər — yaxınlıqdakı ən yaxşı məkanları kəşf et, “hara gedək?” sualını bir daha vermə.',
   'home.exploreNow': 'İndi kəşf et',
@@ -220,7 +220,7 @@ const az: Dict = {
   'title.addplace': 'Məkan əlavə et',
   'title.checkout': 'Ödəniş',
   'app.title': 'Wetigo mobil tətbiqini al',
-  'app.desc': 'Məkanları kəşf et, rəy yaz və ziyarətləri yolda planla. iOS & Android — tezliklə.',
+  'app.desc': 'Məkanları kəşf et, rəy yaz və ziyarətləri yolda planla. iOS & Android-də quraşdır.',
   'app.soon': 'Tezliklə',
 };
 

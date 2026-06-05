@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { translate, detectLang, type Lang } from './i18n';
 import { PLACES as SEED_PLACES, placeImage, type Place } from './data/places';
-import { places as placesApi, favorites as favoritesApi, auth as authApi } from './lib/api';
+import { places as placesApi, favorites as favoritesApi, auth as authApi, profile as profileApi } from './lib/api';
 
 export interface UserProfile {
   name: string;
@@ -91,7 +91,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   };
   const updateUser = (patch: Partial<UserProfile>) => setUser((u) => ({ ...u, ...patch }));
-  const setLang = (l: Lang) => setLangState(l);
+  const setLang = (l: Lang) => {
+    setLangState(l);
+    // remember the choice server-side so it follows the user across devices/logins
+    if (authApi.getToken()) profileApi.updateSettings({ language: l }).catch(() => {});
+  };
   const t = (key: string) => translate(lang, key);
   const setCountry = (c: string) => setCountryState(c);
   useEffect(() => { localStorage.setItem('wetigo:country', JSON.stringify(country)); }, [country]);
