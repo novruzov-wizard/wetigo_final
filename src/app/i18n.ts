@@ -116,6 +116,14 @@ const en: Dict = {
   'app.title': 'Get the Wetigo mobile app',
   'app.desc': 'Discover places, write reviews and plan visits on the go. Install it on iOS & Android.',
   'app.soon': 'Coming soon',
+  'explore.noResults': 'No results found', 'explore.adjust': 'Try adjusting your filters.', 'explore.reviews': 'reviews', 'explore.saved': 'saved',
+  'det.join': 'Join Community', 'det.message': 'Message', 'det.share': 'Share', 'det.report': 'Report', 'det.about': 'About', 'det.reviewsTab': 'Reviews',
+  'det.description': 'Description', 'det.details': 'Details', 'det.location': 'Location', 'det.rating': 'Rating', 'det.beFirst': 'New · Be the first to review',
+  'det.status': 'Status & price', 'det.hours': 'Opening hours', 'det.phone': 'Phone', 'det.website': 'Website', 'det.openMaps': 'Open in Google Maps',
+  'det.claim': 'Own this business? Claim it', 'det.gallery': 'Gallery', 'det.write': 'Write a Review', 'det.yourRating': 'Your rating:', 'det.expPh': 'Share your experience…',
+  'det.post': 'Post Review', 'det.searchComments': 'Search comments…', 'det.sortRecent': 'Most recent', 'det.sortHigh': 'Highest rated', 'det.sortLow': 'Lowest rated', 'det.sortLiked': 'Most liked', 'det.reply': 'Reply',
+  'det.tCommunity': 'Community chat — coming soon', 'det.tMsg': 'Messaging — coming soon', 'det.tReport': 'Report submitted — thank you', 'det.tCopied': 'Link copied to clipboard', 'det.tShareFail': 'Could not share',
+  'det.tCommentReported': 'Comment reported — our team will review it', 'det.tSignIn': 'Sign in to claim this business', 'det.tClaimSent': 'Claim submitted — our team will verify and approve it',
 };
 
 const az: Dict = {
@@ -222,6 +230,14 @@ const az: Dict = {
   'app.title': 'Wetigo mobil tətbiqini al',
   'app.desc': 'Məkanları kəşf et, rəy yaz və ziyarətləri yolda planla. iOS & Android-də quraşdır.',
   'app.soon': 'Tezliklə',
+  'explore.noResults': 'Nəticə tapılmadı', 'explore.adjust': 'Filtrləri dəyişməyi yoxlayın.', 'explore.reviews': 'rəy', 'explore.saved': 'saxlanıldı',
+  'det.join': 'İcmaya qoşul', 'det.message': 'Mesaj', 'det.share': 'Paylaş', 'det.report': 'Şikayət', 'det.about': 'Haqqında', 'det.reviewsTab': 'Rəylər',
+  'det.description': 'Təsvir', 'det.details': 'Detallar', 'det.location': 'Ünvan', 'det.rating': 'Reytinq', 'det.beFirst': 'Yeni · İlk rəyi sən yaz',
+  'det.status': 'Status & qiymət', 'det.hours': 'İş saatları', 'det.phone': 'Telefon', 'det.website': 'Veb sayt', 'det.openMaps': 'Google Xəritədə aç',
+  'det.claim': 'Bu biznes sənindir? Sahiblən', 'det.gallery': 'Qalereya', 'det.write': 'Rəy yaz', 'det.yourRating': 'Reytinqin:', 'det.expPh': 'Təcrübəni paylaş…',
+  'det.post': 'Rəyi göndər', 'det.searchComments': 'Şərhlərdə axtar…', 'det.sortRecent': 'Ən yeni', 'det.sortHigh': 'Ən yüksək reytinq', 'det.sortLow': 'Ən aşağı reytinq', 'det.sortLiked': 'Ən çox bəyənilən', 'det.reply': 'Cavab',
+  'det.tCommunity': 'İcma çatı — tezliklə', 'det.tMsg': 'Mesajlaşma — tezliklə', 'det.tReport': 'Şikayət göndərildi — təşəkkürlər', 'det.tCopied': 'Link kopyalandı', 'det.tShareFail': 'Paylaşmaq alınmadı',
+  'det.tCommentReported': 'Şərh şikayət olundu — komandamız baxacaq', 'det.tSignIn': 'Sahiblənmək üçün daxil ol', 'det.tClaimSent': 'Sahiblik sorğusu göndərildi — komandamız təsdiqləyəcək',
 };
 
 const tr: Dict = {
@@ -256,6 +272,14 @@ const tr: Dict = {
   'auth.discover': 'Zamanına değer yerleri keşfet.', 'auth.discoverDesc': '50.000+ kâşife katıl — güvendiğin bir toplulukça puanlanan en iyi yerleri bul ve yorumla.',
   'title.place': 'Mekan Detayı', 'title.premium': 'Premium’a Geç', 'title.addplace': 'Yer Ekle', 'title.checkout': 'Ödeme',
   'app.title': 'Wetigo mobil uygulamasını al', 'app.desc': 'Hareket halindeyken yerleri keşfet, yorum yaz ve ziyaretleri planla. iOS & Android.',
+  'explore.noResults': 'Sonuç bulunamadı', 'explore.adjust': 'Filtreleri değiştirmeyi dene.', 'explore.reviews': 'yorum', 'explore.saved': 'kaydedildi',
+  'det.join': 'Topluluğa katıl', 'det.message': 'Mesaj', 'det.share': 'Paylaş', 'det.report': 'Bildir', 'det.about': 'Hakkında', 'det.reviewsTab': 'Yorumlar',
+  'det.description': 'Açıklama', 'det.details': 'Detaylar', 'det.location': 'Konum', 'det.rating': 'Puan', 'det.beFirst': 'Yeni · İlk yorumu sen yap',
+  'det.status': 'Durum & fiyat', 'det.hours': 'Çalışma saatleri', 'det.phone': 'Telefon', 'det.website': 'Web sitesi', 'det.openMaps': 'Google Haritalar’da aç',
+  'det.claim': 'Bu işletme senin mi? Sahiplen', 'det.gallery': 'Galeri', 'det.write': 'Yorum yaz', 'det.yourRating': 'Puanın:', 'det.expPh': 'Deneyimini paylaş…',
+  'det.post': 'Yorumu gönder', 'det.searchComments': 'Yorumlarda ara…', 'det.sortRecent': 'En yeni', 'det.sortHigh': 'En yüksek puan', 'det.sortLow': 'En düşük puan', 'det.sortLiked': 'En beğenilen', 'det.reply': 'Yanıtla',
+  'det.tCommunity': 'Topluluk sohbeti — yakında', 'det.tMsg': 'Mesajlaşma — yakında', 'det.tReport': 'Bildirim gönderildi — teşekkürler', 'det.tCopied': 'Bağlantı kopyalandı', 'det.tShareFail': 'Paylaşılamadı',
+  'det.tCommentReported': 'Yorum bildirildi — ekibimiz inceleyecek', 'det.tSignIn': 'Sahiplenmek için giriş yap', 'det.tClaimSent': 'Sahiplik talebi gönderildi — ekibimiz onaylayacak',
 };
 
 const ru: Dict = {
@@ -290,6 +314,14 @@ const ru: Dict = {
   'auth.discover': 'Открывайте места, которые стоят вашего времени.', 'auth.discoverDesc': 'Присоединяйтесь к 50 000+ исследователей — находите и оценивайте лучшие места с сообществом, которому доверяете.',
   'title.place': 'О месте', 'title.premium': 'Premium', 'title.addplace': 'Добавить место', 'title.checkout': 'Оплата',
   'app.title': 'Установите мобильное приложение Wetigo', 'app.desc': 'Открывайте места, пишите отзывы и планируйте визиты на ходу. iOS и Android.',
+  'explore.noResults': 'Ничего не найдено', 'explore.adjust': 'Измените фильтры.', 'explore.reviews': 'отзывов', 'explore.saved': 'сохранено',
+  'det.join': 'В сообщество', 'det.message': 'Сообщение', 'det.share': 'Поделиться', 'det.report': 'Пожаловаться', 'det.about': 'Об объекте', 'det.reviewsTab': 'Отзывы',
+  'det.description': 'Описание', 'det.details': 'Детали', 'det.location': 'Адрес', 'det.rating': 'Рейтинг', 'det.beFirst': 'Новое · Оставьте первый отзыв',
+  'det.status': 'Статус и цена', 'det.hours': 'Часы работы', 'det.phone': 'Телефон', 'det.website': 'Сайт', 'det.openMaps': 'Открыть в Google Картах',
+  'det.claim': 'Это ваш бизнес? Заявить', 'det.gallery': 'Галерея', 'det.write': 'Написать отзыв', 'det.yourRating': 'Ваша оценка:', 'det.expPh': 'Поделитесь впечатлением…',
+  'det.post': 'Опубликовать', 'det.searchComments': 'Поиск по отзывам…', 'det.sortRecent': 'Сначала новые', 'det.sortHigh': 'Высокий рейтинг', 'det.sortLow': 'Низкий рейтинг', 'det.sortLiked': 'Популярные', 'det.reply': 'Ответить',
+  'det.tCommunity': 'Чат сообщества — скоро', 'det.tMsg': 'Сообщения — скоро', 'det.tReport': 'Жалоба отправлена — спасибо', 'det.tCopied': 'Ссылка скопирована', 'det.tShareFail': 'Не удалось поделиться',
+  'det.tCommentReported': 'Отзыв отправлен на проверку', 'det.tSignIn': 'Войдите, чтобы заявить о бизнесе', 'det.tClaimSent': 'Заявка отправлена — мы проверим и одобрим',
 };
 
 const es: Dict = {
@@ -324,6 +356,14 @@ const es: Dict = {
   'auth.discover': 'Descubre lugares que valen tu tiempo.', 'auth.discoverDesc': 'Únete a 50 000+ exploradores que encuentran y reseñan los mejores negocios — valorados por una comunidad fiable.',
   'title.place': 'Detalles del lugar', 'title.premium': 'Hazte Premium', 'title.addplace': 'Añadir lugar', 'title.checkout': 'Pago',
   'app.title': 'Consigue la app móvil de Wetigo', 'app.desc': 'Descubre lugares, escribe reseñas y planifica visitas sobre la marcha. iOS y Android.',
+  'explore.noResults': 'Sin resultados', 'explore.adjust': 'Prueba a ajustar los filtros.', 'explore.reviews': 'reseñas', 'explore.saved': 'guardados',
+  'det.join': 'Unirse a la comunidad', 'det.message': 'Mensaje', 'det.share': 'Compartir', 'det.report': 'Reportar', 'det.about': 'Acerca de', 'det.reviewsTab': 'Reseñas',
+  'det.description': 'Descripción', 'det.details': 'Detalles', 'det.location': 'Ubicación', 'det.rating': 'Valoración', 'det.beFirst': 'Nuevo · Sé el primero en reseñar',
+  'det.status': 'Estado y precio', 'det.hours': 'Horario', 'det.phone': 'Teléfono', 'det.website': 'Sitio web', 'det.openMaps': 'Abrir en Google Maps',
+  'det.claim': '¿Es tu negocio? Reclámalo', 'det.gallery': 'Galería', 'det.write': 'Escribir reseña', 'det.yourRating': 'Tu valoración:', 'det.expPh': 'Comparte tu experiencia…',
+  'det.post': 'Publicar reseña', 'det.searchComments': 'Buscar en reseñas…', 'det.sortRecent': 'Más recientes', 'det.sortHigh': 'Mejor valoradas', 'det.sortLow': 'Peor valoradas', 'det.sortLiked': 'Más gustadas', 'det.reply': 'Responder',
+  'det.tCommunity': 'Chat de comunidad — pronto', 'det.tMsg': 'Mensajería — pronto', 'det.tReport': 'Reporte enviado — gracias', 'det.tCopied': 'Enlace copiado', 'det.tShareFail': 'No se pudo compartir',
+  'det.tCommentReported': 'Reseña reportada — la revisaremos', 'det.tSignIn': 'Inicia sesión para reclamar', 'det.tClaimSent': 'Solicitud enviada — la verificaremos y aprobaremos',
 };
 
 const fr: Dict = {
@@ -358,6 +398,14 @@ const fr: Dict = {
   'auth.discover': 'Découvrez des lieux qui valent votre temps.', 'auth.discoverDesc': 'Rejoignez 50 000+ explorateurs qui trouvent et notent les meilleurs commerces — évalués par une communauté de confiance.',
   'title.place': 'Détails du lieu', 'title.premium': 'Passer Premium', 'title.addplace': 'Ajouter un lieu', 'title.checkout': 'Paiement',
   'app.title': 'Obtenez l’app mobile Wetigo', 'app.desc': 'Découvrez des lieux, écrivez des avis et planifiez vos visites où que vous soyez. iOS & Android.',
+  'explore.noResults': 'Aucun résultat', 'explore.adjust': 'Essayez d’ajuster les filtres.', 'explore.reviews': 'avis', 'explore.saved': 'enregistrés',
+  'det.join': 'Rejoindre la communauté', 'det.message': 'Message', 'det.share': 'Partager', 'det.report': 'Signaler', 'det.about': 'À propos', 'det.reviewsTab': 'Avis',
+  'det.description': 'Description', 'det.details': 'Détails', 'det.location': 'Adresse', 'det.rating': 'Note', 'det.beFirst': 'Nouveau · Soyez le premier à donner un avis',
+  'det.status': 'Statut & prix', 'det.hours': 'Horaires', 'det.phone': 'Téléphone', 'det.website': 'Site web', 'det.openMaps': 'Ouvrir dans Google Maps',
+  'det.claim': 'C’est votre établissement ? Revendiquez-le', 'det.gallery': 'Galerie', 'det.write': 'Écrire un avis', 'det.yourRating': 'Votre note :', 'det.expPh': 'Partagez votre expérience…',
+  'det.post': 'Publier l’avis', 'det.searchComments': 'Rechercher dans les avis…', 'det.sortRecent': 'Plus récents', 'det.sortHigh': 'Mieux notés', 'det.sortLow': 'Moins bien notés', 'det.sortLiked': 'Plus aimés', 'det.reply': 'Répondre',
+  'det.tCommunity': 'Chat communautaire — bientôt', 'det.tMsg': 'Messagerie — bientôt', 'det.tReport': 'Signalement envoyé — merci', 'det.tCopied': 'Lien copié', 'det.tShareFail': 'Partage impossible',
+  'det.tCommentReported': 'Avis signalé — notre équipe va vérifier', 'det.tSignIn': 'Connectez-vous pour revendiquer', 'det.tClaimSent': 'Demande envoyée — nous allons vérifier et approuver',
 };
 
 const de: Dict = {
@@ -392,6 +440,14 @@ const de: Dict = {
   'auth.discover': 'Entdecke Orte, die deine Zeit wert sind.', 'auth.discoverDesc': 'Schließe dich 50.000+ Entdeckern an — finde und bewerte die besten Orte, bewertet von einer vertrauenswürdigen Community.',
   'title.place': 'Ort-Details', 'title.premium': 'Premium holen', 'title.addplace': 'Ort hinzufügen', 'title.checkout': 'Kasse',
   'app.title': 'Hol dir die Wetigo-App', 'app.desc': 'Entdecke Orte, schreibe Bewertungen und plane Besuche unterwegs. iOS & Android.',
+  'explore.noResults': 'Keine Ergebnisse', 'explore.adjust': 'Passe die Filter an.', 'explore.reviews': 'Bewertungen', 'explore.saved': 'gespeichert',
+  'det.join': 'Community beitreten', 'det.message': 'Nachricht', 'det.share': 'Teilen', 'det.report': 'Melden', 'det.about': 'Über', 'det.reviewsTab': 'Bewertungen',
+  'det.description': 'Beschreibung', 'det.details': 'Details', 'det.location': 'Adresse', 'det.rating': 'Bewertung', 'det.beFirst': 'Neu · Sei der Erste mit einer Bewertung',
+  'det.status': 'Status & Preis', 'det.hours': 'Öffnungszeiten', 'det.phone': 'Telefon', 'det.website': 'Webseite', 'det.openMaps': 'In Google Maps öffnen',
+  'det.claim': 'Dein Geschäft? Beanspruchen', 'det.gallery': 'Galerie', 'det.write': 'Bewertung schreiben', 'det.yourRating': 'Deine Bewertung:', 'det.expPh': 'Teile deine Erfahrung…',
+  'det.post': 'Bewertung posten', 'det.searchComments': 'In Bewertungen suchen…', 'det.sortRecent': 'Neueste', 'det.sortHigh': 'Beste Bewertung', 'det.sortLow': 'Schlechteste', 'det.sortLiked': 'Beliebteste', 'det.reply': 'Antworten',
+  'det.tCommunity': 'Community-Chat — bald', 'det.tMsg': 'Nachrichten — bald', 'det.tReport': 'Meldung gesendet — danke', 'det.tCopied': 'Link kopiert', 'det.tShareFail': 'Teilen fehlgeschlagen',
+  'det.tCommentReported': 'Bewertung gemeldet — wir prüfen sie', 'det.tSignIn': 'Anmelden, um zu beanspruchen', 'det.tClaimSent': 'Anfrage gesendet — wir prüfen und bestätigen',
 };
 
 const DICTS: Record<Lang, Dict> = { en, az, tr, ru, es, fr, de };

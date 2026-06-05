@@ -187,7 +187,7 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
         {hasFilters && <button onClick={clearFilters} className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-slate-400 hover:text-slate-700 shrink-0"><X size={15} /> {t('explore.clear')}</button>}
       </div>
 
-      <p className="text-sm text-[#8a7d72] mb-4 font-medium">{results.length} {t('common.places')} {t('explore.found')}{userLoc ? ' · sorted by relevance' : ''}{favorites.length ? ` · ${favorites.length} saved` : ''}</p>
+      <p className="text-sm text-[#8a7d72] mb-4 font-medium">{results.length} {t('common.places')} {t('explore.found')}{favorites.length ? ` · ${favorites.length} ${t('explore.saved')}` : ''}</p>
 
       {view === 'map' ? (
         <div className="grid lg:grid-cols-2 gap-6">
@@ -208,7 +208,7 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
                   <button onClick={(e) => { e.stopPropagation(); toggleFavorite(p.id); }} className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow">
                     <Bookmark size={14} className={isFavorite(p.id) ? 'fill-[#6200FF] text-[#6200FF]' : 'text-[#6b6258]'} />
                   </button>
-                  <span className="absolute bottom-2.5 left-2.5 text-[10px] font-semibold px-2 py-0.5 rounded-full" style={p.open ? { background: '#dff0e6', color: '#2f9461' } : { background: '#fdecec', color: '#c2603f' }}>{p.open ? 'Open now' : 'Closed'}</span>
+                  <span className="absolute bottom-2.5 left-2.5 text-[10px] font-semibold px-2 py-0.5 rounded-full" style={p.open ? { background: '#dff0e6', color: '#2f9461' } : { background: '#fdecec', color: '#c2603f' }}>{p.open ? t('common.open') : t('common.closed')}</span>
                 </div>
                 <div className="p-3.5" onClick={() => onSelectLocation(p.id)}>
                   <div className="flex items-start justify-between gap-2 mb-1">
@@ -231,7 +231,7 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
           </div>
         </div>
       ) : results.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-2xl border border-slate-200"><p className="text-[#2b2521] font-medium mb-1">No results found</p><p className="text-sm text-[#8a7d72]">Try adjusting your filters.</p></div>
+        <div className="text-center py-20 bg-white rounded-2xl border border-slate-200"><p className="text-[#2b2521] font-medium mb-1">{t('explore.noResults')}</p><p className="text-sm text-[#8a7d72]">{t('explore.adjust')}</p></div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
           {results.map((p, idx) => (
@@ -249,7 +249,7 @@ export function SearchPage({ onSelectLocation, initialQuery = '', initialCategor
                   <h3 className="font-display text-xl font-semibold text-[#2b2521] line-clamp-1 flex items-center gap-1">{p.name} {p.verified && <BadgeCheck size={16} className="text-[#6200FF]" />}</h3>
                   <button onClick={() => toggleFavorite(p.id)} className="p-1.5 rounded-lg hover:bg-[#f1ebff] shrink-0"><Bookmark size={17} className={isFavorite(p.id) ? 'fill-[#6200FF] text-[#6200FF]' : 'text-[#a89a8b]'} /></button>
                 </div>
-                <p className="text-sm text-[#8a7d72] mb-3">{p.category} · {p.price} · {p.reviews} reviews</p>
+                <p className="text-sm text-[#8a7d72] mb-3">{p.category} · {p.price} · {p.reviews} {t('explore.reviews')}</p>
                 <div className="flex items-center gap-1.5 text-sm text-[#a89a8b]"><MapPin size={15} className="text-[#6200FF]" /><span className="line-clamp-1">{p.city}</span>{distOf(p) != null && <span className="text-[#6200FF] font-semibold">· {fmtDist(distOf(p))}</span>}</div>
               </div>
             </motion.div>

@@ -27,7 +27,7 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
   const [reviewSort, setReviewSort] = useState<'recent' | 'high' | 'low' | 'liked'>('recent');
   const fileRef = useRef<HTMLInputElement | null>(null);
 
-  const { places: storePlaces } = useStore();
+  const { places: storePlaces, t } = useStore();
   const place = storePlaces.find((p) => p.id === locationId) ?? PLACES.find((p) => p.id === locationId) ?? PLACES[0];
 
   const heroImg = place.image || 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&h=600&fit=crop';
@@ -107,8 +107,8 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
     try {
       if (navigator.share) { await navigator.share(data); return; }
       await navigator.clipboard.writeText(url);
-      flash('Link copied to clipboard');
-    } catch { flash('Could not share'); }
+      flash(t('det.tCopied'));
+    } catch { flash(t('det.tShareFail')); }
   };
 
   const avg = reviews.reduce((s, r) => s + r.rating, 0) / (reviews.length || 1);
@@ -217,18 +217,18 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
         <div className="flex flex-wrap gap-3">
           <motion.button
             whileTap={{ scale: 0.98 }}
-            onClick={() => flash('Community chat — coming soon')}
+            onClick={() => flash(t('det.tCommunity'))}
             className="flex-1 min-w-[180px] bg-[#6200FF] text-white py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#5400dd] transition-colors shadow-lg shadow-[#6200FF]/25 font-semibold"
           >
             <MessageCircle size={20} />
-            Join Community
+            {t('det.join')}
             <span className="text-[10px] font-bold uppercase tracking-wide bg-white/25 px-1.5 py-0.5 rounded">Soon</span>
           </motion.button>
           {[
-            { key: 'comment', icon: MessageSquare, label: 'Reviews', on: () => setActiveTab('reviews'), active: false },
-            { key: 'inbox', icon: Inbox, label: 'Message', on: () => flash('Messaging — coming soon'), active: false },
-            { key: 'share', icon: Share2, label: 'Share', on: handleShare, active: false },
-            { key: 'report', icon: Flag, label: 'Report', on: () => { if (authApi.getToken()) reviewsApi.report(locationId, 'place').catch(() => {}); flash('Report submitted — thank you'); }, active: false },
+            { key: 'comment', icon: MessageSquare, label: t('det.reviewsTab'), on: () => setActiveTab('reviews'), active: false },
+            { key: 'inbox', icon: Inbox, label: t('det.message'), on: () => flash(t('det.tMsg')), active: false },
+            { key: 'share', icon: Share2, label: t('det.share'), on: handleShare, active: false },
+            { key: 'report', icon: Flag, label: t('det.report'), on: () => { if (authApi.getToken()) reviewsApi.report(locationId, 'place').catch(() => {}); flash(t('det.tReport')); }, active: false },
           ].map((b) => {
             const Icon = b.icon;
             return (
@@ -262,7 +262,7 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
               <span className={`relative z-10 font-semibold transition-colors ${
                 activeTab === tab ? 'text-white' : 'text-slate-600'
               }`}>
-                {tab === 'about' ? 'About' : `Reviews (${location.reviewCount})`}
+                {tab === 'about' ? t('det.about') : `${t('det.reviewsTab')} (${location.reviewCount})`}
               </span>
             </button>
           ))}
@@ -280,19 +280,19 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
           >
             {/* Description */}
             <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-md">
-              <h3 className="font-semibold text-slate-900 mb-3">Description</h3>
+              <h3 className="font-semibold text-slate-900 mb-3">{t('det.description')}</h3>
               <p className="text-slate-700 leading-relaxed">{location.description}</p>
             </div>
 
             {/* Details */}
             <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-md space-y-4">
-              <h3 className="font-semibold text-slate-900 mb-3">Details</h3>
+              <h3 className="font-semibold text-slate-900 mb-3">{t('det.details')}</h3>
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
                   <MapPin size={18} className="text-[#6200FF]" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs text-slate-500 mb-0.5">Location</p>
+                  <p className="text-xs text-slate-500 mb-0.5">{t('det.location')}</p>
                   <p className="text-slate-900 font-medium">{location.address}</p>
                 </div>
               </div>
@@ -301,8 +301,8 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                   <Star size={18} className="text-amber-600 fill-amber-500" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs text-slate-500 mb-0.5">Rating</p>
-                  <p className="text-slate-900 font-medium">{location.rating > 0 ? `${location.rating.toFixed(1)} · ${location.reviewCount.toLocaleString()} reviews` : 'New · Be the first to review'}</p>
+                  <p className="text-xs text-slate-500 mb-0.5">{t('det.rating')}</p>
+                  <p className="text-slate-900 font-medium">{location.rating > 0 ? `${location.rating.toFixed(1)} · ${location.reviewCount.toLocaleString()} reviews` : t('det.beFirst')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
@@ -310,26 +310,26 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                   <Clock size={18} className="text-green-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs text-slate-500 mb-0.5">Status & price</p>
+                  <p className="text-xs text-slate-500 mb-0.5">{t('det.status')}</p>
                   <p className="font-medium" style={{ color: location.open ? '#16a34a' : '#e11d48' }}>{location.open ? 'Open now' : 'Closed'} <span className="text-slate-400">·</span> <span className="text-slate-900">{location.price}</span></p>
                 </div>
               </div>
               {location.hours && (
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center"><Clock size={18} className="text-blue-600" /></div>
-                  <div className="flex-1"><p className="text-xs text-slate-500 mb-0.5">Opening hours</p><p className="text-slate-900 font-medium">{location.hours}</p></div>
+                  <div className="flex-1"><p className="text-xs text-slate-500 mb-0.5">{t('det.hours')}</p><p className="text-slate-900 font-medium">{location.hours}</p></div>
                 </div>
               )}
               {location.phone && (
                 <a href={`tel:${location.phone}`} className="flex items-center gap-4 group">
                   <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center"><Phone size={18} className="text-green-600" /></div>
-                  <div className="flex-1"><p className="text-xs text-slate-500 mb-0.5">Phone</p><p className="text-slate-900 font-medium group-hover:underline">{location.phone}</p></div>
+                  <div className="flex-1"><p className="text-xs text-slate-500 mb-0.5">{t('det.phone')}</p><p className="text-slate-900 font-medium group-hover:underline">{location.phone}</p></div>
                 </a>
               )}
               {location.website && (
                 <a href={location.website.startsWith('http') ? location.website : `https://${location.website}`} target="_blank" rel="noreferrer" className="flex items-center gap-4 group">
                   <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center"><Globe size={18} className="text-[#6200FF]" /></div>
-                  <div className="flex-1 min-w-0"><p className="text-xs text-slate-500 mb-0.5">Website</p><p className="text-[#6200FF] font-medium group-hover:underline truncate">{location.website.replace(/^https?:\/\//, '')}</p></div>
+                  <div className="flex-1 min-w-0"><p className="text-xs text-slate-500 mb-0.5">{t('det.website')}</p><p className="text-[#6200FF] font-medium group-hover:underline truncate">{location.website.replace(/^https?:\/\//, '')}</p></div>
                 </a>
               )}
               <a href={`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lng}`} target="_blank" rel="noreferrer" className="flex items-center gap-4 group">
@@ -338,25 +338,25 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                 </div>
                 <div className="flex-1">
                   <p className="text-xs text-slate-500 mb-0.5">Directions</p>
-                  <p className="text-[#6200FF] font-medium group-hover:underline">Open in Google Maps</p>
+                  <p className="text-[#6200FF] font-medium group-hover:underline">{t('det.openMaps')}</p>
                 </div>
               </a>
               <button
                 onClick={() => {
-                  if (!authApi.getToken()) { flash('Sign in to claim this business'); return; }
+                  if (!authApi.getToken()) { flash(t('det.tSignIn')); return; }
                   placesApi.claim(locationId)
-                    .then(() => flash('Claim submitted — our team will verify and approve it'))
+                    .then(() => flash(t('det.tClaimSent')))
                     .catch((e: any) => flash(e?.message || 'Could not submit claim'));
                 }}
                 className="w-full mt-1 flex items-center justify-center gap-2 py-3 rounded-2xl border border-[#6200FF]/30 bg-[#f7f3ff] text-[#6200FF] text-sm font-semibold hover:bg-[#efe6ff] transition-colors">
-                <CheckCircle size={16} /> Own this business? Claim it
+                <CheckCircle size={16} /> {t('det.claim')}
               </button>
             </div>
 
             {/* Photo Gallery — real photos only (place + community photos) */}
             {galleryImages.length > 1 && (
             <div>
-              <h3 className="font-semibold text-slate-900 mb-4">Gallery</h3>
+              <h3 className="font-semibold text-slate-900 mb-4">{t('det.gallery')}</h3>
               <div className="relative rounded-3xl overflow-hidden shadow-md group">
                 <div className="relative h-64 sm:h-80 bg-slate-100 cursor-zoom-in" onClick={() => setLightbox({ imgs: galleryImages, idx: galleryIdx })}>
                   <AnimatePresence mode="wait">
@@ -447,9 +447,9 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
 
             {/* Write a review */}
             <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm">
-              <h3 className="font-display font-bold text-[#2b2521] mb-3">Write a Review</h3>
+              <h3 className="font-display font-bold text-[#2b2521] mb-3">{t('det.write')}</h3>
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-sm text-slate-600 font-medium">Your rating:</span>
+                <span className="text-sm text-slate-600 font-medium">{t('det.yourRating')}</span>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <motion.button key={star} whileTap={{ scale: 0.9 }} onClick={() => setUserRating(star)} className="hover:scale-110 transition-transform">
@@ -459,7 +459,7 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                 </div>
               </div>
               <textarea
-                placeholder="Share your experience…"
+                placeholder={t('det.expPh')}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-[#2b2521] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6200FF] focus:border-transparent resize-none mb-3"
@@ -491,15 +491,15 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm">
                 <MessageSquare size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input value={reviewSearch} onChange={(e) => setReviewSearch(e.target.value)} placeholder="Search comments…"
+                <input value={reviewSearch} onChange={(e) => setReviewSearch(e.target.value)} placeholder={t('det.searchComments')}
                   className="w-full pl-10 pr-4 py-3 bg-transparent text-sm text-[#2b2521] placeholder:text-slate-400 focus:outline-none rounded-2xl" />
               </div>
               <select value={reviewSort} onChange={(e) => setReviewSort(e.target.value as any)}
                 className="px-4 py-3 rounded-2xl bg-white border border-slate-200 shadow-sm text-sm font-medium text-[#2b2521] focus:outline-none focus:ring-2 focus:ring-[#6200FF] shrink-0">
-                <option value="recent">Most recent</option>
-                <option value="high">Highest rated</option>
-                <option value="low">Lowest rated</option>
-                <option value="liked">Most liked</option>
+                <option value="recent">{t('det.sortRecent')}</option>
+                <option value="high">{t('det.sortHigh')}</option>
+                <option value="low">{t('det.sortLow')}</option>
+                <option value="liked">{t('det.sortLiked')}</option>
               </select>
             </div>
 
@@ -540,7 +540,7 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
                         <button onClick={() => toggleLike(review.id)} className="flex items-center gap-1.5 text-sm font-medium transition-colors" style={{ color: review.liked ? '#6200FF' : '#94a3b8' }}>
                           <ThumbsUp size={15} className={review.liked ? 'fill-[#6200FF]' : ''} /> {review.likes}
                         </button>
-                        <button onClick={() => { if (authApi.getToken()) reviewsApi.report(review.id, 'inappropriate').catch(() => {}); flash('Comment reported — our team will review it'); }} className="flex items-center gap-1.5 text-sm font-medium text-slate-400 hover:text-rose-500 transition-colors">
+                        <button onClick={() => { if (authApi.getToken()) reviewsApi.report(review.id, 'inappropriate').catch(() => {}); flash(t('det.tCommentReported')); }} className="flex items-center gap-1.5 text-sm font-medium text-slate-400 hover:text-rose-500 transition-colors">
                           <Flag size={15} /> Report
                         </button>
                         <button onClick={() => { setReplyOpen(replyOpen === review.id ? null : review.id); setReplyText(''); }} className="flex items-center gap-1.5 text-sm font-medium text-slate-400 hover:text-[#6200FF] transition-colors">
