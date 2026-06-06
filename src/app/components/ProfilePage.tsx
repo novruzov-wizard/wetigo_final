@@ -3,7 +3,7 @@ import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 import { profile as profileApi, auth as authApi, push as pushApi } from '../lib/api';
-import { enablePush, disablePush, pushSupported, showLocalNotification } from '../lib/push';
+import { enablePush, disablePush, pushSupported, showLocalNotification, ensurePush } from '../lib/push';
 import { LANGUAGES, type Lang } from '../i18n';
 import { COUNTRIES } from '../data/places';
 
@@ -48,6 +48,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
   const sendTestPush = async () => {
     setTestingPush(true);
     try {
+      await ensurePush();           // make sure THIS device is registered on the backend first
       const r = await pushApi.test();
       if (r.sent > 0) flash(t('toast.pushTestOk').replace('{n}', String(r.sent)));
       else if (r.subscriptions === 0) flash(t('toast.pushNoSub'));
@@ -124,6 +125,13 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
     }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // Self-heal: if notifications are on and permission granted, make sure the backend
+  // has this device's subscription (covers subscriptions lost to an earlier expired token).
+  useEffect(() => {
+    if (authApi.getToken()) ensurePush().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const onAvatar = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (f) { setAvatarFile(f); setDraft((d) => ({ ...d, avatar: URL.createObjectURL(f) })); }

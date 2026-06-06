@@ -52,6 +52,32 @@ export async function showLocalNotification(title: string, body: string): Promis
   try { new Notification(title, opts); } catch { /* ignore */ }
 }
 
+/**
+ * Idempotently make sure the backend has THIS device's push subscription.
+ * Safe to call on load and before sending a test — fixes cases where the
+ * original subscribe POST failed (e.g. an expired token) so the device was
+ * "enabled" in the browser but unknown to the server.
+ */
+export async function ensurePush(): Promise<boolean> {
+  try {
+    if (!pushSupported() || Notification.permission !== 'granted') return false;
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      const { publicKey } = await push.key();
+      if (!publicKey) return false;
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      });
+    }
+    await push.subscribe(sub.toJSON());   // upsert on the backend
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function disablePush(): Promise<void> {
   if (!pushSupported()) return;
   const reg = await navigator.serviceWorker.ready;
