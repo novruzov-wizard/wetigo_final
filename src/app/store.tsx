@@ -74,7 +74,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       .catch(() => { /* keep seed */ })
       .finally(() => setPlacesLoading(false));
   };
-  useEffect(() => { refreshPlaces(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => {
+    refreshPlaces();
+    // Refresh discovery when the user returns to the tab/app so newly added or
+    // approved places appear without a manual hard reload.
+    let last = Date.now();
+    const onFocus = () => { if (Date.now() - last > 20000) { last = Date.now(); refreshPlaces(); } };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) onFocus(); });
+    return () => window.removeEventListener('focus', onFocus);
+    /* eslint-disable-next-line */
+  }, []);
 
   // If logged in, load favorites from the backend.
   const refreshFavorites = () => {
