@@ -51,6 +51,13 @@ export default function App() {
       });
   }, []);
 
+  // The API layer fires this when a refresh fails (dead session) → return to login.
+  useEffect(() => {
+    const onLogout = () => { authApi.setSession(null); setAuthed(false); setCurrentPage('home'); };
+    window.addEventListener('wetigo:logout', onLogout);
+    return () => window.removeEventListener('wetigo:logout', onLogout);
+  }, []);
+
   // OAuth callback: backend redirects to /auth/callback#token=...&name=...&email=...
   useEffect(() => {
     if (!window.location.hash.includes('token=')) return;

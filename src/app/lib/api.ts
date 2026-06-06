@@ -63,6 +63,10 @@ async function request<T>(path: string, options: RequestInit = {}, _retry = fals
   if ((res.status === 401 || res.status === 403) && !_retry && REFRESH && !path.startsWith('/auth/refresh')
       && !(options.body instanceof FormData)) {
     if (await doRefresh()) return request<T>(path, options, true);
+    // Refresh failed → the session is dead; clear it so the app prompts a fresh login.
+    TOKEN = null; REFRESH = null;
+    try { localStorage.removeItem('wetigo:token'); localStorage.removeItem('wetigo:refresh'); } catch { /* ignore */ }
+    try { window.dispatchEvent(new Event('wetigo:logout')); } catch { /* ignore */ }
   }
   if (!res.ok) {
     const msg = await res.json().catch(() => ({}));
