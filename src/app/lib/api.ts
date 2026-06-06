@@ -59,7 +59,9 @@ async function request<T>(path: string, options: RequestInit = {}, _retry = fals
     },
   });
   // Access token expired → transparently refresh once and retry.
-  if (res.status === 401 && !_retry && REFRESH && !path.startsWith('/auth/refresh')) {
+  // This backend returns 403 (not 401) for an expired/invalid access token, so refresh on both.
+  if ((res.status === 401 || res.status === 403) && !_retry && REFRESH && !path.startsWith('/auth/refresh')
+      && !(options.body instanceof FormData)) {
     if (await doRefresh()) return request<T>(path, options, true);
   }
   if (!res.ok) {
