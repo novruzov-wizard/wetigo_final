@@ -58,12 +58,24 @@ export function Topbar({ title, emoji, query, onQuery, onSubmit, onMenu, onNavig
     }).catch(() => { /* ignore */ });
   };
 
-  // load real notifications when logged in, and poll periodically
+  // load real notifications when logged in; poll often + refresh on focus so the
+  // unread count updates dynamically as new notifications arrive.
   useEffect(() => {
     load();
-    const id = window.setInterval(load, 60000);
+    const id = window.setInterval(load, 20000);
+    const onFocus = () => { if (!document.hidden) load(); };
+    const onSwMsg = (e: MessageEvent) => { if (e.data && e.data.type === 'wetigo:notif') load(); };
     window.addEventListener('wetigo:notifications', load);
-    return () => { window.clearInterval(id); window.removeEventListener('wetigo:notifications', load); };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onFocus);
+    navigator.serviceWorker?.addEventListener('message', onSwMsg);
+    return () => {
+      window.clearInterval(id);
+      window.removeEventListener('wetigo:notifications', load);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onFocus);
+      navigator.serviceWorker?.removeEventListener('message', onSwMsg);
+    };
   }, []);
 
   const unread = notifs.filter((n) => !n.read).length;

@@ -2,7 +2,7 @@
 // Strategy: ONLY handle same-origin navigations + same-origin /assets.
 // It NEVER intercepts cross-origin requests (images, avatars, fonts) or /api —
 // the browser handles those natively. This avoids any chance of broken images.
-const CACHE = 'wetigo-v3';
+const CACHE = 'wetigo-v4';
 const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {
@@ -69,7 +69,12 @@ self.addEventListener('push', (e) => {
     data: { url: data.url || '/' },
     tag: data.tag || 'wetigo',
   };
-  e.waitUntil(self.registration.showNotification(title, options));
+  e.waitUntil((async () => {
+    await self.registration.showNotification(title, options);
+    // Tell any open tabs to refresh the in-app bell immediately.
+    const list = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    list.forEach((c) => { try { c.postMessage({ type: 'wetigo:notif' }); } catch (_) {} });
+  })());
 });
 
 self.addEventListener('notificationclick', (e) => {
