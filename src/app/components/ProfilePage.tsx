@@ -21,6 +21,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
   const { user, updateUser, favorites, lang, setLang, t, country, setCountry } = useStore();
   const [notifications, setNotifications] = useState(false);
   const [emailUpdates, setEmailUpdates] = useState(false);
+  const [pushStatus, setPushStatus] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -69,11 +70,11 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
         try { await showLocalNotification(t('notif.enabledTitle'), t('notif.enabledBody')); } catch { /* ignore */ }
         // Send a REAL server web-push and report the actual delivery result.
         try {
+          await ensurePush();
           const r = await pushApi.test();
           window.dispatchEvent(new Event('wetigo:notifications'));
-          if (r.sent > 0) flash(t('toast.pushTestOk').replace('{n}', String(r.sent)));
-          else if (r.error) flash(t('toast.pushTestFail').replace('{e}', r.error));
-        } catch { /* ignore */ }
+          setPushStatus(`devices: ${r.subscriptions} · sent: ${r.sent} · failed: ${r.failed}${r.error ? ' · ' + r.error : ''}`);
+        } catch (e: any) { setPushStatus('error: ' + (e?.message || 'unknown')); }
       } else if (res.reason === 'denied') { flash(t('toast.pushBlocked')); }
       else { setNotifications(true); persistNotif(true); flash(t('toast.pushOn')); }
     } catch { flash(t('toast.pushBlocked')); }
@@ -312,6 +313,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
               <div>
                 <span className="text-slate-900 font-medium block">{t('settings.push')}</span>
                 <span className="text-xs text-slate-500">{t('settings.pushDesc')}</span>
+                {pushStatus && <span className="text-[11px] text-slate-400 block mt-0.5">{pushStatus}</span>}
               </div>
             </div>
             <button onClick={togglePush} className="relative inline-block w-12 h-6 shrink-0" aria-label="toggle notifications">
