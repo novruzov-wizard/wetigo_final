@@ -1,4 +1,4 @@
-import { Crown, MapPin, Star, Heart, Bell, LogOut, Plus, Globe, Languages, Pencil, Camera, X, Check, Trash2, Loader2 } from 'lucide-react';
+import { Crown, MapPin, Star, Heart, Bell, LogOut, Plus, Globe, Languages, Pencil, Camera, X, Check, Trash2, Loader2, Cake } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
@@ -117,7 +117,7 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
     if (!authApi.getToken()) return;
     authApi.me().then((u: any) => {
       if (u) {
-        updateUser({ name: u.name ?? draft.name, email: u.email ?? draft.email, bio: u.bio ?? '', avatar: u.avatar ?? draft.avatar });
+        updateUser({ name: u.name ?? draft.name, email: u.email ?? draft.email, bio: u.bio ?? '', avatar: u.avatar ?? draft.avatar, birthDate: u.birthDate ?? undefined });
         if (typeof u.notifications === 'boolean') setNotifications(u.notifications);
         if (typeof u.emailUpdates === 'boolean') setEmailUpdates(u.emailUpdates);
       }
@@ -181,6 +181,9 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
                 {isPremium && <span className="flex items-center gap-1 bg-amber-400 text-amber-900 text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0"><Crown size={11} /> {plan === 'business' ? 'Business' : 'Pro'}</span>}
               </div>
               <p className="text-purple-100 text-sm truncate">{user.email}</p>
+              {user.birthDate && (
+                <p className="text-purple-200 text-xs mt-1 flex items-center gap-1.5"><Cake size={12} /> {new Date(user.birthDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+              )}
               <p className="text-purple-200 text-xs mt-1 line-clamp-1">{user.bio}</p>
             </div>
             <button onClick={openEdit} className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-xl text-white text-sm font-semibold px-4 py-2 rounded-xl border border-white/30 transition-colors shrink-0">

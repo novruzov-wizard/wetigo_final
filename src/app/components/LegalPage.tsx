@@ -41,40 +41,52 @@ function H({ children }: { children: React.ReactNode }) {
 function Privacy() {
   return (
     <>
-      <p>Wetigo (“we”, “our”, “us”) operates the website and progressive web app at wetigo.online — a platform to discover places, read and write reviews, and save favourites. This Privacy Policy explains what data we collect, why, and your choices. We are committed to protecting your privacy and never sell your personal data.</p>
+      <p>This Privacy Policy explains how Wetigo (“Wetigo”, “we”, “our” or “us”) collects, uses, shares and protects personal data when you use the Wetigo website and progressive web application at wetigo.online and related services (the “Service”). Wetigo is the data controller for the personal data described here. We are committed to protecting your privacy and we never sell your personal data.</p>
 
-      <H>Information we collect</H>
+      <H>1. Information we collect</H>
       <ul className="list-disc pl-5 space-y-1">
-        <li><b>Account data</b> you provide: name, email address, password (stored only as a secure hash), and optionally a profile photo, birth date and country.</li>
-        <li><b>Content you create</b>: reviews, ratings, photos you upload, places you submit, and favourites.</li>
-        <li><b>Technical data</b>: basic device/browser info and, only if you grant permission, your approximate location (to show nearby places) and push-notification subscription.</li>
+        <li><b>Account information</b> you provide when registering: name, email address, password (kept only as a one-way cryptographic hash — we never store it in readable form), and optionally a profile photo, date of birth and country.</li>
+        <li><b>Content you create</b>: reviews, ratings, photos, places you submit, replies and favourites.</li>
+        <li><b>Usage and device data</b>: basic technical information such as browser type, approximate device information and interactions needed to operate and secure the Service.</li>
+        <li><b>Optional permissions</b>: with your consent, your approximate location (to show places near you) and a push-notification subscription (to deliver notifications to your device).</li>
       </ul>
 
-      <H>How we use your data</H>
+      <H>2. How we use your data</H>
       <ul className="list-disc pl-5 space-y-1">
-        <li>To create and secure your account and authenticate you.</li>
-        <li>To show relevant places, your reviews, favourites and activity.</li>
-        <li>To send service emails (verification codes, and — only if you opt in — notifications about your places, reviews and replies).</li>
-        <li>To prevent abuse, spam and fraud, and to comply with the law.</li>
+        <li>To create, operate and secure your account and authenticate you.</li>
+        <li>To provide core features: discovering places, publishing your reviews, favourites and activity.</li>
+        <li>To send essential service messages (such as email verification and security codes).</li>
+        <li>To send optional notifications (email and/or push) about your places, reviews, replies and activity — only where you have enabled them.</li>
+        <li>To detect, prevent and address fraud, abuse, spam and violations of our Terms.</li>
+        <li>To comply with legal obligations and enforce our agreements.</li>
       </ul>
 
-      <H>Email & notifications</H>
-      <p>We send verification codes during sign-up. Optional notification emails and web-push notifications are sent only after you turn them on, and you can turn them off at any time from your profile settings.</p>
+      <H>3. Legal bases for processing</H>
+      <p>Where applicable law (such as the GDPR) requires it, we process personal data on the following legal bases: performance of our contract with you (to provide the Service); your consent (for optional location and notifications, which you may withdraw at any time); our legitimate interests (to keep the Service safe, functional and improved); and compliance with legal obligations.</p>
 
-      <H>Third-party services</H>
-      <p>We use trusted processors strictly to operate the service: hosting (Render, Cloudflare), database (Neon/PostgreSQL), transactional email (Brevo), and place data from open sources such as OpenStreetMap. These providers process data only on our behalf.</p>
+      <H>4. Sharing your data</H>
+      <p>We do not sell your personal data. We share it only: (a) with vetted third-party service providers who process data strictly on our behalf and under contract to operate the Service (for example, infrastructure, secure storage and email delivery); (b) where required by law, legal process, or to protect the rights, safety and security of Wetigo, our users or the public; and (c) in connection with a business transfer (such as a merger or acquisition), subject to this Policy. Reviews, ratings, photos and place information you post are, by their nature, publicly visible within the Service.</p>
 
-      <H>Data retention & security</H>
-      <p>We keep your data while your account is active. Passwords are hashed, traffic is served over HTTPS, and access is restricted. You can request deletion of your account and associated personal data at any time.</p>
+      <H>5. International transfers</H>
+      <p>Your data may be processed in countries other than your own. Where we transfer personal data internationally, we use appropriate safeguards consistent with applicable data-protection law.</p>
 
-      <H>Your rights</H>
-      <p>You may access, correct, export or delete your personal data, and withdraw consent for optional processing (e.g. notifications or location). To exercise these rights, contact us at the email below.</p>
+      <H>6. Cookies & local storage</H>
+      <p>We use only the cookies and local browser storage necessary to keep you signed in and remember your preferences (such as language and country). We do not use them to sell your data.</p>
 
-      <H>Children</H>
-      <p>Wetigo is not directed to children under 13 (or the minimum age in your country). We do not knowingly collect their data.</p>
+      <H>7. Data retention</H>
+      <p>We keep your personal data for as long as your account is active or as needed to provide the Service, then delete or anonymise it unless a longer retention period is required by law. You can delete your account and associated personal data at any time from Settings.</p>
 
-      <H>Changes</H>
-      <p>We may update this policy and will revise the “last updated” date above. Material changes will be communicated in-app or by email.</p>
+      <H>8. Security</H>
+      <p>We apply technical and organisational measures to protect your data, including encryption of traffic over HTTPS, hashing of passwords, and restricted, role-based access. No method of transmission or storage is completely secure, but we work to protect your information and review our practices regularly.</p>
+
+      <H>9. Your rights</H>
+      <p>Depending on your location, you may have the right to access, correct, export, restrict or delete your personal data, to object to certain processing, and to withdraw consent for optional processing (e.g. notifications or location). You also have the right to lodge a complaint with your local data-protection authority. To exercise any of these rights, contact us using the details below.</p>
+
+      <H>10. Children</H>
+      <p>The Service is not directed to children under 13 (or the higher minimum age required in your country). We do not knowingly collect personal data from children below that age; if you believe a child has provided us data, contact us and we will delete it.</p>
+
+      <H>11. Changes to this Policy</H>
+      <p>We may update this Policy from time to time and will revise the “last updated” date above. Material changes will be communicated within the Service or by email where appropriate. Continued use after an update constitutes acceptance of the revised Policy.</p>
     </>
   );
 }
@@ -82,36 +94,46 @@ function Privacy() {
 function Terms() {
   return (
     <>
-      <p>These Terms of Service govern your use of Wetigo at wetigo.online. By creating an account or using the service, you agree to these terms.</p>
+      <p>These Terms of Service (“Terms”) form a binding agreement between you and Wetigo and govern your access to and use of the Wetigo website, progressive web application at wetigo.online and related services (the “Service”). By creating an account or using the Service, you agree to these Terms and to our Privacy Policy. If you do not agree, do not use the Service.</p>
 
-      <H>Your account</H>
-      <p>You must provide accurate information and keep your password secure. You are responsible for activity under your account. You must be old enough to form a binding contract in your country.</p>
+      <H>1. Eligibility & account</H>
+      <p>You must be at least 13 years old (or the higher minimum age required in your country) and able to form a binding contract. You agree to provide accurate information, keep your credentials confidential, and accept responsibility for all activity under your account. Notify us immediately of any unauthorised use.</p>
 
-      <H>Acceptable use</H>
+      <H>2. Acceptable use</H>
       <ul className="list-disc pl-5 space-y-1">
-        <li>Don’t post false, misleading, illegal, hateful or infringing content.</li>
-        <li>Don’t submit fake reviews, spam, or attempt to manipulate ratings.</li>
-        <li>Don’t attempt to disrupt, reverse-engineer, or gain unauthorised access to the service.</li>
-        <li>Only submit places and photos you have the right to share.</li>
+        <li>Do not post content that is false, misleading, unlawful, defamatory, hateful, harassing, obscene or that infringes others’ rights.</li>
+        <li>Do not submit fake, incentivised or manipulated reviews or ratings, or spam.</li>
+        <li>Do not impersonate others or misrepresent your affiliation with a place or business.</li>
+        <li>Do not attempt to disrupt, overload, reverse-engineer, scrape, or gain unauthorised access to the Service or its systems.</li>
+        <li>Only upload places, photos and content you own or have the right to share.</li>
       </ul>
 
-      <H>Your content</H>
-      <p>You keep ownership of the reviews, photos and place information you submit. You grant Wetigo a non-exclusive licence to host and display that content within the service. You’re responsible for what you post, and we may remove content that violates these terms.</p>
+      <H>3. User content & licence</H>
+      <p>You retain ownership of the reviews, photos, place information and other content you submit (“User Content”). You grant Wetigo a worldwide, non-exclusive, royalty-free licence to host, store, reproduce, display and distribute your User Content for the purpose of operating, promoting and improving the Service. You are solely responsible for your User Content and represent that you have the rights to share it.</p>
 
-      <H>Reviews & moderation</H>
-      <p>Reviews must reflect genuine experiences. We may hide or remove reported content and suspend accounts that abuse the platform.</p>
+      <H>4. Reviews & moderation</H>
+      <p>Reviews must reflect genuine, first-hand experiences. We may review, hide, remove or refuse content and may suspend, temporarily block, place under review (quarantine) or terminate accounts that violate these Terms or that post repeated inappropriate content, in accordance with our moderation process. Repeated violations may lead to escalating restrictions.</p>
 
-      <H>Place ownership claims</H>
-      <p>Business owners may claim and manage their listing. Claims are reviewed before approval; submitting false ownership claims may result in removal and account action.</p>
+      <H>5. Business listings & ownership claims</H>
+      <p>Business owners may claim and manage a listing. Submissions and ownership claims are reviewed before approval, and submitting false information or fraudulent claims may result in removal and account action. Optional paid promotion or subscription features, where offered, are subject to the terms and pricing presented at purchase.</p>
 
-      <H>Service availability</H>
-      <p>We work to keep Wetigo reliable, but the service is provided “as is” without warranties. We are not liable for indirect or incidental damages to the extent permitted by law. Place information from third-party sources may be incomplete or inaccurate.</p>
+      <H>6. Intellectual property</H>
+      <p>The Service, including its name, logo, design and software, is owned by Wetigo and protected by intellectual-property laws. These Terms grant you a limited, revocable, non-transferable licence to use the Service for its intended purpose; no other rights are granted.</p>
 
-      <H>Termination</H>
-      <p>You may stop using Wetigo and delete your account at any time. We may suspend or terminate accounts that breach these terms.</p>
+      <H>7. Disclaimers</H>
+      <p>The Service and all content are provided on an “as is” and “as available” basis without warranties of any kind, express or implied, to the maximum extent permitted by law. Place information and user reviews may be incomplete, outdated or inaccurate, and do not constitute endorsements by Wetigo.</p>
 
-      <H>Changes</H>
-      <p>We may update these terms and will revise the “last updated” date above. Continued use after changes means you accept the updated terms.</p>
+      <H>8. Limitation of liability</H>
+      <p>To the maximum extent permitted by law, Wetigo and its operators shall not be liable for any indirect, incidental, special, consequential or punitive damages, or for any loss of data, profits or goodwill, arising from your use of or inability to use the Service.</p>
+
+      <H>9. Termination</H>
+      <p>You may stop using the Service and delete your account at any time. We may suspend or terminate access if you breach these Terms or to protect the Service and its users. Provisions that by their nature should survive termination will continue to apply.</p>
+
+      <H>10. Changes to the Service & Terms</H>
+      <p>We may modify or discontinue features at any time. We may also update these Terms and will revise the “last updated” date above; material changes will be communicated within the Service or by email where appropriate. Continued use after an update constitutes acceptance of the revised Terms.</p>
+
+      <H>11. Contact</H>
+      <p>Questions about these Terms can be sent to us using the contact details below.</p>
     </>
   );
 }

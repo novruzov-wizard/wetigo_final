@@ -8,6 +8,7 @@ export interface UserProfile {
   email: string;
   bio: string;
   avatar: string;
+  birthDate?: string;
 }
 
 interface Store {
