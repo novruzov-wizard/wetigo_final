@@ -11,6 +11,18 @@
 
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api';
 
+// One-time auth reset: older builds used rotating refresh tokens that could become
+// permanently dead (causing stuck 403s). Bump this to force every existing client to
+// drop stale tokens once and re-login cleanly with the new non-rotating system.
+const AUTH_VERSION = '2';
+try {
+  if (localStorage.getItem('wetigo:authv') !== AUTH_VERSION) {
+    localStorage.removeItem('wetigo:token');
+    localStorage.removeItem('wetigo:refresh');
+    localStorage.setItem('wetigo:authv', AUTH_VERSION);
+  }
+} catch { /* ignore */ }
+
 let TOKEN: string | null = (() => {
   try { return localStorage.getItem('wetigo:token'); } catch { return null; }
 })();
