@@ -44,6 +44,18 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
     } catch (e: any) { flash(e?.message || 'Error'); } finally { setAppealBusy(false); }
   };
 
+  const [testingPush, setTestingPush] = useState(false);
+  const sendTestPush = async () => {
+    setTestingPush(true);
+    try {
+      const r = await pushApi.test();
+      if (r.sent > 0) flash(t('toast.pushTestOk').replace('{n}', String(r.sent)));
+      else if (r.subscriptions === 0) flash(t('toast.pushNoSub'));
+      else flash(t('toast.pushTestFail').replace('{e}', r.error || 'unknown'));
+      window.dispatchEvent(new Event('wetigo:notifications'));
+    } catch (e: any) { flash(e?.message || 'Error'); } finally { setTestingPush(false); }
+  };
+
   const deleteAccount = async () => {
     setDeleting(true);
     try { await profileApi.deleteAccount(); onSignOut(); }
@@ -67,8 +79,13 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
         setNotifications(true); persistNotif(true); flash(t('toast.pushOn'));
         // Immediate branded confirmation on this device.
         try { await showLocalNotification(t('notif.enabledTitle'), t('notif.enabledBody')); } catch { /* ignore */ }
-        // Also ask the server to send a real web-push (works once VAPID is configured).
-        try { await pushApi.test(); window.dispatchEvent(new Event('wetigo:notifications')); } catch { /* ignore */ }
+        // Send a REAL server web-push and report the actual delivery result.
+        try {
+          const r = await pushApi.test();
+          window.dispatchEvent(new Event('wetigo:notifications'));
+          if (r.sent > 0) flash(t('toast.pushTestOk').replace('{n}', String(r.sent)));
+          else if (r.error) flash(t('toast.pushTestFail').replace('{e}', r.error));
+        } catch { /* ignore */ }
       } else if (res.reason === 'denied') { flash(t('toast.pushBlocked')); }
       else { setNotifications(true); persistNotif(true); flash(t('toast.pushOn')); }
     } catch { flash(t('toast.pushBlocked')); }
@@ -299,10 +316,17 @@ export function ProfilePage({ onShowSubscription, onAddLocation, onSignOut, onSe
                 <span className="text-xs text-slate-500">{t('settings.pushDesc')}</span>
               </div>
             </div>
-            <button onClick={togglePush} className="relative inline-block w-12 h-6 shrink-0" aria-label="toggle notifications">
-              <div className="w-12 h-6 rounded-full transition-all duration-300" style={{ background: notifications ? '#6200FF' : '#e2e8f0' }}></div>
-              <div className="absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-md" style={{ left: notifications ? 28 : 4 }}></div>
-            </button>
+            <div className="flex items-center gap-3 shrink-0">
+              {notifications && (
+                <button onClick={sendTestPush} disabled={testingPush} className="text-xs font-semibold text-[#6200FF] hover:underline disabled:opacity-50">
+                  {testingPush ? '…' : t('settings.testPush')}
+                </button>
+              )}
+              <button onClick={togglePush} className="relative inline-block w-12 h-6" aria-label="toggle notifications">
+                <div className="w-12 h-6 rounded-full transition-all duration-300" style={{ background: notifications ? '#6200FF' : '#e2e8f0' }}></div>
+                <div className="absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-md" style={{ left: notifications ? 28 : 4 }}></div>
+              </button>
+            </div>
           </div>
 
           {/* Email updates */}

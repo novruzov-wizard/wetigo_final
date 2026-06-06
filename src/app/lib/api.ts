@@ -188,7 +188,7 @@ export const push = {
   key: () => get<{ publicKey: string }>('/push/key'),
   subscribe: (sub: unknown) => post<void>('/push/subscribe', sub),
   unsubscribe: (endpoint: string) => post<void>('/push/unsubscribe', { endpoint }),
-  test: () => post<void>('/push/test'),
+  test: () => post<{ subscriptions: number; sent: number; failed: number; error: string; pushConfigured: boolean }>('/push/test'),
 };
 
 // ---------------- Wetigo membership card ----------------

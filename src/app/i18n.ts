@@ -43,6 +43,7 @@ const en: Dict = {
   'settings.listLocation': 'List your location',
   'toast.country': 'Region updated',
   'toast.langChanged': 'Language changed',
+  'toast.pushTestOk': 'Test push sent to {n} device(s) ✓', 'toast.pushTestFail': 'Push failed: {e}', 'toast.pushNoSub': 'No device subscribed — enable notifications on this device first', 'settings.testPush': 'Send test',
   'toast.pushOn': 'Notifications enabled',
   'toast.pushOff': 'Notifications turned off',
   'toast.pushBlocked': 'Notifications blocked in your browser',
