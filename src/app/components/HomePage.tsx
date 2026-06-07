@@ -133,30 +133,24 @@ export function HomePage({ onSelectLocation, onCategorySelect, onSearch, onAddLo
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6">
         {/* ===== MAIN COLUMN ===== */}
         <div className="space-y-6 min-w-0">
-          {/* Hero banner */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#efe6ff] to-[#e3d4ff] p-7 sm:p-9 flex items-center justify-between gap-6">
-            <div className="relative z-10 max-w-md">
-              <span className="inline-flex items-center gap-1.5 bg-white/70 text-[#6200FF] text-xs font-bold px-3 py-1 rounded-full mb-3">
-                <Star size={12} className="fill-[#6200FF]" /> {t('home.badge')}
-              </span>
-              <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#2b2521] leading-tight mb-2">{t('home.heroTitle')}</h2>
-              <p className="text-sm text-[#6b6258] mb-5">{t('home.heroDesc')}</p>
-              <div className="flex flex-wrap gap-2.5">
-                <button onClick={() => onSearch('')}
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#6200FF] text-white text-sm font-semibold shadow-lg shadow-[#6200FF]/25 hover:bg-[#5400dd] transition-colors">
-                  <Search size={16} /> {t('home.exploreNow')}
-                </button>
-                <button onClick={onAddLocation}
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white text-[#2b2521] text-sm font-semibold border border-[#e3d4ff] hover:bg-[#faf7ff] transition-colors">
-                  {t('home.listBusiness')}
-                </button>
+          {/* Hero — clean greeting + big search */}
+          <div>
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="text-sm text-[#9a94a6] font-medium">{t('home.welcomeBack') || 'Welcome back'}</p>
+                <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-[#16151a] tracking-tight leading-[1.05] mt-1">
+                  {t('home.whereTo') || 'Where to go next?'}
+                </h2>
               </div>
+              <button onClick={onAddLocation} className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#6200FF] text-white text-sm font-semibold shadow-lg shadow-[#6200FF]/25 hover:bg-[#5400dd] transition-colors shrink-0">
+                <Plus size={16} /> {t('home.listBusiness')}
+              </button>
             </div>
-            <img
-              src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=300&fit=crop"
-              alt="Featured"
-              className="block w-24 h-24 sm:w-44 sm:h-32 object-cover rounded-2xl shadow-xl rotate-3 shrink-0"
-            />
+            <button onClick={() => onSearch('')}
+              className="mt-5 w-full flex items-center gap-3 bg-white border border-[#efecf5] rounded-2xl px-5 py-4 text-left text-[#a8a1b6] shadow-[0_10px_24px_-12px_rgba(40,20,80,0.18)] hover:border-[#d9cdf5] transition-colors">
+              <Search size={19} className="text-[#a8a1b6]" />
+              <span className="text-[15px]">{t('topbar.search')}</span>
+            </button>
           </div>
 
           {/* Categories — image carousel */}
@@ -193,6 +187,32 @@ export function HomePage({ onSelectLocation, onCategorySelect, onSearch, onAddLo
               })}
             </div>
           </div>
+
+          {/* Featured / Trending — big hero card */}
+          {places[0] && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-display text-lg font-bold text-[#2b2521]">{t('home.trending') || 'Trending now'}</h3>
+              </div>
+              <button onClick={() => onSelectLocation(places[0].id)} className="block w-full relative rounded-[28px] overflow-hidden text-left"
+                style={{ boxShadow: '0 22px 40px -16px rgba(40,20,80,0.4)' }}>
+                <img src={places[0].image} alt={places[0].name} className="w-full h-56 sm:h-64 object-cover" />
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(transparent 40%, rgba(8,6,18,0.8))' }} />
+                <span className="absolute top-4 left-4 inline-flex items-center gap-1.5 text-xs font-extrabold text-white px-3 py-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.28)' }}>TRENDING</span>
+                {places[0].rating > 0 && (
+                  <span className="absolute top-4 right-4 inline-flex items-center gap-1 bg-white/95 text-[#16151a] text-xs font-extrabold px-2.5 py-1 rounded-full"><Star size={12} className="fill-amber-500 text-amber-500" /> {places[0].rating}</span>
+                )}
+                <div className="absolute left-5 right-5 bottom-5 flex items-end justify-between text-white">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 text-xs opacity-90"><MapPin size={13} /> {places[0].city}</div>
+                    <h4 className="font-display text-2xl font-extrabold tracking-tight mt-1 line-clamp-1">{places[0].name}</h4>
+                    <p className="text-xs opacity-90 mt-0.5">{places[0].category}</p>
+                  </div>
+                  <span className="w-12 h-12 rounded-full bg-white text-[#16151a] flex items-center justify-center shrink-0 ml-3"><ArrowUpRight size={22} /></span>
+                </div>
+              </button>
+            </div>
+          )}
 
           {/* Place cards */}
           <div>

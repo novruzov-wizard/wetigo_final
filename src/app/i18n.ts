@@ -53,6 +53,7 @@ const en: Dict = {
   'home.heroDesc': 'Real reviews, real ratings — discover the best spots near you and never wonder “where to go” again.',
   'home.exploreNow': 'Explore now',
   'home.listBusiness': 'List your business',
+  'home.welcomeBack': 'Welcome back', 'home.whereTo': 'Where to go next?', 'home.trending': 'Trending now',
   'home.browse': 'Browse by category',
   'home.seeAll': 'See all',
   'home.popular': 'Popular places',
