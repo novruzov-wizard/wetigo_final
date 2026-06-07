@@ -1,5 +1,5 @@
 import { Search, Heart, Plus, Star, MapPin, ArrowUpRight, ChevronRight, Navigation, Compass } from 'lucide-react';
-import { CATEGORIES_WITH_ALL } from '../data/categories';
+import { CATEGORIES_WITH_ALL, CATEGORIES } from '../data/categories';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
@@ -159,32 +159,34 @@ export function HomePage({ onSelectLocation, onCategorySelect, onSearch, onAddLo
             />
           </div>
 
-          {/* Categories */}
+          {/* Categories — image carousel */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display text-lg font-bold text-[#2b2521]">{t('home.browse')}</h3>
               <button onClick={() => onCategorySelect('all')} className="text-sm font-semibold text-[#6200FF] flex items-center gap-1">{t('home.seeAll')} <ChevronRight size={15} /></button>
             </div>
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {categories.map((cat) => {
+            <div className="flex gap-3.5 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0" style={{ scrollbarWidth: 'none' }}>
+              {CATEGORIES.map((cat, idx) => {
                 const Icon = cat.icon;
-                const isActive = activeCat === cat.id;
+                const n = countFor(cat.id);
+                const featured = idx === 0;
                 return (
                   <motion.button
                     key={cat.id}
-                    whileHover={{ y: -3 }}
+                    whileTap={{ scale: 0.97 }}
                     onClick={() => { setActiveCat(cat.id); onCategorySelect(cat.id); }}
-                    className="shrink-0 w-[112px] rounded-2xl border p-3.5 flex flex-col items-start gap-2.5 transition-all"
-                    style={isActive
-                      ? { backgroundColor: '#fff', borderColor: '#6200FF', boxShadow: '0 10px 24px -10px rgba(98,0,255,0.4)' }
-                      : { backgroundColor: '#fff', borderColor: '#eceae6' }}
+                    className="relative shrink-0 rounded-[24px] overflow-hidden text-left"
+                    style={{ width: featured ? 168 : 138, height: featured ? 196 : 180, boxShadow: `0 ${featured ? 20 : 14}px ${featured ? 36 : 26}px -12px rgba(40,20,80,${featured ? 0.4 : 0.3})` }}
                   >
-                    <span className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: cat.tint }}>
-                      <Icon size={20} style={{ color: cat.fg }} />
+                    <img src={cat.image} alt={cat.name} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+                    <div className="absolute inset-0" style={{ background: 'linear-gradient(transparent 32%, rgba(8,6,18,0.82))' }} />
+                    <span className="absolute top-3 left-3 w-9 h-9 rounded-xl flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.16)', backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.28)' }}>
+                      <Icon size={17} />
                     </span>
-                    <div className="text-left">
-                      <p className="text-sm font-semibold" style={{ color: isActive ? '#6200FF' : '#2b2521' }}>{cat.name}</p>
-                      <p className="text-xs text-[#a89a8b]">{cat.count} {t('common.places')}</p>
+                    {featured && <span className="absolute top-3 right-3 text-[9px] font-extrabold tracking-wide text-white px-2.5 py-1 rounded-full" style={{ background: '#6200FF' }}>HOT</span>}
+                    <div className="absolute left-3.5 bottom-3.5 text-white">
+                      <p className="font-bold leading-tight" style={{ fontSize: featured ? 17 : 15 }}>{cat.name}</p>
+                      <p className="text-[11px] opacity-90 mt-0.5">{n} {t('common.places')}</p>
                     </div>
                   </motion.button>
                 );
