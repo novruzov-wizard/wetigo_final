@@ -1,61 +1,36 @@
-import { Home, Search, Heart, MessageCircle, User } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Home, Compass, Heart, User, Plus } from 'lucide-react';
 
 interface BottomNavProps {
   active: string;
   onNavigate: (page: string) => void;
+  onAdd: () => void;
 }
 
-export function BottomNav({ active, onNavigate }: BottomNavProps) {
-  const items = [
-    { id: 'home', icon: Home, label: 'Home' },
-    { id: 'search', icon: Search, label: 'Explore' },
-    { id: 'favorites', icon: Heart, label: 'Saved' },
-    { id: 'chat', icon: MessageCircle, label: 'Messages' },
-    { id: 'profile', icon: User, label: 'Profile' },
-  ];
-
+/** Mobile-only floating bottom navigation with a centre Add button. */
+export function BottomNav({ active, onNavigate, onAdd }: BottomNavProps) {
+  const item = (page: string, Icon: any, label: string) => {
+    const on = active === page;
+    return (
+      <button onClick={() => onNavigate(page)} className="flex-1 flex flex-col items-center gap-1 py-1" aria-label={label}>
+        <Icon size={22} strokeWidth={2} style={{ color: on ? '#6200FF' : '#c0bacb' }} className={on && page === 'favorites' ? 'fill-[#6200FF]' : ''} />
+        <span className="text-[10px] font-bold" style={{ color: on ? '#6200FF' : '#bdb7c9' }}>{label}</span>
+      </button>
+    );
+  };
   return (
-    <div className="absolute bottom-0 left-0 right-0 pb-5 z-50">
-      <div className="mx-4">
-        <div className="relative bg-white rounded-3xl border border-slate-100 shadow-2xl overflow-hidden">
-          <div className="relative flex items-center justify-around px-2 py-2.5">
-            {items.map((item) => {
-              const Icon = item.icon;
-              const isActive = active === item.id;
-              return (
-                <motion.button
-                  key={item.id}
-                  whileTap={{ scale: 0.88 }}
-                  onClick={() => onNavigate(item.id)}
-                  className="relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-300"
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute inset-0 rounded-2xl"
-                      style={{ backgroundColor: '#f0e6ff' }}
-                      transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                  <Icon
-                    size={21}
-                    className="relative z-10 transition-all duration-300"
-                    style={{ color: isActive ? '#6200FF' : '#94a3b8' }}
-                    strokeWidth={isActive ? 2.5 : 2}
-                  />
-                  <span
-                    className="relative z-10 text-[9px] font-semibold transition-all duration-300"
-                    style={{ color: isActive ? '#6200FF' : '#94a3b8' }}
-                  >
-                    {item.label}
-                  </span>
-                </motion.button>
-              );
-            })}
-          </div>
-        </div>
+    <nav className="lg:hidden fixed bottom-3 left-3 right-3 z-[800] h-[64px] bg-white rounded-[26px] flex items-center px-3"
+      style={{ boxShadow: '0 16px 36px rgba(20,10,40,.18), 0 0 0 1px rgba(0,0,0,.03)' }}>
+      {item('home', Home, 'Home')}
+      {item('search', Compass, 'Explore')}
+      <div className="flex-1 flex justify-center">
+        <button onClick={onAdd} aria-label="Add place"
+          className="w-14 h-14 rounded-full text-white flex items-center justify-center -mt-7"
+          style={{ background: 'linear-gradient(135deg,#6200FF,#9a5bff)', boxShadow: '0 12px 24px rgba(98,0,255,.45)' }}>
+          <Plus size={26} strokeWidth={2.4} />
+        </button>
       </div>
-    </div>
+      {item('favorites', Heart, 'Saved')}
+      {item('profile', User, 'You')}
+    </nav>
   );
 }

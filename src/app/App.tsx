@@ -11,6 +11,7 @@ import { ChatPage } from './components/ChatPage';
 import { ProfilePage } from './components/ProfilePage';
 import { LocationDetail } from './components/LocationDetail';
 import { LegalPage } from './components/LegalPage';
+import { BottomNav } from './components/BottomNav';
 import { SubscriptionPage } from './components/SubscriptionPage';
 import { PaymentPage } from './components/PaymentPage';
 import { AddLocationPage } from './components/AddLocationPage';
@@ -240,8 +241,12 @@ export default function App() {
           onMenu={() => setDrawerOpen(true)}
           onNavigate={navigate}
         />
-        <main className="flex-1">{renderContent()}</main>
+        <main className="flex-1 pb-24 lg:pb-0">{renderContent()}</main>
       </div>
+      {/* Mobile floating bottom navigation */}
+      {!selectedLocation && !showSubscription && !showAddLocation && !showManage && !checkoutPlan && (
+        <BottomNav active={currentPage} onNavigate={navigate} onAdd={() => setShowAddLocation(true)} />
+      )}
     </div>
   );
 }
