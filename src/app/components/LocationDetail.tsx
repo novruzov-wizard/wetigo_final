@@ -1,4 +1,4 @@
-import { ArrowLeft, Star, MapPin, Clock, Share2, MessageCircle, CheckCircle, ThumbsUp, ImagePlus, Send, CornerDownRight, X, ChevronLeft, ChevronRight, Flag, Inbox, MessageSquare, Navigation, Phone, Globe } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, Clock, Share2, MessageCircle, CheckCircle, ThumbsUp, ImagePlus, Send, CornerDownRight, X, ChevronLeft, ChevronRight, Flag, Inbox, MessageSquare, Navigation, Phone, Globe, Heart } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PLACES } from '../data/places';
@@ -29,7 +29,7 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
   const [reviewSort, setReviewSort] = useState<'recent' | 'high' | 'low' | 'liked'>('recent');
   const fileRef = useRef<HTMLInputElement | null>(null);
 
-  const { places: storePlaces, t, refreshPlaces } = useStore();
+  const { places: storePlaces, t, refreshPlaces, isFavorite, toggleFavorite } = useStore();
   const place = storePlaces.find((p) => p.id === locationId) ?? PLACES.find((p) => p.id === locationId) ?? PLACES[0];
 
   const heroImg = place.image || 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&h=600&fit=crop';
@@ -232,12 +232,22 @@ export function LocationDetail({ locationId, onBack, onStartChat }: LocationDeta
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
 
         <motion.button
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.92 }}
           onClick={onBack}
-          className="absolute top-6 left-5 bg-white/90 backdrop-blur-xl rounded-2xl p-3 shadow-2xl hover:bg-white transition-colors"
+          className="absolute top-6 left-5 w-11 h-11 rounded-full bg-white/95 backdrop-blur-xl flex items-center justify-center shadow-lg hover:bg-white transition-colors"
         >
-          <ArrowLeft size={24} className="text-slate-900" />
+          <ArrowLeft size={20} className="text-slate-900" />
         </motion.button>
+        <div className="absolute top-6 right-5 flex items-center gap-2.5">
+          <motion.button whileTap={{ scale: 0.92 }} onClick={handleShare}
+            className="w-11 h-11 rounded-full bg-white/95 backdrop-blur-xl flex items-center justify-center shadow-lg hover:bg-white transition-colors">
+            <Share2 size={18} className="text-slate-900" />
+          </motion.button>
+          <motion.button whileTap={{ scale: 0.92 }} onClick={() => toggleFavorite(locationId)}
+            className="w-11 h-11 rounded-full bg-white/95 backdrop-blur-xl flex items-center justify-center shadow-lg hover:bg-white transition-colors">
+            <Heart size={18} className={isFavorite(locationId) ? 'fill-rose-500 text-rose-500' : 'text-slate-900'} />
+          </motion.button>
+        </div>
 
         <div className="absolute bottom-8 inset-x-0 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between gap-4">
